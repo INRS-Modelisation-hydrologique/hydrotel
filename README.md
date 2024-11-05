@@ -1,2 +1,2 @@
-# hydrotel
-Hydrotel, a distributed hydrological model using ground and remote sensing data.
+# HYDROTEL
+HYDROTEL a spatially distributed hydrological model
