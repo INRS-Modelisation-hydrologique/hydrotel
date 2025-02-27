@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\source\acheminement_riviere.cpp" />
+    <ClCompile Include="..\..\source\barrage_historique.cpp" />
+    <ClCompile Include="..\..\source\bilan_vertical.cpp" />
+    <ClCompile Include="..\..\source\bv3c1.cpp" />
+    <ClCompile Include="..\..\source\bv3c2.cpp" />
+    <ClCompile Include="..\..\source\cequeau.cpp" />
+    <ClCompile Include="..\..\source\coordonnee.cpp" />
+    <ClCompile Include="..\..\source\correction.cpp" />
+    <ClCompile Include="..\..\source\corrections.cpp" />
+    <ClCompile Include="..\..\source\date_heure.cpp" />
+    <ClCompile Include="..\..\source\degre_jour_bande.cpp" />
+    <ClCompile Include="..\..\source\degre_jour_glacier.cpp" />
+    <ClCompile Include="..\..\source\degre_jour_modifie.cpp" />
+    <ClCompile Include="..\..\source\donnee_meteo.cpp" />
+    <ClCompile Include="..\..\source\erreur.cpp" />
+    <ClCompile Include="..\..\source\etp_mc_guiness.cpp" />
+    <ClCompile Include="..\..\source\evapotranspiration.cpp" />
+    <ClCompile Include="..\..\source\fonte_glacier.cpp" />
+    <ClCompile Include="..\..\source\fonte_neige.cpp" />
+    <ClCompile Include="..\..\source\gdal_util.cpp" />
+    <ClCompile Include="..\..\source\grille_meteo.cpp" />
+    <ClCompile Include="..\..\source\grille_neige.cpp" />
+    <ClCompile Include="..\..\source\grille_prevision.cpp" />
+    <ClCompile Include="..\..\source\groupe_zone.cpp" />
+    <ClCompile Include="..\..\source\hydrotel.cpp" />
+    <ClCompile Include="..\..\source\hydro_quebec.cpp" />
+    <ClCompile Include="..\..\source\interpolation_donnees.cpp" />
+    <ClCompile Include="..\..\source\lac.cpp" />
+    <ClCompile Include="..\..\source\lac_sans_laminage.cpp" />
+    <ClCompile Include="..\..\source\lecture_acheminement_riviere.cpp" />
+    <ClCompile Include="..\..\source\lecture_bilan_vertical.cpp" />
+    <ClCompile Include="..\..\source\lecture_evapotranspiration.cpp" />
+    <ClCompile Include="..\..\source\lecture_fonte_glacier.cpp" />
+    <ClCompile Include="..\..\source\lecture_fonte_neige.cpp" />
+    <ClCompile Include="..\..\source\lecture_interpolation_donnees.cpp" />
+    <ClCompile Include="..\..\source\lecture_ruisselement_surface.cpp" />
+    <ClCompile Include="..\..\source\lecture_tempsol.cpp" />
+    <ClCompile Include="..\..\source\linacre.cpp" />
+    <ClCompile Include="..\..\source\milieu_humide_isole.cpp" />
+    <ClCompile Include="..\..\source\milieu_humide_riverain.cpp" />
+    <ClCompile Include="..\..\source\mise_a_jour.cpp" />
+    <ClCompile Include="..\..\source\moyenne_3_stations1.cpp" />
+    <ClCompile Include="..\..\source\moyenne_3_stations2.cpp" />
+    <ClCompile Include="..\..\source\noeud.cpp" />
+    <ClCompile Include="..\..\source\noeuds.cpp" />
+    <ClCompile Include="..\..\source\occupation_sol.cpp" />
+    <ClCompile Include="..\..\source\onde_cinematique.cpp" />
+    <ClCompile Include="..\..\source\onde_cinematique_modifiee.cpp" />
+    <ClCompile Include="..\..\source\output.cpp" />
+    <ClCompile Include="..\..\source\penman.cpp" />
+    <ClCompile Include="..\..\source\penman_monteith.cpp" />
+    <ClCompile Include="..\..\source\prelevements.cpp" />
+    <ClCompile Include="..\..\source\prelevements_donnees.cpp" />
+    <ClCompile Include="..\..\source\prelevements_site.cpp" />
+    <ClCompile Include="..\..\source\priestlay_taylor.cpp" />
+    <ClCompile Include="..\..\source\projection.cpp" />
+    <ClCompile Include="..\..\source\propriete_hydrolique.cpp" />
+    <ClCompile Include="..\..\source\propriete_hydroliques.cpp" />
+    <ClCompile Include="..\..\source\rankinen.cpp" />
+    <ClCompile Include="..\..\source\raster_double2.cpp" />
+    <ClCompile Include="..\..\source\raster_float2.cpp" />
+    <ClCompile Include="..\..\source\raster_int2.cpp" />
+    <ClCompile Include="..\..\source\rayonnement_net.cpp" />
+    <ClCompile Include="..\..\source\riviere.cpp" />
+    <ClCompile Include="..\..\source\ruisselement_surface.cpp" />
+    <ClCompile Include="..\..\source\sim_hyd.cpp" />
+    <ClCompile Include="..\..\source\sous_modele.cpp" />
+    <ClCompile Include="..\..\source\station.cpp" />
+    <ClCompile Include="..\..\source\stations.cpp" />
+    <ClCompile Include="..\..\source\stations_hydro.cpp" />
+    <ClCompile Include="..\..\source\stations_meteo.cpp" />
+    <ClCompile Include="..\..\source\stations_neige.cpp" />
+    <ClCompile Include="..\..\source\station_hydro.cpp" />
+    <ClCompile Include="..\..\source\station_hydro_gibsi.cpp" />
+    <ClCompile Include="..\..\source\station_meteo.cpp" />
+    <ClCompile Include="..\..\source\station_meteo_gibsi.cpp" />
+    <ClCompile Include="..\..\source\station_meteo_hdf5.cpp" />
+    <ClCompile Include="..\..\source\station_meteo_netcdf.cpp" />
+    <ClCompile Include="..\..\source\station_meteo_netcdf_station.cpp" />
+    <ClCompile Include="..\..\source\station_neige.cpp" />
+    <ClCompile Include="..\..\source\station_neige_mef.cpp" />
+    <ClCompile Include="..\..\source\statistiques.cpp" />
+    <ClCompile Include="..\..\source\tempsol.cpp" />
+    <ClCompile Include="..\..\source\thiessen1.cpp" />
+    <ClCompile Include="..\..\source\thiessen2.cpp" />
+    <ClCompile Include="..\..\source\thornthwaite.cpp" />
+    <ClCompile Include="..\..\source\thorsen.cpp" />
+    <ClCompile Include="..\..\source\transforme_coordonnee.cpp" />
+    <ClCompile Include="..\..\source\troncon.cpp" />
+    <ClCompile Include="..\..\source\troncons.cpp" />
+    <ClCompile Include="..\..\source\util.cpp" />
+    <ClCompile Include="..\..\source\zone.cpp" />
+    <ClCompile Include="..\..\source\zones.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\source\acheminement_riviere.hpp" />
+    <ClInclude Include="..\..\source\barrage_historique.hpp" />
+    <ClInclude Include="..\..\source\bilan_vertical.hpp" />
+    <ClInclude Include="..\..\source\bv3c1.hpp" />
+    <ClInclude Include="..\..\source\bv3c2.hpp" />
+    <ClInclude Include="..\..\source\cequeau.hpp" />
+    <ClInclude Include="..\..\source\constantes.hpp" />
+    <ClInclude Include="..\..\source\coordonnee.hpp" />
+    <ClInclude Include="..\..\source\correction.hpp" />
+    <ClInclude Include="..\..\source\corrections.hpp" />
+    <ClInclude Include="..\..\source\date_heure.hpp" />
+    <ClInclude Include="..\..\source\degre_jour_bande.hpp" />
+    <ClInclude Include="..\..\source\degre_jour_glacier.hpp" />
+    <ClInclude Include="..\..\source\degre_jour_modifie.hpp" />
+    <ClInclude Include="..\..\source\donnee_meteo.hpp" />
+    <ClInclude Include="..\..\source\erreur.hpp" />
+    <ClInclude Include="..\..\source\etp_mc_guiness.hpp" />
+    <ClInclude Include="..\..\source\evapotranspiration.hpp" />
+    <ClInclude Include="..\..\source\fonte_glacier.hpp" />
+    <ClInclude Include="..\..\source\fonte_neige.hpp" />
+    <ClInclude Include="..\..\source\gdal_util.hpp" />
+    <ClInclude Include="..\..\source\grille_meteo.hpp" />
+    <ClInclude Include="..\..\source\grille_neige.hpp" />
+    <ClInclude Include="..\..\source\grille_prevision.hpp" />
+    <ClInclude Include="..\..\source\groupe_zone.hpp" />
+    <ClInclude Include="..\..\source\hydro_quebec.hpp" />
+    <ClInclude Include="..\..\source\interpolation_donnees.hpp" />
+    <ClInclude Include="..\..\source\lac.hpp" />
+    <ClInclude Include="..\..\source\lac_sans_laminage.hpp" />
+    <ClInclude Include="..\..\source\lecture_acheminement_riviere.hpp" />
+    <ClInclude Include="..\..\source\lecture_bilan_vertical.hpp" />
+    <ClInclude Include="..\..\source\lecture_evapotranspiration.hpp" />
+    <ClInclude Include="..\..\source\lecture_fonte_glacier.hpp" />
+    <ClInclude Include="..\..\source\lecture_fonte_neige.hpp" />
+    <ClInclude Include="..\..\source\lecture_interpolation_donnees.hpp" />
+    <ClInclude Include="..\..\source\lecture_ruisselement_surface.hpp" />
+    <ClInclude Include="..\..\source\lecture_tempsol.hpp" />
+    <ClInclude Include="..\..\source\linacre.hpp" />
+    <ClInclude Include="..\..\source\matrice.hpp" />
+    <ClInclude Include="..\..\source\milieu_humide_isole.hpp" />
+    <ClInclude Include="..\..\source\milieu_humide_riverain.hpp" />
+    <ClInclude Include="..\..\source\mise_a_jour.hpp" />
+    <ClInclude Include="..\..\source\moyenne_3_stations1.hpp" />
+    <ClInclude Include="..\..\source\moyenne_3_stations2.hpp" />
+    <ClInclude Include="..\..\source\noeud.hpp" />
+    <ClInclude Include="..\..\source\noeuds.hpp" />
+    <ClInclude Include="..\..\source\occupation_sol.hpp" />
+    <ClInclude Include="..\..\source\onde_cinematique.hpp" />
+    <ClInclude Include="..\..\source\onde_cinematique_modifiee.hpp" />
+    <ClInclude Include="..\..\source\output.hpp" />
+    <ClInclude Include="..\..\source\penman.hpp" />
+    <ClInclude Include="..\..\source\penman_monteith.hpp" />
+    <ClInclude Include="..\..\source\point.hpp" />
+    <ClInclude Include="..\..\source\prelevements.hpp" />
+    <ClInclude Include="..\..\source\prelevements_donnees.hpp" />
+    <ClInclude Include="..\..\source\prelevements_site.hpp" />
+    <ClInclude Include="..\..\source\priestlay_taylor.hpp" />
+    <ClInclude Include="..\..\source\projection.hpp" />
+    <ClInclude Include="..\..\source\projections.hpp" />
+    <ClInclude Include="..\..\source\propriete_hydrolique.hpp" />
+    <ClInclude Include="..\..\source\propriete_hydroliques.hpp" />
+    <ClInclude Include="..\..\source\rankinen.hpp" />
+    <ClInclude Include="..\..\source\raster.hpp" />
+    <ClInclude Include="..\..\source\raster_double2.hpp" />
+    <ClInclude Include="..\..\source\raster_float2.hpp" />
+    <ClInclude Include="..\..\source\raster_int2.hpp" />
+    <ClInclude Include="..\..\source\rayonnement_net.hpp" />
+    <ClInclude Include="..\..\source\riviere.hpp" />
+    <ClInclude Include="..\..\source\ruisselement_surface.hpp" />
+    <ClInclude Include="..\..\source\sim_hyd.hpp" />
+    <ClInclude Include="..\..\source\sous_modele.hpp" />
+    <ClInclude Include="..\..\source\station.hpp" />
+    <ClInclude Include="..\..\source\stations.hpp" />
+    <ClInclude Include="..\..\source\stations_hydro.hpp" />
+    <ClInclude Include="..\..\source\stations_meteo.hpp" />
+    <ClInclude Include="..\..\source\stations_neige.hpp" />
+    <ClInclude Include="..\..\source\station_hydro.hpp" />
+    <ClInclude Include="..\..\source\station_hydro_gibsi.hpp" />
+    <ClInclude Include="..\..\source\station_meteo.hpp" />
+    <ClInclude Include="..\..\source\station_meteo_gibsi.hpp" />
+    <ClInclude Include="..\..\source\station_meteo_hdf5.hpp" />
+    <ClInclude Include="..\..\source\station_meteo_netcdf.hpp" />
+    <ClInclude Include="..\..\source\station_meteo_netcdf_station.hpp" />
+    <ClInclude Include="..\..\source\station_neige.hpp" />
+    <ClInclude Include="..\..\source\station_neige_mef.hpp" />
+    <ClInclude Include="..\..\source\statistiques.hpp" />
+    <ClInclude Include="..\..\source\tempsol.hpp" />
+    <ClInclude Include="..\..\source\thiessen1.hpp" />
+    <ClInclude Include="..\..\source\thiessen2.hpp" />
+    <ClInclude Include="..\..\source\thornthwaite.hpp" />
+    <ClInclude Include="..\..\source\thorsen.hpp" />
+    <ClInclude Include="..\..\source\transforme_coordonnee.hpp" />
+    <ClInclude Include="..\..\source\troncon.hpp" />
+    <ClInclude Include="..\..\source\troncons.hpp" />
+    <ClInclude Include="..\..\source\types.hpp" />
+    <ClInclude Include="..\..\source\util.hpp" />
+    <ClInclude Include="..\..\source\version.hpp" />
+    <ClInclude Include="..\..\source\zone.hpp" />
+    <ClInclude Include="..\..\source\zones.hpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{0081d5e9-b839-48d7-96a4-a1dba89e5d83}</ProjectGuid>
+    <RootNamespace>hydrotel</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(BOOST_1_87_0);$(NETCDF_4_6_2)\include;$(GDAL_3_10_0)\include;$(HDF5_1_12_1)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <LibraryPath>$(BOOST_1_87_0)\lib64-msvc-14.3;$(NETCDF_4_6_2)\lib;$(GDAL_3_10_0)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(BOOST_1_87_0);$(NETCDF_4_6_2)\include;$(GDAL_3_10_0)\include;$(HDF5_1_12_1)\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(BOOST_1_87_0)\lib64-msvc-14.3;$(NETCDF_4_6_2)\lib;$(GDAL_3_10_0)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_TEST_;_CRT_SECURE_NO_WARNINGS;H5_BUILT_AS_DYNAMIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <OpenMPSupport>true</OpenMPSupport>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LargeAddressAware>true</LargeAddressAware>
+      <AdditionalDependencies>netcdf.lib;hdf5.lib;gdal_i.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;H5_BUILT_AS_DYNAMIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>false</ConformanceMode>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <OpenMPSupport>true</OpenMPSupport>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalDependencies>netcdf.lib;hdf5.lib;gdal_i.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <LargeAddressAware>true</LargeAddressAware>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
