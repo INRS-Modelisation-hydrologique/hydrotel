@@ -1,0 +1,5 @@
+CORRECTIONS;
+Actif [1 ou 0]; DateDebut [Annee/Mois/Jour Heure]; DateFin [Annee/Mois/Jour Heure]; Variable [1=Temperature, 2=Pluie, 3=Neige, 4=Reserve en eau du sol, 5=Neige au sol]; CoeffAdditif; CoeffMultiplicatif; TypeGroupe [0=Tous, 1=GroupeZone, 2=GroupeCorrection]; NomGroupe
+Actif [1 ou 0]; DateDebut [Annee/Mois/Jour Heure]; DateFin [Annee/Mois/Jour Heure]; Variable [6=Saturation de la reserve en eau du sol]; CoeffSaturationCouche1; CoeffSaturationCouche2; CoeffSaturationCouche3; TypeGroupe [0=Tous, 1=GroupeZone, 2=GroupeCorrection]; NomGroupe
+
+1;2020/01/01 00;2021/01/01 00;3;0;1;0;aucun

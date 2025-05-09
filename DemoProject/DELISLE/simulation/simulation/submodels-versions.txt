@@ -1,0 +1,9 @@
+//Model;Version number to use for the simulation
+
+//If model is not specified, the version number 1 is used by default.
+
+THIESSEN;2              //weather data interpolation
+MOY3STATION;2		//weather data interpolation
+
+BV3C;2                  //vertical water balance
+
