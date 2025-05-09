@@ -52,6 +52,7 @@ namespace HYDROTEL
 		, _apport_glacier(false)
 		, _eau_glacier(false)
         , _apport_lateral(false)
+		, _apport_lateral_uhrh(false)
 		, _ecoulement_surf(false)
 		, _ecoulement_hypo(false)
 		, _ecoulement_base(false)
@@ -248,6 +249,10 @@ namespace HYDROTEL
 					_apport_lateral = (valeur == "1") ? true : false;
 				else if (cle == "APPORT_LATERAL")
 					_apport_lateral = (valeur == "1") ? true : false;
+				else if (cle == "APPORT LATERAL UHRH")
+					_apport_lateral_uhrh = (valeur == "1") ? true : false;
+				else if (cle == "APPORT_LATERAL_UHRH")
+					_apport_lateral_uhrh = (valeur == "1") ? true : false;
 				else if (cle == "ECOULEMENT_SURF" || cle == "ECOULEMENT SURF")
 					_ecoulement_surf = (valeur == "1") ? true : false;
 				else if (cle == "ECOULEMENT_HYPO" || cle == "ECOULEMENT HYPO")
@@ -348,7 +353,7 @@ namespace HYDROTEL
 			_bOutputTronconVar = true;
 
 		if(_apport || _etp || _neige || _pluie || _production_base || _production_hypo || _production_surf || _q12 || _q23 || _theta1 || _theta2
-			|| _theta3 || _tmin || _tmax || _tmin_jr || _tmax_jr || _etr1 || _etr2 || _etr3 || _etr_total || _couvert_nival || _hauteur_neige || _albedo_neige || _profondeurgel)
+			|| _theta3 || _tmin || _tmax || _tmin_jr || _tmax_jr || _etr1 || _etr2 || _etr3 || _etr_total || _couvert_nival || _hauteur_neige || _albedo_neige || _profondeurgel || _apport_lateral_uhrh)
 		{
 			_bOutputUhrhVar = true;
 		}
@@ -373,52 +378,53 @@ namespace HYDROTEL
 
 		_vIdTronconSelect.push_back(_iIDTronconExutoire);
 
-		fichier << "TRONCONS;" << _iIDTronconExutoire << endl;
+		fichier << "TRONCONS;"						<< _iIDTronconExutoire << endl;
 
-		fichier << "TRONCONS_MOYENNES_PONDEREES;" << endl; 
+		fichier << "TRONCONS_MOYENNES_PONDEREES;"	<< endl; 
 		
-		fichier << "TMIN;"				<< (_tmin ? 1 : 0) << endl;
-		fichier << "TMAX;"				<< (_tmax ? 1 : 0) << endl;
-		fichier << "TMIN_JOUR;"			<< (_tmin_jr ? 1 : 0) << endl;
-		fichier << "TMAX_JOUR;"			<< (_tmax_jr ? 1 : 0) << endl;
-		fichier << "PLUIE;"				<< (_pluie ? 1 : 0) << endl;
-		fichier << "NEIGE;"				<< (_neige ? 1 : 0) << endl;
-		fichier << "APPORT;"			<< (_apport ? 1 : 0) << endl;
-		fichier << "COUVERT_NIVAL;"		<< (_couvert_nival ? 1 : 0) << endl;
-		fichier << "HAUTEUR_NEIGE;"		<< (_hauteur_neige ? 1 : 0) << endl;
-		fichier << "ALBEDO_NEIGE;"		<< (_albedo_neige ? 1 : 0) << endl;
-		fichier << "APPORT_GLACIER;"	<< (_apport_glacier ? 1 : 0) << endl;
-		fichier << "EAU_GLACIER;"		<< (_eau_glacier ? 1 : 0) << endl;
-		fichier << "PROFONDEUR_GEL;"	<< (_profondeurgel ? 1 : 0) << endl;
-		fichier << "ETP;"				<< (_etp ? 1 : 0) << endl;
-		fichier << "ETR1;"				<< (_etr1 ? 1 : 0) << endl;
-		fichier << "ETR2;"				<< (_etr2 ? 1 : 0) << endl;
-		fichier << "ETR3;"				<< (_etr3 ? 1 : 0) << endl;
-		fichier << "ETR_TOTAL;"			<< (_etr_total ? 1 : 0) << endl;
-		fichier << "PRODUCTION_BASE;"	<< (_production_base ? 1 : 0) << endl;
-		fichier << "PRODUCTION_HYPO;"	<< (_production_hypo ? 1 : 0) << endl;
-		fichier << "PRODUCTION_SURF;"	<< (_production_surf ? 1 : 0) << endl;
-		fichier << "Q12;"				<< (_q12 ? 1 : 0) << endl;
-		fichier << "Q23;"				<< (_q23 ? 1 : 0) << endl;
-		fichier << "Q23_SOMME_ANNUELLE;"	<< (_q23SumYearly ? 1 : 0) << endl;
-		fichier << "QRECHARGE;"			<< (_qRecharge ? 1 : 0) << endl;
-		fichier << "THETA1;"			<< (_theta1 ? 1 : 0) << endl;
-		fichier << "THETA2;"			<< (_theta2 ? 1 : 0) << endl;
-		fichier << "THETA3;"			<< (_theta3 ? 1 : 0) << endl;
-		fichier << "APPORT_LATERAL;"	<< (_apport_lateral ? 1 : 0) << endl;
-		fichier << "ECOULEMENT_SURF;"	<< (_ecoulement_surf ? 1 : 0) << endl;
-		fichier << "ECOULEMENT_HYPO;"	<< (_ecoulement_hypo ? 1 : 0) << endl;
-		fichier << "ECOULEMENT_BASE;"	<< (_ecoulement_base ? 1 : 0) << endl;
-		fichier << "DEBITS_AMONT;"		<< (_debit_amont ? 1 : 0) << endl;
-		fichier << "DEBITS_AVAL;"		<< (_debit_aval ? 1 : 0) << endl;
-		fichier << "HAUTEUR_AVAL;"		<< (_hauteur_aval ? 1 : 0) << endl;
+		fichier << "TMIN;"							<< (_tmin ? 1 : 0) << endl;
+		fichier << "TMAX;"							<< (_tmax ? 1 : 0) << endl;
+		fichier << "TMIN_JOUR;"						<< (_tmin_jr ? 1 : 0) << endl;
+		fichier << "TMAX_JOUR;"						<< (_tmax_jr ? 1 : 0) << endl;
+		fichier << "PLUIE;"							<< (_pluie ? 1 : 0) << endl;
+		fichier << "NEIGE;"							<< (_neige ? 1 : 0) << endl;
+		fichier << "APPORT;"						<< (_apport ? 1 : 0) << endl;
+		fichier << "COUVERT_NIVAL;"					<< (_couvert_nival ? 1 : 0) << endl;
+		fichier << "HAUTEUR_NEIGE;"					<< (_hauteur_neige ? 1 : 0) << endl;
+		fichier << "ALBEDO_NEIGE;"					<< (_albedo_neige ? 1 : 0) << endl;
+		fichier << "APPORT_GLACIER;"				<< (_apport_glacier ? 1 : 0) << endl;
+		fichier << "EAU_GLACIER;"					<< (_eau_glacier ? 1 : 0) << endl;
+		fichier << "PROFONDEUR_GEL;"				<< (_profondeurgel ? 1 : 0) << endl;
+		fichier << "ETP;"							<< (_etp ? 1 : 0) << endl;
+		fichier << "ETR1;"							<< (_etr1 ? 1 : 0) << endl;
+		fichier << "ETR2;"							<< (_etr2 ? 1 : 0) << endl;
+		fichier << "ETR3;"							<< (_etr3 ? 1 : 0) << endl;
+		fichier << "ETR_TOTAL;"						<< (_etr_total ? 1 : 0) << endl;
+		fichier << "PRODUCTION_BASE;"				<< (_production_base ? 1 : 0) << endl;
+		fichier << "PRODUCTION_HYPO;"				<< (_production_hypo ? 1 : 0) << endl;
+		fichier << "PRODUCTION_SURF;"				<< (_production_surf ? 1 : 0) << endl;
+		fichier << "Q12;"							<< (_q12 ? 1 : 0) << endl;
+		fichier << "Q23;"							<< (_q23 ? 1 : 0) << endl;
+		fichier << "Q23_SOMME_ANNUELLE;"			<< (_q23SumYearly ? 1 : 0) << endl;
+		fichier << "QRECHARGE;"						<< (_qRecharge ? 1 : 0) << endl;
+		fichier << "THETA1;"						<< (_theta1 ? 1 : 0) << endl;
+		fichier << "THETA2;"						<< (_theta2 ? 1 : 0) << endl;
+		fichier << "THETA3;"						<< (_theta3 ? 1 : 0) << endl;
+		fichier << "APPORT_LATERAL;"				<< (_apport_lateral ? 1 : 0) << endl;
+		fichier << "APPORT_LATERAL_UHRH;"			<< (_apport_lateral_uhrh ? 1 : 0) << endl;
+		fichier << "ECOULEMENT_SURF;"				<< (_ecoulement_surf ? 1 : 0) << endl;
+		fichier << "ECOULEMENT_HYPO;"				<< (_ecoulement_hypo ? 1 : 0) << endl;
+		fichier << "ECOULEMENT_BASE;"				<< (_ecoulement_base ? 1 : 0) << endl;
+		fichier << "DEBITS_AMONT;"					<< (_debit_amont ? 1 : 0) << endl;
+		fichier << "DEBITS_AVAL;"					<< (_debit_aval ? 1 : 0) << endl;
+		fichier << "HAUTEUR_AVAL;"					<< (_hauteur_aval ? 1 : 0) << endl;
 
-		fichier << "DEBITS_AVAL_MOY7J_MIN;"	<< (_debit_aval_moy7j_min ? 1 : 0) << endl;
+		fichier << "DEBITS_AVAL_MOY7J_MIN;"			<< (_debit_aval_moy7j_min ? 1 : 0) << endl;
 		
 		fichier << "FICHIERS_ETATS_SEPARATEUR;"		<< _sFichiersEtatsSeparator << endl;
-		fichier << "SEPARATEUR;"		<< _sSeparator << endl;
+		fichier << "SEPARATEUR;"					<< _sSeparator << endl;
 
-		fichier << "OUTPUT_NETCDF;"		<< (_iOutputCDF == 1 ? 1 : 0) << endl;
+		fichier << "OUTPUT_NETCDF;"					<< (_iOutputCDF == 1 ? 1 : 0) << endl;
 
 		fichier.close();
 	}

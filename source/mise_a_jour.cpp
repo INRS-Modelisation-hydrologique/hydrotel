@@ -170,7 +170,6 @@ namespace HYDROTEL
 
 		// sauvegarde les rivieres en shapefile
 		{
-			GDALAllRegister();
 			OGRRegisterAll();
 
 			GDALDataset* dataset = (GDALDataset*)GDALOpen(masque.c_str(), GA_ReadOnly);
@@ -351,7 +350,7 @@ namespace HYDROTEL
 	}
 
 
-	void MiseAJour(const std::string& fichier_prj, const std::string& repertoire)
+	void MiseAJourProjet(const std::string& fichier_prj, const std::string& repertoire)
 	{
 		string str;
 
@@ -698,7 +697,7 @@ namespace HYDROTEL
 		//fich.close();
 
 		//if(sString == "")
-		//	throw ERREUR("Erreur; MiseAJour;  erreur lors de la lecture du fichier CoordSys.txt; le fichier est vide.");
+		//	throw ERREUR("Erreur; MiseAJourProjet;  erreur lors de la lecture du fichier CoordSys.txt; le fichier est vide.");
 		//
 		//OGRCoordinateTransformation *poCT;
 		//OGRSpatialReference oSRSHydrotel;

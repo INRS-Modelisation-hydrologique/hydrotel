@@ -75,6 +75,7 @@ namespace HYDROTEL
 		_dDureeJour = dVALEUR_MANQUANTE;
 		_dIndiceRadiation = dVALEUR_MANQUANTE;
 		_reservoirAquifer = 0.0f;
+		_apport_lateral_uhrh = VALEUR_MANQUANTE;
 	}
 
 	ZONE::~ZONE()

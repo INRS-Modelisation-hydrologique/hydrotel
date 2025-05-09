@@ -35,6 +35,7 @@ namespace HYDROTEL
 		: SOUS_MODELE(sim_hyd, nom)
 	{
 		_netCdf_apport_lateral = NULL;
+		_netCdf_apport_lateral_uhrh = NULL;
 
 		_netCdf_ecoulement_surf = NULL;
 		_netCdf_ecoulement_hypo = NULL;
@@ -49,6 +50,8 @@ namespace HYDROTEL
 
 	void RUISSELEMENT_SURFACE::Initialise()
 	{
+		string str;
+
 		if (_sim_hyd.PrendreOutput().SauvegardeApportLateral())
 		{
 			if (_sim_hyd._outputCDF)
@@ -61,7 +64,6 @@ namespace HYDROTEL
 
 				TRONCONS& troncons = _sim_hyd.PrendreTroncons();
 
-				string str;
 				ostringstream oss;
 				oss.str("");
 			
@@ -95,7 +97,6 @@ namespace HYDROTEL
 				_fichier_ecoulement_surf.open(nom_fichier_surf.c_str());
 				_fichier_ecoulement_surf << "Écoulement vers le réseau hydrographique (couche 1) (surface) (m3/s)" << _sim_hyd.PrendreOutput().Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
 
-				string str;
 				ostringstream oss;
 				oss.str("");
 			
@@ -129,7 +130,6 @@ namespace HYDROTEL
 				_fichier_ecoulement_hypo.open(nom_fichier_hypo.c_str());
 				_fichier_ecoulement_hypo << "Écoulement vers le réseau hydrographique (couche 2) (hypodermique) (m3/s)" << _sim_hyd.PrendreOutput().Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
 
-				string str;
 				ostringstream oss;
 				oss.str("");
 
@@ -163,7 +163,6 @@ namespace HYDROTEL
 				_fichier_ecoulement_base.open(nom_fichier_base.c_str());
 				_fichier_ecoulement_base << "Écoulement vers le réseau hydrographique (couche 3) (base) (m3/s)" << _sim_hyd.PrendreOutput().Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
 
-				string str;
 				ostringstream oss;
 				oss.str("");
 
@@ -182,6 +181,39 @@ namespace HYDROTEL
 				str = oss.str();
 				str = str.substr(0, str.length()-1); //enleve le dernier separateur
 				_fichier_ecoulement_base << str << endl;
+			}
+		}
+
+		if(_sim_hyd.PrendreOutput()._apport_lateral_uhrh)
+		{
+			ZONES& zones = _sim_hyd.PrendreZones();
+
+			if (_sim_hyd._outputCDF)
+				_netCdf_apport_lateral_uhrh = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+			else
+			{
+				str = Combine(_sim_hyd.PrendreRepertoireResultat(), "apport_lateral_uhrh.csv");
+				_fichier_apport_lateral_uhrh.open(str.c_str());
+				_fichier_apport_lateral_uhrh << "Apport lateral au troncon (m3/s)" << _sim_hyd.PrendreOutput().Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
+
+				ostringstream oss;
+				oss.str("");
+
+				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				{
+					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					{
+						if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
+							find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+						{
+							oss << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
+						}
+					}
+				}
+
+				str = oss.str();
+				str = str.substr(0, str.length()-1); //enleve le dernier separateur
+				_fichier_apport_lateral_uhrh << str << endl;
 			}
 		}
 	}
@@ -337,6 +369,42 @@ namespace HYDROTEL
 				_fichier_ecoulement_base << str << endl;
 			}
 		}
+
+		if (_sim_hyd.PrendreOutput()._apport_lateral_uhrh)
+		{
+			ZONES& zones = _sim_hyd.PrendreZones();
+
+			if (_netCdf_apport_lateral_uhrh != NULL)
+			{
+				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+					_netCdf_apport_lateral_uhrh[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._apport_lateral_uhrh;
+			}
+			else
+			{
+				ostringstream oss;
+				oss.str("");
+
+				oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
+
+				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				{
+					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					{
+						if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
+							find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+						{
+							oss << zones[index]._apport_lateral_uhrh << _sim_hyd.PrendreOutput().Separator();
+						}
+					}
+				}
+
+				str = oss.str();
+				str = str.substr(0, str.length()-1); //enleve le dernier separateur
+				_fichier_apport_lateral_uhrh << str << endl;
+			}
+		}
 	}
 
 
@@ -416,6 +484,23 @@ namespace HYDROTEL
 			}
 			else
 				_fichier_ecoulement_base.close();
+		}
+
+		if (_sim_hyd.PrendreOutput()._apport_lateral_uhrh)
+		{
+			if (_netCdf_apport_lateral_uhrh != NULL)
+			{
+				string str1, str2;
+
+				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "apport_lateral_uhrh.nc");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "apport_lateral_uhrh", _netCdf_apport_lateral_uhrh, "m3/s", "Apport lateral au troncon");
+				if(str2 != "")
+					throw ERREUR(str2);
+
+				delete [] _netCdf_apport_lateral_uhrh;
+			}
+			else
+				_fichier_apport_lateral_uhrh.close();
 		}
 	}
 

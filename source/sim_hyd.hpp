@@ -345,10 +345,17 @@ namespace HYDROTEL
 		OUTPUT								_output;
 		bool								_outputCDF;
 
-		std::string							_sPathProjetImport;		//utilisé lors de la conversion d'un projet afin d'utiliser les cartes .tif nouvellement importé
+		std::string							_sPathProjetImport;				//utilisé lors de la conversion d'un projet afin d'utiliser les cartes .tif nouvellement importé
 
 		bool								_bAutoInverseTMinTMax;
 		bool								_bStationInterpolation;
+		
+		bool								_bSkipCharacterValidation;		//tell to skip validation of input files characters (only ASCII/UTF8 char code 32 to 126 are valid in input files)
+		std::vector<std::string>			_listErrMessCharValidation;
+
+		bool								_bGenereBdPrelevements;
+		std::string							_sFolderNamePrelevements;		//folder name for prelevements input files	//prelevements
+		std::string							_sFolderNamePrelevementsSrc;	//folder name for source input file for prelevements db generation	//SitesPrelevements
 
 		//sous modeles courant
 		INTERPOLATION_DONNEES*	_interpolation_donnees;

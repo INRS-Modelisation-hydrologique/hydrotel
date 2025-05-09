@@ -105,6 +105,8 @@ namespace HYDROTEL
 
 		RasterInt2*				_pRasterUhrhId;
 
+		bool					_bSaveUhrhCsvFile;		//la sauvegarde (SauvegardeResumer) doit etre effectue apres la lecture des troncons (type zone)
+
 	private:
 
 		void DetruireZones();

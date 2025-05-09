@@ -157,6 +157,7 @@ namespace HYDROTEL
 		
 		_bAutoInverseTMinTMax = false;
 		_bStationInterpolation = true;
+		_bSkipCharacterValidation = false;
 
 		_outputCDF = false;
 
@@ -166,6 +167,9 @@ namespace HYDROTEL
 		_pRasterOri = nullptr;
 		_pRasterPente = nullptr;
 
+		_bGenereBdPrelevements = false;		
+		_sFolderNamePrelevements = "prelevements";
+		_sFolderNamePrelevementsSrc = "SitesPrelevements";
 		_pr = new PRELEVEMENTS(*this);
 	}
 
@@ -258,15 +262,16 @@ namespace HYDROTEL
 
 	void SIM_HYD::Lecture()
 	{
+		vector<string> fileList;
 		ofstream file;
-		string str;
+		string str, str2;
 		size_t i;
 
 		_troncons._pSimHyd = this;
 
 		string ext = PrendreExtension(_nom_fichier);		
 
-		if (ext == ".prj")
+		if (ext == ".prj") //old version (2.6) project file
 		{
 			LectureProjetFormatPrj();
 
@@ -294,8 +299,26 @@ namespace HYDROTEL
 
 			DisplayInfo();
 		}
-		else if (ext == ".csv")
+		else if (ext == ".csv") //version 4 project file
 		{
+			//input files characters validation
+			if(!_bSkipCharacterValidation)
+			{
+				fileList.push_back(_nom_fichier);		//project file
+				str = ValidateInputFilesCharacters(fileList, _listErrMessCharValidation);
+				if(str != "")
+					throw ERREUR(str);
+
+				if(_listErrMessCharValidation.size() != 0)
+				{
+					std::cout << endl;
+					for(i=0; i!=_listErrMessCharValidation.size(); i++)
+						std::cout << _listErrMessCharValidation[i] << endl;
+
+					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
+				}
+			}
+			
 			LectureProjetFormatCsv();
 
 			str = Combine(PrendreRepertoireSimulation(), "submodels-versions.txt");
@@ -316,10 +339,131 @@ namespace HYDROTEL
 
 			_zones.LectureZones();
 			_noeuds.Lecture();
+
+			//input files characters validation
+			if(!_bSkipCharacterValidation)
+			{
+				fileList.clear();
+				fileList.push_back(_troncons.PrendreNomFichier());							//river reach file (troncon.trl)
+
+				str = Combine(PrendreRepertoireSimulation(), _nom_simulation + ".gsb");		//subwatershed group file (.gsb)
+				fileList.push_back(str);
+
+				fileList.push_back(_nom_fichier_simulation);								//simulation file
+
+				str = ValidateInputFilesCharacters(fileList, _listErrMessCharValidation);
+				if(str != "")
+					throw ERREUR(str);
+
+				if(_listErrMessCharValidation.size() != 0)
+				{
+					std::cout << endl;
+					for(i=0; i!=_listErrMessCharValidation.size(); i++)
+						std::cout << _listErrMessCharValidation[i] << endl;
+
+					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
+				}
+			}
+
 			_troncons.LectureTroncons(_zones, _noeuds);
+
+			if(_zones._bSaveUhrhCsvFile)
+			{
+				str = RemplaceExtension(_zones.PrendreNomFichierZone(), "csv");
+				_zones.SauvegardeResumer(str);
+			}
 
 			LectureGroupeZone();
 			LectureSimulationFormatCsv();
+
+			//input files characters validation
+			if(!_bSkipCharacterValidation)
+			{
+				fileList.clear();
+
+				str = PrendreExtension(_stations_meteo.PrendreNomFichier());
+				if(str != ".nc" && str != ".h5")
+					fileList.push_back(_stations_meteo.PrendreNomFichier());														//weather stations file
+
+				fileList.push_back(_stations_hydro.PrendreNomFichier());															//hydro stations file
+
+				str = RemplaceExtension(_occupation_sol.PrendreNomFichier(), "csv");												//land use names
+				fileList.push_back(str);
+
+				fileList.push_back(_occupation_sol.PrendreNomFichier());															//land use
+
+				fileList.push_back(_propriete_hydroliques.PrendreNomFichier());														//hydraulic properties
+
+				fileList.push_back(_occupation_sol.PrendreNomFichierIndicesFolieres());												//indice foliaire (ind_fol.def)
+
+				fileList.push_back(_occupation_sol.PrendreNomFichierProfondeursRacinaires());										//profondeur racinaire (pro_rac.def)
+
+				str = Combine(PrendreRepertoireSimulation(), _nom_simulation + ".sbc");												//correction group file (.sbc)
+				fileList.push_back(str);
+
+				auto degre_jour = static_cast<DEGRE_JOUR_MODIFIE*>(_vfonte_neige[FONTE_NEIGE_DEGRE_JOUR_MODIFIE].get());
+				auto degre_jour_bande = static_cast<DEGRE_JOUR_BANDE*>(_vfonte_neige[FONTE_NEIGE_DEGRE_JOUR_BANDE].get());
+
+				str = degre_jour->_stations_neige_conifers.PrendreNomFichier();														//snow stations file (.stn)
+				if(str != "")
+					fileList.push_back(str);
+				str = degre_jour->_stations_neige_feuillus.PrendreNomFichier();														//
+				if(str != "")
+					fileList.push_back(str);
+				str = degre_jour->_stations_neige_decouver.PrendreNomFichier();														//
+				if(str != "")
+					fileList.push_back(str);
+
+				str = degre_jour_bande->_stations_neige_conifers.PrendreNomFichier();												//
+				if(str != "")
+					fileList.push_back(str);
+				str = degre_jour_bande->_stations_neige_feuillus.PrendreNomFichier();												//
+				if(str != "")
+					fileList.push_back(str);
+				str = degre_jour_bande->_stations_neige_decouver.PrendreNomFichier();												//
+				if(str != "")
+					fileList.push_back(str);
+
+				if(_fichierParametreGlobal)
+					fileList.push_back(_nomFichierParametresGlobal);																//parameters unique file
+				else
+				{
+					fileList.push_back(degre_jour->PrendreNomFichierParametres());													//degre_jour_modifie.csv
+					fileList.push_back(degre_jour_bande->PrendreNomFichierParametres());											//degre_jour_bande.csv
+
+					auto onde_cinematique = static_cast<ONDE_CINEMATIQUE*>(_vruisselement[RUISSELEMENT_ONDE_CINEMATIQUE].get());
+					fileList.push_back(onde_cinematique->PrendreNomFichierParametres());											//onde_cinematique.csv
+				}
+
+				if(!_bGenereBdPrelevements)
+				{
+					str = PrendreRepertoireSimulation() + "/" + _sFolderNamePrelevements + "/" + "BD_CULTURES.csv";							//prélèvements
+					fileList.push_back(str);
+					str = PrendreRepertoireSimulation() + "/" + _sFolderNamePrelevements + "/" + "BD_EFFLUENTS.csv";						//
+					fileList.push_back(str);
+					str = PrendreRepertoireSimulation() + "/" + _sFolderNamePrelevements + "/" + "BD_ELEVAGES.csv";							//
+					fileList.push_back(str);
+					str = PrendreRepertoireSimulation() + "/" + _sFolderNamePrelevements + "/" + "BD_GPE.csv";								//
+					fileList.push_back(str);
+					str = PrendreRepertoireSimulation() + "/" + _sFolderNamePrelevements + "/" + "BD_PRELEVEMENTS.csv";						//
+					fileList.push_back(str);
+					str = PrendreRepertoireSimulation() + "/" + _sFolderNamePrelevements + "/" + "BD_SIH.csv";								//
+					fileList.push_back(str);
+				}
+
+				str = ValidateInputFilesCharacters(fileList, _listErrMessCharValidation);
+				if(str != "")
+					throw ERREUR(str);
+
+				if(_listErrMessCharValidation.size() != 0)
+				{
+					std::cout << endl;
+					for(i=0; i!=_listErrMessCharValidation.size(); i++)
+						std::cout << _listErrMessCharValidation[i] << endl;
+
+					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
+				}
+			}
 
 			LectureDonneesMeteorologiques();
 			LectureDonneesHydrologiques();
@@ -454,6 +598,7 @@ namespace HYDROTEL
 		}
 		_groupe_all.ChangeIdentZones(idents);
 	}
+
 
 	void SIM_HYD::ChangeNbParams()
 	{		

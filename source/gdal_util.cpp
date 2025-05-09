@@ -41,8 +41,6 @@ namespace HYDROTEL
 		int xsize = static_cast<int>(raster.PrendreNbColonne());
 		int ysize = static_cast<int>(raster.PrendreNbLigne());
 
-		GDALAllRegister();
-
 		GDALDriver* driver = GetGDALDriverManager()->GetDriverByName("GTiff");
 		if (driver == nullptr)
 			throw ERREUR("GTiff driver not found");
@@ -75,8 +73,6 @@ namespace HYDROTEL
 		int xsize = static_cast<int>(raster.PrendreNbColonne());
 		int ysize = static_cast<int>(raster.PrendreNbLigne());
 
-		GDALAllRegister();
-
 		GDALDriver* driver = GetGDALDriverManager()->GetDriverByName("GTiff");
 		if (driver == nullptr)
 			throw ERREUR("GTiff driver not found");
@@ -107,8 +103,6 @@ namespace HYDROTEL
 
 	RASTER<float> ReadGeoTIFF_float(const string& nom_fichier)
 	{
-		GDALAllRegister();
-
 		GDALDataset* dataset = (GDALDataset*)(GDALOpen(nom_fichier.c_str(), GA_ReadOnly));
 		if (dataset == nullptr)
 			throw ERREUR_LECTURE_FICHIER(nom_fichier);
@@ -144,8 +138,6 @@ namespace HYDROTEL
 
 	RASTER<int> ReadGeoTIFF_int(const string& nom_fichier)
 	{
-		GDALAllRegister();
-
 		GDALDataset* dataset = (GDALDataset*)(GDALOpen(nom_fichier.c_str(), GA_ReadOnly));
 		if (dataset == nullptr)
 			throw ERREUR_LECTURE_FICHIER(nom_fichier);
@@ -184,7 +176,6 @@ namespace HYDROTEL
 
 	void Polygonize(const string& src, const string& dst, const string& mask)
 	{
-		GDALAllRegister();
 		OGRRegisterAll();
 
 		GDALDataset* dataset = (GDALDataset*)(GDALOpen(src.c_str(), GA_ReadOnly));
@@ -249,7 +240,6 @@ namespace HYDROTEL
 
 	void Polygonize(const string& src, const string& dst)
 	{
-		GDALAllRegister();
 		OGRRegisterAll();
 
 		GDALDataset* dataset = (GDALDataset*)(GDALOpen(src.c_str(), GA_ReadOnly));

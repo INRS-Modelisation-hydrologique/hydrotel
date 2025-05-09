@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+/vs2022/hydrotel/.vs/hydrotel/v17/Browse.VC.db
+/vs2022/hydrotel/.vs/hydrotel/v17/Browse.VC.db-shm
+/vs2022/hydrotel/.vs/hydrotel/v17/Browse.VC.db-wal
+/vs2022/hydrotel/.vs/hydrotel/v17/Browse.VC.opendb
+/vs2022/hydrotel/.vs/hydrotel/FileContentIndex/a3a3920c-ddb5-45b9-8dcb-e1d4d18737d2.vsidx
+/.vs/hydrotel-main/v17/.wsuo
+/.vs/hydrotel-main/v17/DocumentLayout.json
+/vs2022/hydrotel/hydrotel/x64/Release
+/vs2022/hydrotel/.vs/hydrotel
+/vs2022/hydrotel/hydrotel.vcxproj.user

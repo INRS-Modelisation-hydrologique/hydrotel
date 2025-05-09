@@ -43,8 +43,8 @@ namespace HYDROTEL
 	ZONES::ZONES()
 	{
 		_nom_fichier_zoneTemp = "";
-
 		_pRasterUhrhId = nullptr;
+		_bSaveUhrhCsvFile = false;
 	}
 
 	ZONES::~ZONES()
@@ -171,7 +171,9 @@ namespace HYDROTEL
 		else
 		{
 			CalculResumer();
-			SauvegardeResumer(nom_fichier_resumer_csv);
+
+			_bSaveUhrhCsvFile = true;						//
+			//SauvegardeResumer(nom_fichier_resumer_csv);	//doit etre effectue apres la lecture des troncons (type zone)
 		}
 
 		//obtient l'identifiant maximum
@@ -298,10 +300,7 @@ namespace HYDROTEL
 			zone->ChangeNbPixel(iter->second);
 			zone->ChangeSuperficie(resolution * resolution * iter->second / 1000000.0);
 
-			//if (iter->first < 0)
-			//{
-			//	zone->ChangeTypeZone(ZONE::LAC);
-			//}		//les types de zone sont lu dans le fichier troncon.trl
+			//zone->ChangeTypeZone(ZONE::LAC);	//est fait dans le LectureTroncons
 
 			int x = static_cast<int>(est + (resolutionX * (somme_col[iter->first] - (1.0 * iter->second / 2))) / iter->second); 
 			int y = static_cast<int>(nord - (resolutionY * (somme_lig[iter->first] - (1.0 * iter->second / 2))) / iter->second);

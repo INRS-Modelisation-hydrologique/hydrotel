@@ -24,6 +24,10 @@
 #include "erreur.hpp"
 #include "util.hpp"
 
+#include <algorithm>
+
+#include <boost/algorithm/string/case_conv.hpp>
+
 
 using namespace std;
 
@@ -221,9 +225,11 @@ namespace HYDROTEL
 		{
 			boost::filesystem::path fp = iter->path().extension();
 			sString = fp.string();
-			if(sString == ".een" || sString == ".EEN")
+			boost::algorithm::to_lower(sString);
+			if(sString == ".een")
 			{
 				sPathTarget = iter->path().string();
+				std::replace(sPathTarget.begin(), sPathTarget.end(), '\\', '/');
 				break;
 			}
 		}

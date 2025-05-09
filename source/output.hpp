@@ -121,9 +121,10 @@ namespace HYDROTEL
 		bool				_apport_glacier;
 		bool				_eau_glacier;
 		bool				_apport_lateral;
-		bool				_ecoulement_surf;	//m3/s
-		bool				_ecoulement_hypo;	//m3/s
-		bool				_ecoulement_base;	//m3/s
+		bool				_apport_lateral_uhrh;	//m3/s
+		bool				_ecoulement_surf;		//m3/s
+		bool				_ecoulement_hypo;		//m3/s
+		bool				_ecoulement_base;		//m3/s
 		bool				_etp;
 		bool				_neige;
 		bool				_pluie;

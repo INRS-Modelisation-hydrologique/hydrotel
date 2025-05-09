@@ -184,13 +184,13 @@ namespace HYDROTEL
 		std::vector<std::vector<double>>				_stock_feuillus;		//M2	//stock de neige (EEN) [m]
 		std::vector<std::vector<double>>				_stock_decouver;		//M3	//stock de neige (EEN) [m]
 
+		STATIONS_NEIGE									_stations_neige_conifers;
+		STATIONS_NEIGE									_stations_neige_feuillus;
+		STATIONS_NEIGE									_stations_neige_decouver;
+
 	private:
 
 		bool _mise_a_jour_neige;
-
-		STATIONS_NEIGE _stations_neige_conifers;
-		STATIONS_NEIGE _stations_neige_feuillus;
-		STATIONS_NEIGE _stations_neige_decouver;
 
 		TYPE_INTERPOLATION _interpolation_conifers;
 		TYPE_INTERPOLATION _interpolation_feuillus;

@@ -137,6 +137,12 @@ namespace HYDROTEL
 		void ChangeSauvegardeTousEtat(bool sauvegarde_tous);
 		void ChangeDateHeureSauvegardeEtat(bool sauvegarde, DATE_HEURE date_sauvegarde);
 
+
+		STATIONS_NEIGE _stations_neige_feuillus;
+		STATIONS_NEIGE _stations_neige_conifers;
+		STATIONS_NEIGE _stations_neige_decouver;
+
+
 	private:
 
 		void CalculIndiceRadiation(DATE_HEURE date_heure, unsigned short pas_de_temps, ZONE& zone, size_t index_zone);
@@ -172,10 +178,6 @@ namespace HYDROTEL
 		void UneMiseAJourOccupation(float mesure, float& valeur_actuelle, float valeur_ref, float fraction_corrigee, float ponderation, float &fraction_simulee);
 
 		bool _mise_a_jour_neige;
-
-		STATIONS_NEIGE _stations_neige_feuillus;
-		STATIONS_NEIGE _stations_neige_conifers;
-		STATIONS_NEIGE _stations_neige_decouver;
 
 		TYPE_INTERPOLATION _interpolation_feuillus;
 		TYPE_INTERPOLATION _interpolation_conifers;

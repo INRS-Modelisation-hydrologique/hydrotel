@@ -486,7 +486,7 @@ namespace HYDROTEL
 			m_wetfichier.open(path.c_str());
 
 			m_wetfichier << "IdTroncon" << _pOutput->Separator()
-							<< "Année" << _pOutput->Separator()
+							<< "Annee" << _pOutput->Separator()
 							<< "Mois" << _pOutput->Separator()
 							<< "Jour" << _pOutput->Separator()
 							<< "Heure" << _pOutput->Separator()
@@ -502,7 +502,7 @@ namespace HYDROTEL
 			LectureEtat( _sim_hyd.PrendreDateDebut() );
 
 		if(!_sim_hyd._pr->LecturePrelevements())
-			throw ERREUR("Erreur lecture des prélèvements");
+			throw ERREUR("Erreur lecture des prelevements");
 
 		if(_sim_hyd._pr->_bSimulePrelevements)
 		{

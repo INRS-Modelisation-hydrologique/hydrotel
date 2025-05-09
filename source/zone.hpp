@@ -270,6 +270,8 @@ namespace HYDROTEL
 		float					_ecoulementHypo;			//ecoulement vers le troncon (hypo) (m3/s)
 		float					_ecoulementBase;			//ecoulement vers le troncon (base) (m3/s)
 
+		float                   _apport_lateral_uhrh;		//apport lateral du uhrh vers le troncon (m3/s)
+
 		int						_identABS;
 
 		double					_dRayonnementSolaire;		//rayonnement solaire sur une pente en l'absence d'atmosphere

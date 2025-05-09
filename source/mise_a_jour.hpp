@@ -37,7 +37,7 @@ namespace HYDROTEL
 	void CropRasterInt_FloatMask(const std::string& sPathRasterIntSrc, const std::string& sPathRasterFloatMask);
 
 	// mise a jour d'un projet 2.6 v47 ou v49 a 2.8
-	void MiseAJour(const std::string& fichier_prj, const std::string& repertoire);
+	void MiseAJourProjet(const std::string& fichier_prj, const std::string& repertoire);
 
 	// mise a jour d'une matrice au format bin vers un GeoTIFF d'entier
 	void PhysitelRaster2GeoTIFF_int(const std::string& src, const std::string& dst, int nodata);

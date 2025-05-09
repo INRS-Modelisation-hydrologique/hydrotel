@@ -27,6 +27,7 @@
 #include <regex>
 
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/math/special_functions/round.hpp>
 
 
 using namespace std;
@@ -135,6 +136,7 @@ namespace HYDROTEL
             m_mapDonnePrelevementGPE[annee] = PRELEVEMENTS_DONNEES();
         }
 
+
     std::string PRELEVEMENTS_SITE::printDonneGPE(size_t numero_site)
     {
         std::ostringstream os, os2;
@@ -143,18 +145,28 @@ namespace HYDROTEL
 
 		vector<double> vals;
 		vector<double> nbs;
+        vector<int> valsJour;
+        vector<int> nbsJour;
+        double dVal;
 		size_t i, idx;
+        int iVal;
 
 		vals.resize(36, 0.0);	//12 mois * 3 valeurs
 		nbs.resize(36, 0.0);
+
+        valsJour.resize(12, 0);
+		nbsJour.resize(12, 0);
 
 		for (it = m_mapDonnePrelevementGPE.begin(); it != m_mapDonnePrelevementGPE.end(); it++)
         {
 			idx = 0;
 			for(i=0; i!=it->second.m_vNbrjour.size(); i++)
 			{
-				if(it->second.m_vNbrjour[i] != 0)
-					nbs[idx]+= 1.0;
+                if(it->second.m_vNbrjour[i] != 0)   //il ne faut pas prendre les mois où le nombre de jour est egal à 0, ceux-ci doivent être exclue du calcul du nb de jour moyen (ligne MOY)
+                {
+                    nbs[idx]+= 1.0;     //nb d'annee
+                    nbsJour[idx]+= 1;   //
+                }
 				++idx;
 			}
 
@@ -173,7 +185,6 @@ namespace HYDROTEL
 			}
         }
 
-		//
         for (it = m_mapDonnePrelevementGPE.begin(); it != m_mapDonnePrelevementGPE.end(); it++)
         {
             os2 << os.str() << ";" << it->first << ";" << it->second.printDonnee() << endl;
@@ -182,7 +193,7 @@ namespace HYDROTEL
 			for(i=0; i!=it->second.m_vNbrjour.size(); i++)
 			{
 				if(it->second.m_vNbrjour[i] != 0)
-					vals[idx]+= (it->second.m_vNbrjour[i] / nbs[idx]);
+					valsJour[idx]+= it->second.m_vNbrjour[i];
 				++idx;
 			}
 
@@ -202,60 +213,27 @@ namespace HYDROTEL
         }
 
 		os2 << os.str() << ";" << "MOY";
-		for(i=0; i!=vals.size(); i++)
-			os2 << ";" << fixed << setprecision(0) << vals[i];
+        for(i=0; i!=vals.size(); i++)
+        {
+            if(i < 12) //colonnes nb jours
+            {
+                if(nbsJour[i] != 0)
+                {
+                    dVal = ((double)valsJour[i]) / nbsJour[i];  //pour éviter les différence d'arrondissement pour le nb de jour moyen pour chaque mois
+                    iVal = boost::math::lround(dVal);           //
+                }
+                else
+                    iVal = 0;
+                
+                os2 << ";" << iVal;
+            }
+            else
+                os2 << ";" << fixed << setprecision(0) << vals[i];
+        }
 		os2 << endl;
 
         return os2.str();
     }
-
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	//Inclut les valeurs 0 dans la moyenne
-	//std::string PRELEVEMENTS_SITE::printDonneGPE(size_t numero_site)
- //   {
- //       std::ostringstream os, os2;
- //       os << numero_site << ";"<< printDonneeMulti() << ";" << m_intervenantGPE << ";" << m_nomIntervenantGPE << ";" << m_nomLegalGPE << ";" << m_codescianGPE;
- //       std::map<int, PRELEVEMENTS_DONNEES>::iterator it;
-
-	//	vector<double> vals;
-	//	double dNb;
-	//	size_t i, idx;
-
-	//	vals.resize(36, 0.0);	//12 mois * 3 valeurs
-
-	//	dNb = static_cast<double>(m_mapDonnePrelevementGPE.size());
-
- //       for (it = m_mapDonnePrelevementGPE.begin(); it != m_mapDonnePrelevementGPE.end(); it++)
- //       {
- //           os2 << os.str() << ";" << it->first << ";" << it->second.printDonnee() << endl;
-
-	//		idx = 0;
-	//		for(i=0; i!=it->second.m_vNbrjour.size(); i++)
-	//		{
-	//			vals[idx]+= (it->second.m_vNbrjour[i] / dNb);
-	//			++idx;
-	//		}
-
-	//		for(i=0; i!=it->second.m_vVol.size(); i++)
-	//		{
-	//			vals[idx]+= (it->second.m_vVol[i] / dNb);
-	//			++idx;
-	//		}
-
-	//		for(i=0; i!=it->second.m_vCons.size(); i++)
-	//		{
-	//			vals[idx]+= (it->second.m_vCons[i] / dNb);
-	//			++idx;
-	//		}
- //       }
-
-	//	os2 << os.str() << ";" << "MOY";
-	//	for(i=0; i!=vals.size(); i++)
-	//		os2 << ";" << fixed << setprecision(0) << vals[i];
-	//	os2 << endl;
-
- //       return os2.str();
- //   }
 
 
     std::string PRELEVEMENTS_SITE::printLegendGPE()
@@ -684,7 +662,7 @@ namespace HYDROTEL
     std::string PRELEVEMENTS_SITE::printLegendAgricole()
     {
         //multi: "LAT(d);LONG(d);ID TRONCON;ID UHRH;# OCCSOL;NOM OCCSOL;SOURCE;CRITERE;COEF_CONSO";
-        std::string str = "#SITE;#SITE GPE;#SITE PRELEVEMENT;" + printLegendMulti() + ";TYPE CHEPTEL;NOMBRE TÊTE;CONSOMMATION m^3/an;CONSOMMATION TOTAL m^3/an;NOM DU LIEU;NOM DE LEXPLOITANT;MUNICIPALITE";
+        std::string str = "#SITE;#SITE GPE;#SITE PRELEVEMENT;" + printLegendMulti() + ";TYPE CHEPTEL;NOMBRE TETE;CONSOMMATION m3/an;CONSOMMATION TOTAL m3/an;NOM DU LIEU;NOM DE LEXPLOITANT;MUNICIPALITE";
         return str;
     }
 

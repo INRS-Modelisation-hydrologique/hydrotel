@@ -121,8 +121,8 @@ namespace HYDROTEL
 	// remplace le repertoire
 	std::string RemplaceRepertoire(const std::string& nom_fichier, const std::string& repertoire);
 
-	//std::vector<std::string> CheckFilesCharacters(std::vector<std::string> listFiles);
-	bool CheckFilesCharacters(std::vector<std::string> listInputFiles, std::vector<std::string>& listChar, std::vector<std::string>& listLoc, std::vector<std::vector<std::string>>& filelist);
+	//
+	std::string ValidateInputFilesCharacters(std::vector<std::string> &listInputFiles, std::vector<std::string> &listErrMessCharValidation);
 
 	//
 	std::istream& getline_mod(std::istream& stream, std::string& line);

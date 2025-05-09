@@ -379,7 +379,7 @@ namespace HYDROTEL
 			m_wetfichier.open(path.c_str());
 
 			m_wetfichier << "IdUhrh" << output.Separator()			//file header
-							<< "Année" << output.Separator()
+							<< "Annee" << output.Separator()
 							<< "Mois" << output.Separator()
 							<< "Jour" << output.Separator()
 							<< "Heure" << output.Separator()

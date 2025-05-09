@@ -654,7 +654,11 @@ namespace HYDROTEL
 							boost::algorithm::to_lower(str);
 						
 							if(str == ".hgm")
-								listHGM.push_back(current.string());
+							{
+								str = current.string();
+								std::replace(str.begin(), str.end(), '\\', '/');
+								listHGM.push_back(str);
+							}
 						}					
 					}
 					catch(const boost::filesystem::filesystem_error& e)
@@ -779,7 +783,7 @@ namespace HYDROTEL
 		TRONCON* troncon;
 		size_t nb_pixel, index_zone, index, j;
 		double dPdts, m2_sec, resolution, production, prod_surf, prod_hypo, prod_base, tmp1, tmp2;
-		float fTemp, apport;
+		float apport;
 		int pdts;
 
 		pdts = _sim_hyd.PrendrePasDeTemps() * 60 * 60;
@@ -846,8 +850,9 @@ namespace HYDROTEL
 
 			troncon = zone.PrendreTronconAval();
 
-			fTemp = static_cast<float>(_oc_zone[index_zone].debits[0]);
-			apport = troncon->PrendreApportLateral() + fTemp;
+			zone._apport_lateral_uhrh = static_cast<float>(_oc_zone[index_zone].debits[0]);
+
+			apport = troncon->PrendreApportLateral() + zone._apport_lateral_uhrh;
 			troncon->ChangeApportLateral(max(0.0f, apport));
 
 			troncon->_surf = max(0.0f, troncon->_surf + static_cast<float>(_oc_surf[index_zone].debits[0]));
@@ -2147,14 +2152,15 @@ namespace HYDROTEL
 		string nom_fichier_hgm;
 		lire_cle_valeur(fichier, cle, nom_fichier_hgm);
 
+		nom_fichier_hgm = TrimString(nom_fichier_hgm);
 		if(nom_fichier_hgm == "")
 			nom_fichier_hgm = "hgm/hydrogramme.hgm";
 		else
 		{
-			if(nom_fichier_hgm.length() > 1 && nom_fichier_hgm[1] == ':')
+			if(Racine(nom_fichier_hgm))
 				ChangeNomFichierHGM(nom_fichier_hgm);	//absolute path
 			else
-				ChangeNomFichierHGM( Combine(_sim_hyd.PrendreRepertoireProjet(), nom_fichier_hgm) );	//relative path
+				ChangeNomFichierHGM(Combine(_sim_hyd.PrendreRepertoireProjet(), nom_fichier_hgm));	//relative path
 		}
 
 		getline_mod(fichier, ligne);
@@ -2315,7 +2321,7 @@ namespace HYDROTEL
 
 		fichier << "NOM FICHIER HGM;" << PrendreRepertoireRelatif(_sim_hyd.PrendreRepertoireProjet(), PrendreNomFichierHgm()) << endl << endl;
 
-		fichier << "UHRH ID;MANNING FORETS;MANNING EAUX;MANNING AUTRES;" << endl;
+		fichier << "UHRH ID;MANNING FORETS;MANNING EAUX;MANNING AUTRES" << endl;
 		for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 		{
 			fichier << zones[index].PrendreIdent() << ';';

@@ -310,6 +310,7 @@ namespace HYDROTEL
 			if(sString == ".tmin")
 			{
 				sPathTarget = iter->path().string();
+				std::replace(sPathTarget.begin(), sPathTarget.end(), '\\', '/');
 				break;
 			}
 		}
@@ -510,6 +511,7 @@ namespace HYDROTEL
 			if(sString == ".tmin")
 			{
 				sPathTarget = iter->path().string();
+				std::replace(sPathTarget.begin(), sPathTarget.end(), '\\', '/');
 				break;
 			}
 		}

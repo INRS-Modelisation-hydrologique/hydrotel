@@ -39,18 +39,21 @@ using namespace HYDROTEL;
 
 void displayHelp()
 {
-	std::cout << "hydrotel [-i/g/u/v] [<project filename>] [-d/r/s] [-t <nb thread>] [-l <log filename>]" << endl;
+	std::cout << "hydrotel [-i/g/n/u/v] [<project filename>] [-c/d/r/s] [-t <nb thread>] [-l <log filename>]" << endl;
 	std::cout << endl;
 
 	std::cout << " <project filename>          Run the simulation currently selected in the project file (*.csv)." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename>" << endl;
+	std::cout << endl;
+	std::cout << " -c (-skipcharvalidation)    Skip validation of input files characters." << endl;
+	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -c" << endl;
 	std::cout << endl;
 	std::cout << " -d (-display)               Display simulation progress." << endl;
 	std::cout << "                             Note: this option can slow down the execution time of simulations." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -d" << endl;
 	std::cout << endl;
 	std::cout << " -g (-hgm)                   Generate hgm file (geomorphological hydrograph)." << endl;
-	std::cout << "                             USAGE: hydrotel -g <hydrotel project filename> <water depth (m)> <new hgm filename>" << endl;
+	std::cout << "                             USAGE: hydrotel -g <hydrotel project filename> <water depth (m)> <new hgm filename> [-t <nb thread>]" << endl;
 	std::cout << endl;
 	std::cout << " -i (-info)                  Save connectivity and RHHUs informations in the `project-info` folder." << endl;
 	std::cout << "                             USAGE: hydrotel -i <hydrotel project filename>" << endl;
@@ -65,14 +68,14 @@ void displayHelp()
 	std::cout << "                             maximum temperature values (not modifying source dataset)." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -r" << endl;
 	std::cout << endl;
-	std::cout << " -s (-skipinterp)            Skip interpolation of missing weather data at stations level." << endl;
+	std::cout << " -s (-skipinterpolation)     Skip interpolation of missing weather data at stations level." << endl;
 	std::cout << "                             Note: this option can be used to speed up the initialization step of a" << endl;
 	std::cout << "                             simulation when there is no missing data in source weather dataset." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -s" << endl;
 	std::cout << endl;
 	std::cout << " -t (-thread)                Number of threads to use for hgm computation." << endl;
-	std::cout << "                             Note: use <nb thread> value of 0 to use the maximum number of available threads." << endl;
-	std::cout << "                             USAGE: hydrotel [-g] <hydrotel project filename> -t <nb thread>" << endl;
+	std::cout << "                             Note: <nb thread> value of 0 will use the maximum number of available threads." << endl;
+	std::cout << "                             USAGE: hydrotel [-g] <hydrotel project filename> [...] -t <nb thread>" << endl;
 	std::cout << endl;
 	std::cout << " -u (-update)                Update an older 2.6 (v47 ou V49) Hydrotel project to the current version." << endl;
 	std::cout << "                             USAGE: hydrotel -u <prj filename> <new project folder>" << endl;
@@ -93,13 +96,10 @@ int main(int argc, char* argv[])
 	string str, str2, str3;
 	time_t begin;
 	time_t end;
-	bool bAutoInverseTMinTmax, bDisplay, bStationInterpolation;
+	bool bAutoInverseTMinTmax, bDisplay, bStationInterpolation, bSkipCharacterValidation, bGenereBdPrelev;
 	int nbThread, ret, n;
 
 	nbThread = 1;	//default: use only 1 thread
-
-	//SetConsoleCP(1250); 
-	//SetConsoleOutputCP(1250);
 
 	ret = 0;
 
@@ -111,6 +111,8 @@ int main(int argc, char* argv[])
 	bAutoInverseTMinTmax = false;
 	bDisplay = false;
 	bStationInterpolation = true;
+	bSkipCharacterValidation = false;
+	bGenereBdPrelev = false;
 
 	if (argc == 1)
 	{
@@ -140,7 +142,7 @@ int main(int argc, char* argv[])
 				{
 					_log = true;
 					_nom_fichier_log = argv[n + 1];
-					replace(_nom_fichier_log.begin(), _nom_fichier_log.end(), '\\', '/');		//replace \ to / for compatibility between windows and unix, / are ok for windows but \ are not ok for unix...
+					std::replace(_nom_fichier_log.begin(), _nom_fichier_log.end(), '\\', '/');		//replace \ to / for compatibility between windows and unix, / are ok for windows but \ are not ok for unix...
 
 					if (FichierExiste(_nom_fichier_log))
 						SupprimerFichier(_nom_fichier_log);
@@ -149,38 +151,46 @@ int main(int argc, char* argv[])
 			else
 			{
 				if (option.compare("-r") == 0 || option.compare("-autoreversetemp") == 0)
-				{
 					bAutoInverseTMinTmax = true;
-				}
 				else
 				{
-					if (option.compare("-d") == 0 || option.compare("-display") == 0)
-						bDisplay = true;
+					if (option.compare("-c") == 0 || option.compare("-skipcharvalidation") == 0)
+						bSkipCharacterValidation = true;
 					else
 					{
-						if (option.compare("-s") == 0 || option.compare("-skipinterp") == 0)
-							bStationInterpolation = false;
+						if (option.compare("-d") == 0 || option.compare("-display") == 0)
+							bDisplay = true;
 						else
 						{
-							if (option.compare("-t") == 0 || option.compare("-thread") == 0 || option.compare("-threads") == 0)
+							if (option.compare("-s") == 0 || option.compare("-skipinterpolation") == 0)
+								bStationInterpolation = false;
+							else
 							{
-								if (n + 1 == argc)
+								if (option.compare("-t") == 0 || option.compare("-thread") == 0)
 								{
-									std::cout << "Missing parameter <nb thread>" << endl << endl;
-									displayHelp();
-									ret = 1;
+									if (n + 1 == argc)
+									{
+										std::cout << "Missing parameter <nb thread>" << endl << endl;
+										displayHelp();
+										ret = 1;
+									}
+									else
+									{
+										str = argv[n + 1];
+										istringstream iss(str);
+										iss >> nbThread;
+
+										if (nbThread < 0)
+										{
+											std::cout << "Parameter <nb thread> is invalid: \"" << argv[n + 1] << "\": must be greater or equal 0" << endl;
+											ret = 1;
+										}
+									}
 								}
 								else
 								{
-									str = argv[n + 1];
-									istringstream iss(str);
-									iss >> nbThread;
-
-									if (nbThread < 0 || nbThread > 2000000000)
-									{
-										std::cout << "Parameter <nb thread> is invalid: \"" << argv[n + 1] << "\": must be greater or equal 0" << endl;
-										ret = 1;
-									}
+									if (option.compare("-generebdprelevements") == 0)
+										bGenereBdPrelev = true;
 								}
 							}
 						}
@@ -207,15 +217,17 @@ int main(int argc, char* argv[])
 					}
 					else
 					{
+						GDALAllRegister();
+
 						str2 = argv[2];
-						replace(str2.begin(), str2.end(), '\\', '/');
+						std::replace(str2.begin(), str2.end(), '\\', '/');
 						str3 = argv[3];
-						replace(str3.begin(), str3.end(), '\\', '/');
+						std::replace(str3.begin(), str3.end(), '\\', '/');
 
 						std::cout << "Updating project..." << endl;
 						std::cout << str2 << endl;
 
-						MiseAJour(str2, str3);
+						MiseAJourProjet(str2, str3);
 						std::cout << endl << "Update completed: " << str3 << endl << endl;
 					}
 				}
@@ -230,8 +242,10 @@ int main(int argc, char* argv[])
 					}
 					else
 					{
+						GDALAllRegister();
+
 						str2 = argv[2];
-						replace(str2.begin(), str2.end(), '\\', '/');
+						std::replace(str2.begin(), str2.end(), '\\', '/');
 
 						std::cout << "Info " << str2 << endl << endl;
 						Info(str2);
@@ -249,7 +263,7 @@ int main(int argc, char* argv[])
 					else
 					{
 						str = argv[3];
-						replace(str.begin(), str.end(), ',', '.');
+						std::replace(str.begin(), str.end(), ',', '.');
 						istringstream iss(str);
 						float lame;
 						iss >> lame;
@@ -261,18 +275,22 @@ int main(int argc, char* argv[])
 						}
 						else
 						{
+							GDALAllRegister();
+
 							SIM_HYD	sim_hyd;
 
 							sim_hyd._nbThread = nbThread;
+							sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
+
 							str = argv[2];
-							replace(str.begin(), str.end(), '\\', '/');
+							std::replace(str.begin(), str.end(), '\\', '/');
 							sim_hyd.ChangeNomFichier(str);
 							sim_hyd.Lecture();
 
 							std::time(&begin);
 
 							str = argv[4];
-							replace(str.begin(), str.end(), '\\', '/');
+							std::replace(str.begin(), str.end(), '\\', '/');
 							sim_hyd.CalculeHgm(lame, str);
 
 							std::time(&end);
@@ -304,11 +322,13 @@ int main(int argc, char* argv[])
 					}
 					else
 					{
+						GDALAllRegister();
+
 						string path_in(argv[2]);
 						string path_out(argv[3]);
 
-						replace(path_in.begin(), path_in.end(), '\\', '/');
-						replace(path_out.begin(), path_out.end(), '\\', '/');
+						std::replace(path_in.begin(), path_in.end(), '\\', '/');
+						std::replace(path_out.begin(), path_out.end(), '\\', '/');
 
 						if (!boost::filesystem::is_directory(boost::filesystem::path(path_in)))
 							throw ERREUR("Error: invalid input folder path.");
@@ -347,16 +367,18 @@ int main(int argc, char* argv[])
 				}
 				else
 				{
-					string option2 = "";
-					if (argc == 3)
-						option2 = argv[2];
+					GDALAllRegister();
 
-					if (option2.compare("-genere-bd-prelevements") == 0 || option2.compare("-generebdprelevements") == 0)
+					if (bGenereBdPrelev)
 					{
-						//genere fichiers bd prelevements (prelevements/BD_*.csv) à partir des fichiers sources (prelevements/SitesPrelevements/*.csv)
+						//genere fichiers bd prelevements (/simulation/[nom_simulation]/prelevements/BD_*.csv) à partir des fichiers sources (/simulation/[nom_simulation]/prelevements/SitesPrelevements/*.csv)
 						SIM_HYD	sim_hyd;
+
+						sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
+						sim_hyd._bGenereBdPrelevements = true;
+
 						str = argv[1];
-						replace(str.begin(), str.end(), '\\', '/');
+						std::replace(str.begin(), str.end(), '\\', '/');
 						sim_hyd.ChangeNomFichier(str);	// [nom fichier projet]
 						sim_hyd.Lecture();
 
@@ -370,11 +392,12 @@ int main(int argc, char* argv[])
 						sim_hyd._nbThread = nbThread;
 						sim_hyd._bAutoInverseTMinTMax = bAutoInverseTMinTmax;
 						sim_hyd._bStationInterpolation = bStationInterpolation;
+						sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
 
 						str = argv[1];	//[nom fichier projet]
-						replace(str.begin(), str.end(), '\\', '/');
-						sim_hyd.ChangeNomFichier(str);
+						std::replace(str.begin(), str.end(), '\\', '/');
 
+						sim_hyd.ChangeNomFichier(str);
 						sim_hyd.Lecture();
 
 						std::time(&begin);

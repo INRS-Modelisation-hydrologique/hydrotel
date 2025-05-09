@@ -609,8 +609,7 @@ namespace HYDROTEL
 
 	bool FichierExiste(const string& nom_fichier)
 	{
-		ifstream fichier(nom_fichier);
-		return fichier ? true : false;
+		return boost::filesystem::exists(nom_fichier);
 	}
 
 	void SupprimerFichier(const string& nom_fichier)
@@ -1481,73 +1480,69 @@ namespace HYDROTEL
 	}
 
 
-	bool CheckFilesCharacters(vector<string> listInputFiles, vector<string>& listChar, vector<string>& listLoc, vector<vector<string>>& filelist)
+	string ValidateInputFilesCharacters(vector<string> &listInputFiles, vector<string> &listErrMessCharValidation)
 	{
-		vector<string> listTemp;
+		vector<string> listChar;
 		ostringstream oss;
 		ifstream file;
-		string str, str2, str3;
+		string ret, str, str2;
 		size_t i, j, k, line;
-		bool ret;
 
-		ret = true;
+		listErrMessCharValidation.clear();
+		ret = "";
 
 		try{
 
 		for(i=0; i!=listInputFiles.size(); i++)
 		{
-			file.open(listInputFiles[i], ios_base::in);
-
-			line = 0;
-			while(!file.eof())
+			if(boost::filesystem::exists(listInputFiles[i]))
 			{
-				++line;
+				file.open(listInputFiles[i], ios_base::in);
 
-				getline_mod(file, str);
-
-				for(j=0; j!=str.size(); j++)
+				line = 0;
+				while(!file.eof())
 				{
-					if(str[j] < 32 || str[j] > 126)
+					++line;
+
+					getline_mod(file, str);
+
+					for(j=0; j!=str.size(); j++)
 					{
-						str2 = str[j];
-						k = std::find(listChar.begin(), listChar.end(), str2) - listChar.begin();	//get index
-
-						if(k >= listChar.size()) //not found
+						if( (str[j] < 32 || str[j] > 126) && str[j] != 9)	//exclude code 9 -> TABULATION
 						{
-							listChar.push_back(str2);
+							//invalid character
+							str2 = str[j];
+							k = std::find(listChar.begin(), listChar.end(), str2) - listChar.begin();	//get index
 
-							oss.str("");
-							oss << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";
-							listLoc.push_back(oss.str());
+							if(k >= listChar.size()) //not found
+							{
+								listChar.push_back(str2);
 
-							filelist.push_back(vector<string>());
-							filelist[filelist.size()-1].push_back(listInputFiles[i]);
-						}
-						else
-						{
-							if(std::find(filelist[k].begin(), filelist[k].end(), listInputFiles[i]) == filelist[k].end())
-								filelist[k].push_back(listInputFiles[i]);
+								oss.str("");
+								
+								oss << "Invalid character in file: " << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";								
+								//int code = str[j];
+								//oss << "Invalid character: " << str2 << ": code " << code << ": in file: " << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";
+
+								listErrMessCharValidation.push_back(oss.str());
+							}
 						}
 					}
 				}
+
+				file.close();
+				file.clear();
 			}
-
-			file.close();
-			file.clear();
 		}
 
 		}
-		//catch(const exception& ex)
-		catch(...)
+		catch(const exception& ex)
 		{
 			if(file && file.is_open())
 				file.close();
 
-			ret = false;
-			//listRet.clear();
-			//str = "exception: ";
-			//str+= ex.what();
-			//listRet.push_back(str);
+			ret = "error validating input files: exception: ";
+			ret+= ex.what();
 		}
 
 		return ret;

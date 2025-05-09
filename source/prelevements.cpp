@@ -27,6 +27,7 @@
 #include "erreur.hpp"
 
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/random.hpp>
 
 
 using namespace std;
@@ -38,8 +39,8 @@ namespace HYDROTEL
 	PRELEVEMENTS::PRELEVEMENTS(SIM_HYD& sim_hyd)
 		: _sim_hyd(sim_hyd)
 	{
-		_FolderName = "prelevements";
-		_FolderNameSrc = "SitesPrelevements";
+		_FolderName = sim_hyd._sFolderNamePrelevements;
+		_FolderNameSrc = sim_hyd._sFolderNamePrelevementsSrc;
 
 		_bSimulePrelevements = false;
 	}
@@ -53,33 +54,35 @@ namespace HYDROTEL
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	bool PRELEVEMENTS::GenerateBdPrelevements()
 	{
+		vector<string> fileList;
+		size_t i;
 		string str, str2, path;
 
 		std::cout << endl << "creation bd prelevements..." << endl << endl;
 
 		try{
 
-		path = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc;
+		path = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc;
 		if(boost::filesystem::exists(path))
 		{
 			vector<string> v_fichier;
 
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_GPE.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_GPE.csv";
 			if(boost::filesystem::exists(str))
 				boost::filesystem::remove(str);
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
 			if(boost::filesystem::exists(str))
 				boost::filesystem::remove(str);
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
 			if(boost::filesystem::exists(str))
 				boost::filesystem::remove(str);
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_SIH.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_SIH.csv";
 			if(boost::filesystem::exists(str))
 				boost::filesystem::remove(str);
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
 			if(boost::filesystem::exists(str))
 				boost::filesystem::remove(str);
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
 			if(boost::filesystem::exists(str))
 				boost::filesystem::remove(str);
 
@@ -91,6 +94,7 @@ namespace HYDROTEL
 				if(boost::filesystem::is_regular_file(*iter))
 				{
 					str = iter->path().string();
+					std::replace(str.begin(), str.end(), '\\', '/');
 					str2 = str.substr(str.rfind("/")+1);
 					boost::algorithm::to_lower(str2);
 
@@ -102,12 +106,44 @@ namespace HYDROTEL
 				}
 			}
 
+			if(!_sim_hyd._bSkipCharacterValidation)	//validate input files characters
+			{
+				for(i=0; i!=v_fichier.size(); i++)
+					fileList.push_back(v_fichier[i]);
+
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_AGR_lieuxElevage.csv";
+				fileList.push_back(str);
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_Consommation_cheptel.csv";
+				fileList.push_back(str);
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "PRELEVEMENTS_SITES.csv";
+				fileList.push_back(str);
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "SIH_SITES.csv";
+				fileList.push_back(str);
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "CULTURES_SITES.csv";
+				fileList.push_back(str);
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "EFFLUENTS_SITES.csv";
+				fileList.push_back(str);
+
+				str = ValidateInputFilesCharacters(fileList, _sim_hyd._listErrMessCharValidation);
+				if(str != "")
+					throw ERREUR(str);
+
+				if(_sim_hyd._listErrMessCharValidation.size() != 0)
+				{
+					std::cout << endl;
+					for(i=0; i!=_sim_hyd._listErrMessCharValidation.size(); i++)
+						std::cout << _sim_hyd._listErrMessCharValidation[i] << endl;
+
+					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
+				}
+			}
+
 			std::sort(v_fichier.begin(), v_fichier.end());
 			reverse(v_fichier.begin(), v_fichier.end());
 
 			if(v_fichier.size() != 0)
 			{
-				str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_GPE.csv";
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_GPE.csv";
 				_sim_hyd._pr->trierDonnePrelevementGPE(v_fichier, str);
 				std::cout << "creation BD_GPE.csv ok" << endl;
 			}
@@ -115,14 +151,14 @@ namespace HYDROTEL
 				std::cout << "donnees GPE_Volumes_prelevements_YYYY.csv absent" << endl;
 
 			//Agricole	//Elevage
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_AGR_lieuxElevage.csv";
-			str2 = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_Consommation_cheptel.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_AGR_lieuxElevage.csv";
+			str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_Consommation_cheptel.csv";
 			if(boost::filesystem::exists(str) && boost::filesystem::exists(str2))
 			{
 				v_fichier.clear();
 				v_fichier.push_back(str);
 
-				str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
+				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
 				_sim_hyd._pr->trierDonnePrelevementagricole(v_fichier, str2, str);
 				std::cout << "creation BD_ELEVAGES.csv ok" << endl;
 			}
@@ -130,10 +166,10 @@ namespace HYDROTEL
 				std::cout << "donnees ELEVAGES_AGR_lieuxElevage.csv et ELEVAGES_Consommation_cheptel.csv absent" << endl;
 
 			//Sites prelevements
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "PRELEVEMENTS_SITES.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "PRELEVEMENTS_SITES.csv";
 			if(boost::filesystem::exists(str))
 			{
-				str2 = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
+				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
 					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
 				else
@@ -143,10 +179,10 @@ namespace HYDROTEL
 				std::cout << "donnees PRELEVEMENTS_SITES.csv absent" << endl;
 
 			//Sites SIH
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "SIH_SITES.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "SIH_SITES.csv";
 			if(boost::filesystem::exists(str))
 			{
-				str2 = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_SIH.csv";
+				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_SIH.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
 					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
 				else
@@ -156,10 +192,10 @@ namespace HYDROTEL
 				std::cout << "donnees SIH_SITES.csv absent" << endl;
 
 			//Sites CULTURES
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "CULTURES_SITES.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "CULTURES_SITES.csv";
 			if(boost::filesystem::exists(str))
 			{
-				str2 = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
+				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
 					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
 				else
@@ -169,10 +205,10 @@ namespace HYDROTEL
 				std::cout << "donnees CULTURES_SITES.csv absent" << endl;
 
 			//Sites EFFLUENTS
-			str = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "EFFLUENTS_SITES.csv";
+			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "EFFLUENTS_SITES.csv";
 			if(boost::filesystem::exists(str))
 			{
-				str2 = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
+				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
 					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
 				else
@@ -184,12 +220,16 @@ namespace HYDROTEL
 			std::cout << endl << "termine" << endl << endl;
 		}
 		else
-			std::cout << endl << "dossier de donnees sources introuvable (prelevements/SitesPrelevements)" << endl << endl;
+			std::cout << endl << "dossier de donnees sources introuvable (/simulation/[nom_simulation]/prelevements/SitesPrelevements)" << endl << endl;
 
+		}
+		catch(const ERREUR& err)
+		{
+			throw(err);
 		}
 		catch(const exception& ex)
 		{
-			std::cout << endl << "erreur exception: " << ex.what() << endl << endl;
+			std::cout << endl << "Error (exception): " << ex.what() << endl << endl;
 			return false;
 		}
 
@@ -561,7 +601,7 @@ namespace HYDROTEL
 		_donneesTYPE.clear();
 		_donneesTYPE_redCoeff.clear();
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "TypePrelevement.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "TypePrelevement.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -692,7 +732,7 @@ namespace HYDROTEL
 
 		//m_sError = "";
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "COEFFICIENT_REDUCTION.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "COEFFICIENT_REDUCTION.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -863,7 +903,7 @@ namespace HYDROTEL
 		_donneesGPE_Jours.clear();
 		_donneesGPESite.clear();
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_GPE.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_GPE.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -1068,7 +1108,7 @@ namespace HYDROTEL
 		_donneesPR.clear();
 		_donneesPRSite.clear();
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -1166,7 +1206,7 @@ namespace HYDROTEL
 		_donneesELEVAGE.clear();
 		_donneesELEVAGESite.clear();
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -1258,7 +1298,7 @@ namespace HYDROTEL
 
 		_donneesEFFLUENT.clear();
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -1347,7 +1387,7 @@ namespace HYDROTEL
 
 		_donneesCULTURESite.clear();
 
-		sPathFile = _sim_hyd.PrendreRepertoireProjet() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
+		sPathFile = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
 		if(boost::filesystem::exists(boost::filesystem::path(sPathFile)))
 		{
 			file.open(sPathFile.c_str(), ios::in);
@@ -1592,7 +1632,7 @@ namespace HYDROTEL
 							if(_donneesGPE_PR.count(itGpeSite->first) != 0)		//s'il y a un site de prelevement associé au site gpe
 								oss << _donneesGPE_PR[itGpeSite->first];
 
-							oss << ";" << dPrelevementSite;
+							oss << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dPrelevementSite;
 
 							_tronconsPrelevementString[indexTroncon].push_back(oss.str());
 							_tronconsPrelevementVal[indexTroncon].push_back(dPrelevementSite);
@@ -1630,7 +1670,7 @@ namespace HYDROTEL
 								if(_donneesGPE_PR.count(itGpeSite->first) != 0)		//s'il y a un site de prelevement associé au site gpe
 									oss << _donneesGPE_PR[itGpeSite->first];
 
-								oss << ";" << dRejetSite;
+								oss << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dRejetSite;
 
 								_tronconsRejetString[indexTroncon].push_back(oss.str());
 								_tronconsRejetVal[indexTroncon].push_back(dRejetSite);
@@ -1692,7 +1732,7 @@ namespace HYDROTEL
 									troncon->_prPrelevementTotal+= dPrelevementSite;
 
 									oss.str("");
-									oss << "PR;" << itSite->first << ";" << ";" << dPrelevementSite;
+									oss << "PR;" << itSite->first << ";" << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dPrelevementSite;
 									_tronconsPrelevementString[indexTroncon].push_back(oss.str());
 									_tronconsPrelevementVal[indexTroncon].push_back(dPrelevementSite);
 								}
@@ -1712,7 +1752,7 @@ namespace HYDROTEL
 										troncon->_prRejetTotal+= dRejetSite;
 
 										oss.str("");
-										oss << "PR;" << itSite->first << ";" << ";" << dRejetSite;
+										oss << "PR;" << itSite->first << ";" << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dRejetSite;
 										_tronconsRejetString[indexTroncon].push_back(oss.str());
 										_tronconsRejetVal[indexTroncon].push_back(dRejetSite);
 									}
@@ -1751,7 +1791,7 @@ namespace HYDROTEL
 												troncon->_prPrelevementCulture+= dPrelevementSite;
 
 												oss.str("");
-												oss << "CULTURE;" << _donnees_PR_CULTURE[itSite->first][i] << ";" << itSite->first << ";" << dPrelevementSite;
+												oss << "CULTURE;" << _donnees_PR_CULTURE[itSite->first][i] << ";" << itSite->first << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dPrelevementSite;
 												_tronconsPrelevementCultureString[indexTroncon].push_back(oss.str());
 												_tronconsPrelevementCultureVal[indexTroncon].push_back(dPrelevementSite);
 											}
@@ -1786,7 +1826,7 @@ namespace HYDROTEL
 
 								if(str1 == "SURFACE" && TrimString(GetPrStr(_donneesPRSite[_donneesELEVAGE_PR[itSite->first]], "SITE_GPE")) == "")
 								{
-									dVal1 = GetElDbl(itSite->second, "CONSOMMATION TOTAL M^3/AN");
+									dVal1 = GetElDbl(itSite->second, "CONSOMMATION TOTAL M3/AN");
 									dPrelevementSite = dVal1 / iNbJourAnneeCourant / 86400.0;	//m3/s
 
 									if(dPrelevementSite > 0.0)
@@ -1798,7 +1838,7 @@ namespace HYDROTEL
 										troncon->_prPrelevementTotal+= dPrelevementSite;
 
 										oss.str("");
-										oss << "ELEVAGE;" << itSite->first << ";" << _donneesELEVAGE_PR[itSite->first] << ";" << dPrelevementSite;
+										oss << "ELEVAGE;" << itSite->first << ";" << _donneesELEVAGE_PR[itSite->first] << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dPrelevementSite;
 										_tronconsPrelevementString[indexTroncon].push_back(oss.str());
 										_tronconsPrelevementVal[indexTroncon].push_back(dPrelevementSite);
 									}
@@ -1831,7 +1871,7 @@ namespace HYDROTEL
 								troncon->_prRejetEffluent+= dRejetSite;
 
 								oss.str("");
-								oss << "EFFLUENT;" << itSite->first << ";" << ";" << dRejetSite;
+								oss << "EFFLUENT;" << itSite->first << ";" << ";" << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed) << dRejetSite;
 								_tronconsRejetEffluentString[indexTroncon].push_back(oss.str());
 								_tronconsRejetEffluentVal[indexTroncon].push_back(dRejetSite);
 							}
@@ -2349,13 +2389,13 @@ namespace HYDROTEL
 	{
 		int ival;
 
-		srand(uiSeed);
-		ival = static_cast<int>(1.0 + static_cast<double>(rand()) / RAND_MAX * (iMaxVal - 1 + 1));	//skip first value (always == 1) ???
+		boost::random::mt19937 rng(uiSeed);                                        
+		boost::random::uniform_int_distribution<> randomGen(1, iMaxVal);
 
 		vAlea.clear();
 		while(vAlea.size() != nbVal)
 		{
-			ival = static_cast<int>(1.0 + static_cast<double>(rand()) / RAND_MAX * (iMaxVal - 1 + 1));
+			ival = randomGen(rng);
 			if(find(begin(vAlea), end(vAlea), ival) == end(vAlea))
 				vAlea.push_back(ival);
 		}
@@ -2744,7 +2784,7 @@ namespace HYDROTEL
 
 		 //sert à trouver un site GPE proche désactiver pour le moment
 		// convertWGS84toPixel(v_site_prelevement);
-		 //std::string filenameGPE = PrendreRepertoireProjet() + "/BD_GPE.csv";
+		 //std::string filenameGPE = PrendreRepertoireSimulation() + "/" + _FolderName + "/BD_GPE.csv";
 		 //std::vector<SITE_PRELEVEMENT> v_siteGPERead = SITE_PRELEVEMENT::lirePrelevementGPE(filenameGPE);
 		// SiteGPEProche(v_siteGPERead, v_site_prelevement, 60);
 

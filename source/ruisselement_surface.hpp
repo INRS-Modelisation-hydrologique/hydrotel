@@ -47,6 +47,7 @@ namespace HYDROTEL
 		std::string			_nom_fichier_apport_lateral;
 
 		float*				_netCdf_apport_lateral;
+		float*				_netCdf_apport_lateral_uhrh;
 
 		float*				_netCdf_ecoulement_surf;
 		float*				_netCdf_ecoulement_hypo;
@@ -55,6 +56,7 @@ namespace HYDROTEL
 	private:
 
 		std::ofstream _fichier_apport_lateral;
+		std::ofstream _fichier_apport_lateral_uhrh;
 
 		std::ofstream _fichier_ecoulement_surf;
 		std::ofstream _fichier_ecoulement_hypo;

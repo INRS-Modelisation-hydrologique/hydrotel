@@ -57,9 +57,9 @@ namespace HYDROTEL
 
 		std::map<std::string, double>															_donneesREDCOEFF;		//key: Date ('yyyymmdd'), val: coefficient de réduction (0:1) des prélèvements
 
-		std::map<int, std::map<int, std::map<std::string, std::string>>>						_donneesGPE;			//key: idtroncon, #SITE GPE, ANNÉE
+		std::map<int, std::map<int, std::map<std::string, std::string>>>						_donneesGPE;			//key: idtroncon, #SITE GPE, ANNEE
 		std::map<int, std::map<int, int>>														_donneesGPE_AnneeMax;	//key: idtroncon, #SITE GPE
-		std::map<int, std::map<int, std::map<int, std::map<int, std::vector<int>>>>>			_donneesGPE_Jours;		//key: idtroncon, #SITE GPE, ANNÉE, MOIS(1a12)
+		std::map<int, std::map<int, std::map<int, std::map<int, std::vector<int>>>>>			_donneesGPE_Jours;		//key: idtroncon, #SITE GPE, ANNEE, MOIS(1a12)
 		std::map<int, std::string>																_donneesGPESite;		//key: #SITE
 
 		std::map<int, std::map<int, std::string>>												_donneesPR;				//key: idtroncon, #SITE
