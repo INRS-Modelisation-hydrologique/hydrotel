@@ -2391,7 +2391,7 @@ namespace HYDROTEL
 		fichier << "PARAMETRES HYDROTEL VERSION;" << HYDROTEL_VERSION << endl;
 		fichier << endl;
 
-		fichier << "SOUS MODELE;" << PrendreNomSousModele() << endl;
+		fichier << "SOUS MODELE;" << PrendreNomSousModeleWithoutVersion() << endl;
 		fichier << endl;
 
 		fichier << "CLASSE INTEGRE IMPERMEABLE;";

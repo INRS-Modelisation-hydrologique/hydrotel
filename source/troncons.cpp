@@ -461,6 +461,8 @@ namespace HYDROTEL
 			_pixels[code] = troncon;
 			_pRasterTronconId[code] = ident;
 		}
+
+		fichier.close();
 	}
 
 

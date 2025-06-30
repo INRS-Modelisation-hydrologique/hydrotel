@@ -42,6 +42,17 @@ namespace HYDROTEL
 		return _nom;
 	}
 
+	std::string SOUS_MODELE::PrendreNomSousModeleWithoutVersion() const
+	{
+		string str;
+
+		str = _nom;
+		while(str.length() > 1 && std::isdigit(str[str.length()-1]))	//remove trailing sufix (version number)
+			str = str.substr(0, str.length()-1);						//
+
+		return str;
+	}
+
 	void SOUS_MODELE::ChangeNomFichierParametres(string nom_fichier_parametres)
 	{
 		_nom_fichier_parametres = nom_fichier_parametres;

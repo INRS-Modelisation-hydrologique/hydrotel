@@ -46,7 +46,9 @@ namespace HYDROTEL
 
 		virtual void SauvegardeParametres() = 0;
 
-		std::string PrendreNomSousModele() const;
+		std::string PrendreNomSousModele() const;								//include version number sufix (ex: BV3C1)
+
+		std::string PrendreNomSousModeleWithoutVersion() const;					//not including version number sufix (ex: BV3C)
 
 		void ChangeNomFichierParametres(std::string nom_fichier_parametres);
 

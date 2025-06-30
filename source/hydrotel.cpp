@@ -218,6 +218,7 @@ int main(int argc, char* argv[])
 					else
 					{
 						GDALAllRegister();
+						OGRRegisterAll();
 
 						str2 = argv[2];
 						std::replace(str2.begin(), str2.end(), '\\', '/');
@@ -323,6 +324,7 @@ int main(int argc, char* argv[])
 					else
 					{
 						GDALAllRegister();
+						OGRRegisterAll();
 
 						string path_in(argv[2]);
 						string path_out(argv[3]);
@@ -389,6 +391,7 @@ int main(int argc, char* argv[])
 						//demarre la simulation
 						SIM_HYD	sim_hyd;
 
+						sim_hyd._bSimul = true;
 						sim_hyd._nbThread = nbThread;
 						sim_hyd._bAutoInverseTMinTMax = bAutoInverseTMinTmax;
 						sim_hyd._bStationInterpolation = bStationInterpolation;

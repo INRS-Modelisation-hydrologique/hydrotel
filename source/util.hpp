@@ -165,8 +165,6 @@ namespace HYDROTEL
 	
 	std::string Combine(const std::string& racine, const std::string& chemin);
 
-	std::string GetTempDirectory();
-
 	std::string GetTempFilename();
 
 }

@@ -41,7 +41,7 @@ namespace HYDROTEL
 
 	void Polygonize(const std::string& src, const std::string& dst);
 
-	void ReseauGeoTIFF2Shapefile(const std::string& nom_fichier_orientation, const std::string& nom_fichier_reseau,
+	void ReseauGeoTIFF2Shapefile(const std::string& sTempFolder, const std::string& nom_fichier_orientation, const std::string& nom_fichier_reseau,
 		const std::string& nom_fichier_riviere, const std::string& nom_fichier_lac);
 
 }

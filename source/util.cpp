@@ -406,7 +406,7 @@ namespace HYDROTEL
 								out << vFichierTRL[x] << " ";
 						}
 
-						out << vOrdre[x-3] << " " << endl;
+						out << vOrdre[x-3] << endl;
 					}
 					else
 						out << vFichierTRL[x] << endl;
@@ -1385,10 +1385,6 @@ namespace HYDROTEL
 		}
 	}
 
-	string GetTempDirectory()
-	{
-		return boost::filesystem::temp_directory_path().string();
-	}
 
 	string GetTempFilename()
 	{

@@ -1,0 +1,714 @@
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.3.2 - 2025-06-30
+
+- Correction d'un problème lors de la création d'un nouveau projet (suite à implantation versions sous-modèles) 
+  (fichier param bv3c, thiessen et moyenne3station). 
+  
+- Correction d'un problème lors de la création des shapefiles uhrh, lacs et rivieres (suite à la mise à jour de 
+  la librairie GDAL). 
+  
+- Correctifs mineurs dans les fichiers des paramètres (format, uniformisation avec l'interface). 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.3.1 - 2025-05-09
+
+- Mise à jour (corrections) des arguments (options) de la ligne de commande.
+
+- Vérification de la précence de caractère avec accent dans les fichiers d'entrées. Les caractères avec accent ne 
+  sont pas valides car ceux-ci peuvent causer des problèmes selon la langue et le système d'exploitation utilisé. Il 
+  est possible d'empêcher cette vérification en utilisant l'option de la ligne de commande '-skipcharvalidation'. 
+  Il est par contre conseillé d'utiliser cette option seulement lorsque les fichiers d'entrée sont connus pour 
+  être valides. 
+  
+- Prélèvements: Modification de la méthode de génération des séries aléatoires pour les jours de prélèvements. La 
+  méthode a été modifiée afin d'assurer la reproductibilité des séries indépendamment du système d'exploitation 
+  utilisé (Windows/Linux).
+  
+- Prélèvements: Correction calcul (arrondissement) nb de jour moyens par mois (aneee = MOY). 
+
+- Ajout variable de sortie apport latéral par Uhrh (apport_lateral_uhrh.csv). 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.3.0 - 2025-02-27
+
+- Mise à jour de GDAL 1.10.0 vers 3.10.0 (librairie géographique).
+
+- Corrections pour permettre la compilation et l'utilisation de Hydrotel sur Unix et Windows.
+
+- Ajout fichier submodels-versions.txt dans le dossier de la simulation: permet de sélectionner les versions des 
+  sous-modèles à utiliser pour la simulation: permet d'utiliser les versions antérieurs des sous-modèles tout en 
+  utilisant la dernière version de Hydrotel.
+
+- Mise à jour des arguments (options) de la ligne de commande.
+
+- Dépot du code source de la console Hydrotel sur GitHub: https://github.com/INRS-Modelisation-hydrologique/hydrotel
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.18 - 2024-08-26
+
+- Correction des pondérations utilisées lors de la mise à jour de la neige lorsque les méthodes d'interpolation 
+  sélectionnées sont Thiessen pour la météo ainsi que pour la mise à jour de la neige.
+
+- Module de prélèvement: possibilité de définir un coefficient de réduction par date (fichier 
+  COEFFICIENT_REDUCTION.csv). On peut choisir les types de prélèvements auquel seront appliqué le coefficient de 
+  réduction (fichier TypePrelevement.csv).
+
+  Ajout validation association prélèvement (GPE/PR, ELEVAGES/PR, CULTURES/PR).
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.17 - 2024-02-09
+
+- Traduction en anglais de l'affichage. 
+
+- Ajout output perimetre_mouille.csv lorsque le fichiers P_H.csv ou P_H-ponderees.csv est présent. 
+
+- Prélèvements: Ajout colonne ID_PR dans fichier output prelevements_calcule.csv. Indique les ID des sites de 
+                prélèvement associés aux autres sites.
+				
+                Correction filtrage des types de prélèvement (fichier TypePrelevement. csv).
+				
+				Ajout du fichier .\prelevements\TypePrelevement.csv qui permet de filtrer les types de prélèvements 
+				activés lors de la simulation.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.16 - 2023-08-02
+
+- Ajout option ligne de commande: -skip-weather-stations-interpolation. Permet d'empêcher l'interpolation des 
+  données météo manquantes aux stations. Doit être utiliser seulement lorsqu'il n'y a aucune données manquantes 
+  dans les fichiers de données météo.
+
+- Création automatique des fichiers shreve.csv et strahler.csv dans le dossier /physio.
+
+- Ajout d'un fichier de sortie contenant la hauteur d'eau simulée en aval des tronçons (hauteur_aval.csv).
+
+- Ajout d'un paramètre pour le modèle onde cinématique modifié permettant de sélectionner la méthode de calcul 
+  des hauteurs d'eau des tronçons: section rectangulaire, section trapézoïdale (Tiwari et al. - 2012) et approche 
+  HAND (fichier débits/hauteurs).
+  
+- Utilisation de la largeur des tronçons déterminé par Physitel lorsque le fichier de données est disponible 
+  (fichier physio/troncons-largeur.csv).
+
+- Modification du modèle de fonte de neige par bande (degre jour bande). L'application du gradient vertical de 
+  précipitation dans les bandes/milieux se fait sur la précipitation total (Pluie + EEN) provenant du modèle 
+  d'interpolation. La répartition pluie/neige est ensuite ré-effectuée avec la température de la bande/milieu (après 
+  application du gradient vertical de température). 
+
+- Météo NetCDF: lecture directement dans le fichier NetCDF de l'unité pour la variable time.
+  L'unité devait auparavent être 'days since 1970-01-01 00:00:00' ou 'minutes since 1970-01-01 00:00:00', mais la 
+  date peut maintenant différer tant qu'elle respecte le format suivant: 'yyyy-mm-dd hh:00:00'.
+  
+ - Affichage à l'écran du temps d'execution de l'interpolation des donnees météo manquantes aux stations 
+  (initialisation de la simulation).
+
+  
+  
+-------------------------------------------------------------------------------------------------------------------
+4.1.15 - 2022-10-24
+
+- Optimisation de la vitesse d'exécution du calcul de l'hydrogramme géomorphologique (.hgm).
+
+- Ajout du module de prise en compte des prélèvements en eau (GPE, élevages, cultures, puits SIH, effluents, sites).
+  Ajout de la variable de sortie: indice de pression des prélèvements (0-1).
+
+- Ajout de la variable de sortie: somme annuelle q23 (mm) (q23_somme_annuelle.csv).
+
+- Ajout des variables de sortie: minimum annuel et estival de la moyenne 7 jours des débits aval 
+  (jour courant et 6 jours précédents) (m3/s) (qmoy7j_min_annuel.csv et qmoy7j_min_estival.csv).
+
+- Ajout de l'ETR dans le fichier de sortie des moyennes pondérées.
+
+- Ajout validation TMin et Tmax et de l'option AutoInverseTMinTMax pour les données d'entrée en format NetCDF.
+
+- Standardisation du nombre de décimales pour les variables de sortie.
+
+- Ajout de validation lors de la lecture du fichier extent-limit.config (NetCDF).
+
+- Correction des statistiques en sortie (stats.csv): KGE et Biais relatif.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.12 - 2021-09-09
+
+- Ajout des variables de sortie 'Écoulement vers le réseau hydrographique' (surface, hypodermique et base) 
+  (couches 1, 2 et 3).
+
+- Correction d'un problème avec les lacs de type sans laminage. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.11 - 2021-05-19
+
+- Modèle de fonte de neige et modèle de fonte de glace (glacier): correction du calcul de l'indice de radiation 
+  pour les simulations avec un pas de temps inférieur à 24.
+
+- Corrections pour l'utilisation des fichiers d'états: ajout de variables manquantes pour les milieux humides et 
+  pour le ruissellement de surface. 
+
+- Modèle de température du sol: correction de la détermination des conditions initiales lors de l'utilisation 
+  des fichiers d'états. 
+
+- Ajout de validations et de messages d'erreur lors de la création du fichier occupation_sol.cla.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.10 - 2020-11-12
+
+- Correction lors de la création d'un nouveau projet (message d'erreur fichier degre-jour-glacier.csv).
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.9 - 2020-09-24
+
+- Ajout du modèle de fonte de neige par bande d'altitude DEGRE JOUR BANDE.
+
+- Ajout du modèle de calcul de l'évapotranspiration ETP MC GUINESS.
+
+- Mise-à-jour du modèle de fonte de glace DEGRE JOUR GLACIER. Intégration des bandes d'altitude.
+
+- Ajout du paramètre 'Coefficient de recharge sous-terrain' et variable de sortie 'QRecharge' (modèle BV3C).
+
+- Possibilité de définir les valeurs des gradients verticaux (température et précipitation) utilisées lors de 
+  l'interpolation des données manquantes aux stations (THIESSEN et MOYENNE 3 STATIONS).
+
+- Ajout du paramètre EauIni dans les fichiers d'entrées pour les milieux humides (milieux_humides_isoles.csv et 
+  milieux_humides_riverains.csv). Le paramètre permet de spécifier la quantité d'eau initiale dans les milieux 
+  humides (pourcentage (0 à 1) du volume normal du milieu humide).
+
+- Ajout du support du format de données NetCDF (.nc) pour les fichiers de données météo ainsi que pour la
+  sauvegarde des résultats.
+
+- Correction lors de la détermination du pas de temps minimum du modèle BV3C (pas de temps interne).
+
+- Ajout d'un option permettant d'inverser automatiquement les valeurs tmin & tmax lorsqu'ils sont inversés dans 
+  les fichiers d'entrée.
+
+- Correction d'un problème avec les lacs de type sans laminage (traitement et calcul de l'hydrogramme 
+  géomorphologique pour les lacs sans laminage).
+
+- Correction PassagePluieNeige pour pas de temps 1h.
+
+- Fichier de correction, variable neige au sol, coefficient additif: on s'assure que le stock ne devienne pas 
+  negatif.
+
+- Ajout de validation lors de la lecture des fichiers d'états des modèles Rankinen et Onde cinématique.
+
+- Amélioration des messages d'erreur lors de la lecture du fichier de paramètres global 
+  (parametres_sous_modeles.csv).
+
+- Ajout de validation des parametres pour les milieux humides isolé et riverain.
+
+- Amélioration de la vitesse d'exécution des algorithmes de calcul des pondérations des stations météo.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.7 - 2019-09-20
+
+- Corrections lors de l'interpolation des données météo et des valeurs manquantes. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.6 - 2019-09-12
+
+- Permet de sauvegarder les moyennes pondérées des uhrh en amont d'un ou de plusieurs troncon. Les moyennes sont 
+  calculées pour les variables suivante: TMin, TMax, TMoy, Pluie, Neige, CouvertNival, ETP.
+
+- Ajout du modèle de fonte de glacier DEGRE JOUR GLACIER.
+
+- Ajout de validation afin de s'assurer qu'il y ait des données météo disponible pour chaque jour de simulation. 
+
+- Corrections lors de l'interpolation des données météo et des valeurs manquantes. 
+
+- Les altitudes négatives sont permises.
+
+- Modèle BV3C: dans certain cas la détermination dynamique du pas de temps interne pouvait causer une boucle 
+  infinie, ou des valeurs de teneur en eau toujours égal à 0.
+
+- Correction lors de la création de projet dans le cas ou la carte d'occupation du sol ne couvre pas entièrement 
+  la carte des altitudes.
+
+- Modèle RANKINEN: le nombre de colonne dans le fichier d'état n'était pas valide: le nombre de colonne peut 
+  varier à cause d'un nombre de profil different si l'épaisseur des couches de sol est different pour certain 
+  groupe ou uhrh.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.4 - 2018-10-26
+
+- Correction d'un problème lors de la conversion du réseau matriciel en réseau vectoriel (shapefile) 
+  (création ou conversion de projet). Une erreur était affichée (TEST ERREUR CODE 1) dans le cas où l'exutoire du 
+  bassin est situé sur la première ligne (haut) de la matrice. 
+
+- Correction d'un problème avec le mode lecture lorsque l'exutoire du bassin sélectionné est différent du 
+  tronçon 1 (dans le cas où les fichiers utilisés pour le mode lecture ne contiennent pas tous les tronçons).
+
+- Correction lors de la conversion de projet: la carte du réseau matriciel peut être modifié (`crop`) et le fichier 
+  point.rdx contenant les points du réseau doit être mis à jour.
+	 
+- Un message d'erreur pouvait être afficher lors du calcul de l'hydrogramme géomorphologique dans le cas 
+  où l'exutoire du bassin est situé sur la limite de la matrice.
+	 
+- Un message d'erreur était affiché lors d'une simulation avec milieux humides riverains et avec la présence 
+  d'un tronçon de type `Barrage avec historique`.
+	 
+- Lorsque le mode lecture est utilisé pour un modèle, tous les modèles précédent sont effectué en mode 
+  lecture également.
+	 
+- Ajout des variables de sortie HauteurCouvertNival et AlbedoNeige afin de pourvoir simuler le modèle 
+  degré-jour-modifié en mode lecture.
+
+- Validation des valeurs des propriétés hydrauliques des sols. Les valeurs doivent être supérieur à 0.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.3 - 2018-03-22
+
+- Les messages d'erreur concernant les valeurs d'altitude inférieur à 0 ont été enlevés.
+  Les valeurs d'altitude inférieur à 0 sont des valeurs valides.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.2 - 2018-03-09
+
+- Correction: l'utilisation du fichier de paramètres global causait le hgm à être recalculé.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.1 - 2018-02-20
+
+- Correction: occupation_sol.cla lors d'une convertion de projet. Le fichier contenait des pourcentages 
+  au lieu du nombre de pixel (tuile). Il y avait une perte de précision étant donnée que les pourcentages était 
+  arrondis.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.1.0 - 2018-02-15
+
+- Lors de la création de projet avec Physitel 4, les cartes TIF occupation du sol et type de sol pouvais contenir 
+  des erreurs et générer de fausse données dans les fichiers CLA (occupation_sol.cla, typesol.cla).
+     
+  Pour corriger les projets existant, les fichiers occupation_sol.tif, typesol.tif, occupation_sol.cla et 
+  typesol.cla doivent être supprimer du projet et remplacé par les nouvelles versions exportées par Physitel 4. Le 
+  HGM doit également être supprimé afin qu'il soit recalculé.
+
+- Correction de l'algorithme de création du fichier HGM. Une erreur pouvais se produire lorsque les cartes du 
+  projet ont une haute résolution (ex: inférieur à 20m). Pour corriger cette erreur, le HGM doit être supprimé afin 
+  qu'il soit recalculé.
+
+- Correction lors du calcul des pondération pour moyenne 3 stations: probleme lorsque certaines stations etait 
+  très près. Pouvait donner un message d'erreur lorsque peu de station était utilisés.
+	 
+- Avant de faire l'interpolation des donnees meteo manquante, la valeur moyenne [jour précédent 28/02 et jour 
+  suivant 01/03], etait fixé pour les jours bisextile. Ce code à été enlevé pour que la valeurs des fichiers 
+  de données soit utilisé.
+  
+- Lecture des données hydro et météo lorsque le pas de temps est inférieur à 24.
+  Comme toujours, l'heure lu dans les fichiers doit être l'heure à la fin du pas de temps d'enregistrement 
+  (ex: heure 6 pour pas de temps de 3h égal données entre 3h et 6h).
+  
+  Les 2 formats de notation suivant sont supporté:
+  Pour une journée, avec un pas de temps de 3h: 3, 6, 9, 12, 15, 18, 21, 24 (ancien format) OU 0, 3, 6, 9, 12, 15, 
+  18, 21. Auparavant les fichiers ne devait pas contenir d'heure 0.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.31 - 2017-10-17
+
+- Ajout du support pour fichiers proj4.txt et projection.prj lors de conversion de projet.
+  Ces fichiers peuvent être utilisés pour remplacer le coordsys.txt.
+  Le fichier proj4 évite les problèmes de lecture des projections.
+	
+- Correction de plusieurs incompatibilités lors de conversion de projet 2.x inférieur à 2.6.
+
+- Correction de la méthode de lecture du fichier des noeuds.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.30 - 2017-09-25
+
+- Modification de l'ordre des uhrhs des fichiers output états modèle tempsol.
+
+- Suppression des séparateurs superflues dans les fichiers de sortie.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.29
+
+- Correction lors de la génération des fichiers d'états modèle rankinen & thorsen (pas d'incidence sur les 
+  résultats).
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.28
+
+- Amélioration de la rapidité d'exécution de l'étape `Initialisation` lors de simulation.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.25 - 2017-04-28
+
+- Lecture des fichiers des stations (stm, sth): permet qu'il y ai des lignes vides dans les fichiers.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.24 - 2017-04-19
+
+- Correction lecture des fichiers des stations et données .nei.
+  
+- Ajout du format .nei hydrotel4.
+
+- Lecture des coordonnées des stations:
+
+	//Formats acceptés: ddd.d				//decimal degree
+	//                  ddmm.m (ou ddmm)			//degree, decimal minute
+	//                  dddmm.m (ou dddmm)			//degree, decimal minute
+	//                  ddmmss.s (ou ddmmss)		//degree, minute, decimal second
+	//                  dddmmss.s (ou dddmmss)		//degree, minute, decimal second
+	//
+	//Les décimales sont optionnelles, excepté pour le format decimal degree.
+	//
+	//Si c'est la longitude, le signe négatif est appliqué par défaut afin de se situé 
+	//dans l'hémisphère ouest (pour compatibilité). Si on veut utiliser une longitude dans 
+	//l'hémisphère est, on doit spécifier le signe +.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.21 - 2016-08-10
+
+- Correction lors de la lecture du chemin du fichier hgm lorsque le chemin spécifié est absolue.
+
+- Ajout de messages d'erreurs lors de la lecture du fichier priestlay_taylor.csv.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.20 - 2016-07-05
+
+- Correction de la lecture des donnees des stations hydro format gibsi lorsque le jour de la 1ere date du fichier 
+  est supérieur à 9.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.19 - 2016-06-22
+
+- Correction de la lecture des coordonnees des stations lorsque celles-ci n'ont pas de decimale.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.18 - 2016-06-14
+
+- Ajout de validations et de messages d'erreur lors de la lecture des débits d'un troncon associé à un barrage 
+  historique lorsque le pas de temps de la simulation est différent de 24h et que l'heure lu dans le fichier 
+  de données de la station est invalide. 
+
+  Exemple: pour un pas de temps de 3h, les heures dans le fichier de donnée doivent être les 
+           suivantes: 3, 6, 9, 12, 15, 18, 21, 24. L'heure lu représente la fin du pas de temps 
+           pour la données. Donc l'heure 3 représente la données pour 0h à 3h.
+
+- Correction d'un problème lors de la création du shapefile des rivières lors de la conversion d'un projet. 
+  Le shapefile résultant était illisible dans l'interface d'Hydrotel 4 (gdal_util.cpp::ReseauGeoTIFF2Shapefile).
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.17 - 2016-05-25
+
+- Correction lors de la création du fichier uhrh.csv: calcul des orientations moyenne:
+     
+  Ancien code:
+  const float orientationDefinition[8][2] = { 1, 0, sqrt(0.5f), sqrt(0.5f), 0, 1, -sqrt(0.5f), sqrt(0.5f), 
+      				             -1, 0, -sqrt(0.5f), sqrt(0.5f), 0, -1, sqrt(0.5f), -sqrt(0.5f) };
+
+  Nouveau code (correction):
+  const float orientationDefinition[8][2] = { 1, 0, sqrt(0.5f), sqrt(0.5f), 0, 1, -sqrt(0.5f), sqrt(0.5f), 
+           				     -1, 0, -sqrt(0.5f), -sqrt(0.5f), 0, -1, sqrt(0.5f), -sqrt(0.5f) };
+
+  Impact pour le modele degree jour modifiee et calcul du rayonnement net.
+
+- Ajout de messages d'erreur lorsqu'aucune station hydro est associée à un barrage historique ou 
+  que la station hydro est introuvable.
+
+- Ajout de validations du nombre d'argument reçu en paramètre lors de l'execution. Des erreurs se produisait 
+  lorsque le nombre d'argument était invalide.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.16 - 2016-05-19
+
+- Correction lors du calcul des statistiques lorsqu'un troncon associé à une station ne fait pas 
+  partie du groupe de simulation (exclue par la sélection du troncon exutoire).
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.15 - 2016-05-19
+
+- Correction lors de la lecture des stations lors du calcul des statistiques. 
+  Produisait le message 'station introuvable'.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.14 - 2016-05-17
+
+- Lors de la sélection d'un troncon exutoire (autre que le troncon 1), seulement les troncons et uhrh en amont 
+  du troncon exutoire sélectionné sont simulés et sauvegardés dans les fichiers de sortie.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.13
+4.0.12 - 2016-04
+
+- Ajout du support de projections autre que UTM. 
+  La projection est définie dans le fichier ..\Physitel\CoordSys.txt.
+
+- Coordonnées des stations: si type=1; projection long/lat wgs84. si type=2; projection=meme que le projet.
+  Ajout de validation lors des lectures des stations et des données aux stations (hydro, meteo, neige).
+
+- Mise à jour de projet: lorsque les coordonnees des stations sont en lat/long, elles sont préservé en lat/long 
+  (au lieu d'être convertie en UTM).
+
+- Fichier de correction: ajout d'une option pour désactiver le fichier de correction (sans devoir le supprimer).
+
+- Grille météo et prévision: permet l'utilisation de grille de précipitation totale.
+
+- Ajout du modèle PENMAN_MONTEITH.
+
+- Ajout d'un modèle de calcul du rayonnement net à la surface.
+
+- Possibilité d'utiliser un fichier de parametre global: la lecture et la sauvegarde des parametres des modeles 
+  peuvent être effectué en utilisant le fichier de paramètre global: les fichiers propres aux modeles sont alors 
+  supprimé (ou re-créé si l'option est désactivé).
+
+- Modele LINACRE: les parametres peuvent maintenant être spécifiés par uhrh.
+  Amélioration de l'algorithme de calcul.
+
+- Lecture des fichiers ind_fol, pro_rac: ajout de validation et amélioration de l'algorithme de lecture. 
+
+- Amélioration modèle PRIESTLAY_TAYLOR: rayonnement net.
+
+- Modèle PENMAN: enlever albedo et hauteur veg: rayonnement net.
+
+- Correction modèle CEQUEAU: calcul du pourcentage des classes intégrés (valeur négative).
+
+- Correction modèle DEGREE_JOUR_MODIFIE: calcul des pourcentages des classes intégré et du couvert nival 
+  (valeurs négatives).
+
+- Correction modèle ONDE_CINEMATIQUE: calcul du pourcentage des classes intégrés (valeur négative).
+
+- Correction d'un problème lors de la lecture des données pour les modes de simulation 'Lecture des données'.
+
+- Correction message d'erreur lecture des donnees hydro.
+  Enlever le.hyd automatiquement s'il apparait dans les fichier stats.txt et .sth
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+4.0.1  
+
+- Uniformisation des numéros de version Physitel et Hydrotel. 
+  Physitel 3 devient Physitel 4 et Hydrotel 2.8 devient Hydrotel 4. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.7
+
+- Lors de la conversion de projet, le systeme de coordonnee est lu dans un fichier nommé [CoordSys.txt] dans le 
+  dossier [physitel] du projet version 2.6. Le systeme de coordonnee etait 'hard-codé' à utm wgs84.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.6
+
+- Modele tempsol: on lit seulement les parametres du modele selectionnee (rankinen.csv ou lecture_tempsol.csv) et 
+  non les 2.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.5
+
+- Correction de la lecture du fichier STH s'il y a des ligne vide entre les donnees. 
+
+- Ajout de messages d'erreur lors de la lecture des fichiers d'entrée.
+
+- Correction lors de la conversion de projet: nom fichier milieux humides.
+
+- Conversion de projet: copie tous le contenu du dossier v2.6 vers le nouveau dossier (au lieu de seulement meteo, 
+  hydro, etc...).
+
+- Correction de la lecture du fichier lecture_interpolation.csv: la valeur tmin.csv etait lu pour tous les autres 
+  fichiers.
+
+- Message d'erreur enlevé si le fichier de correction est vide: il n'y a tout simplement pas de correction effectué 
+  ds ce cas.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.4
+
+- Calcul de tmin journalier et tmax journalier: les valeurs NODATA n'etait pas exclu des calculs, ce qui pouvait 
+  résulter pour une journée: ex: tmin = 0, tmax = -5.
+
+- Fichier output neige.csv (equivalent en eau): il y avait une erreur lors du calcul de l'equivalent en eau de la 
+  neige lors de l'output dans le fichier neige.csv. 
+
+  Calcul densité de la neige: tmin etait utilisé au lieu de tmoy pour pas de temps différent de 1 hrs.
+  Le calcul etait correcte pendant la simulation mais pas lors de l'écriture du fichier de sortie. 
+  Les précipitations en input etait > precipitation en output lors des jours de neige.
+
+- Correction: degree_jour_modifie: index des uhrh lors du calcul stockmoyen.
+
+- Interpolation donnees: fichier de correction, correction de la neige au sol (variable 3): le coefficient additif 
+  etait interprété comme étant une hauteur de precipitation de neige (et non l'équivalent en eau). Le coefficient 
+  additif est maintenant lu comme étant l'équivalent en eau.
+
+- Correction degree_jour_modifie: correction neige au sol (variable 5): index des uhrh lors de la maj.
+
+- Correction degree_jour_modifie: correction neige au sol (variable 5): il y avait une division par zero lors de la 
+  mise-à-jour des variables 'chaleur' et 'eau retenu'.
+
+- Correction degree_jour_modifie: correction neige au sol (variable 5): le coefficient additif etait lu en mètre ds 
+  le fichier. Ajout de conversion pour lire la valeur en milimètre.
+
+- Les variables de sortie q12 et q23 etait des valeurs cumulées: elle sont maintenant la valeur pour le pas de 
+  temps courant.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.3
+
+- Calcul des statistiques meme si station absente.
+
+- Sauvegarde des resultats: ajout ligne TRONCONS ds fichier output.csv. Sauvegarde seulement pour les troncons 
+  sélectionnée (ou tous si option tous les troncons).
+
+- Correction lors de la sauvegarde des variables d'etat: 
+  old: if (_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat == date_courante))
+  new: if (_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat - pas_de_temps == date_courante)).
+  
+  Ajout du mot clé 'fin'.
+
+- Correction de la sélection des modèles lors de la conversion d'un projet (la sélection etait 'hard-coded').
+
+- Ajout d'un fichier de parametre global permettant de définir les parametres de tous les modèles dans un seul 
+  fichier et par groupe d'UHRH.
+
+- Écriture des resultats pour l'ETR (etr1.csv, etr2.csv, etr3.csv, etr_total.csv): les valeurs etait en m/h, 
+  elles sont maintenant en mm/pdt.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.2
+
+- Statistique: affiché meme si pas de station (stats.txt -> '1 absent').
+
+- Correction: stations_meteo.cpp 508
+	
+	//float pluie = donnee2.PrendrePluie() + (-0.5f) * static_cast<float>(diff_alt) / 100.0f;
+    //float pluie = donnee2.PrendrePluie();
+
+- Ajout du modèle RANKINEN: modèle de calcul des températures du sol et de la profondeur du gel au sol.
+
+- Ajout de la possibilité d'ajuster la réserve en eau des 3 couches de sol en fonction de la reserve à saturation.
+
+- Correction pour les lacs de type sans laminage.
+
+- Correction de la lecture du fichier de correction: lecture des dates, correction de la reserve du sol et 
+  correction de la neige au sol.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.1
+
+- La résolution numérique des résultats dans les fichiers output a été fixé à 6 décimales.
+
+- Ajout d'une option permettant de modifier le separateur utilisé adns les fichiers output.
+
+- Moyenne des pas de temps pour les débit sortant au lieu de la valeur du dernier pas de temps (bv3c) 
+  (fichier debit_aval.csv & debit_amont.csv).
+
+- Correction du calcul de l'ETR: la pondération par occupation du sol était effectué 2 fois.
+
+- Correction lors de l'écriture et la lecture des GeoTIFF. La resolution y etait donnée en positif mais celle-ci 
+  doit être négative. Cela avait pour conséquence que les coordonnées ainsi que le bassin était inversé.
+
+- Correction du calcul des centroïdes lors de la création de shapefile.
+
+- Correction du calcul des centroïdes des UHRHs lors de la creation du fichier uhrh.csv.
+
+- Genere le fichier uhrh.csv avec la meme resolution numérique que la version 2.6.2 (pour les colonnes altitude et 
+  pente).
+
+- Lors de la conversion d'un projet 2.6 à 2.8, on s'assure que les fichiers nécessaire soient disponibles.
+
+- Correction lors de conversion de coordonnée en ligne/colonne et vice versa.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.0.1400
+
+- Intégration des milieux humides.
+
+- Regénère les fichiers de paramètres des modèles exactement (au même format) que le fait l'interface.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.0.1300
+
+- Ajout de la colonne UHRH ID dans le fichier des tronçons (.trl). 
+
+- Les fichiers occupation_sol.cla & typesol.cla sont généré à partir des cartes matricielles s'ils n'existes pas 
+  dans le projet.
+
+- Support des altitudes inférieur à 0.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+2.8.0.1271 - 2014/06/26
+
+
+

@@ -73,6 +73,7 @@ namespace HYDROTEL
 	{
 		_nbThread = 1;
 
+		_bSimul = false;
 		_bUpdatingV26Project = false;
 
 		_output._sim_hyd = this;
@@ -321,21 +322,24 @@ namespace HYDROTEL
 			
 			LectureProjetFormatCsv();
 
-			str = Combine(PrendreRepertoireSimulation(), "submodels-versions.txt");
-			if(!boost::filesystem::exists(str))
+			if(_bSimul)
 			{
-				LectureVersionFichierSim();
-				if(_versionSim <= 4001005)	//v 4.1.5
+				str = Combine(PrendreRepertoireSimulation(), "submodels-versions.txt");
+				if(!boost::filesystem::exists(str))
 				{
-					_versionTHIESSEN = 1;
-					_versionMOY3STATION = 1;
-					_versionBV3C = 1;
-				} //else: the latest versions of models are used (initialization values)
+					LectureVersionFichierSim();
+					if(_versionSim <= 4001005)	//v 4.1.5
+					{
+						_versionTHIESSEN = 1;
+						_versionMOY3STATION = 1;
+						_versionBV3C = 1;
+					} //else: the latest versions of models are used (initialization values)
 
-				CreateSubmodelsVersionsFile();
+					CreateSubmodelsVersionsFile();
+				}
+				else
+					ReadSubmodelsVersionsFile();
 			}
-			else
-				ReadSubmodelsVersionsFile();
 
 			_zones.LectureZones();
 			_noeuds.Lecture();
@@ -526,7 +530,7 @@ namespace HYDROTEL
 		}
 
 		//calcul et création du fichier ordre de shreve s'il n'existe pas
-		if(!_bUpdatingV26Project)	//dont modify source project folder if run with -u switch
+		if(_bSimul)
 		{
 			str = Combine(PrendreRepertoireProjet(), "physio/shreve.csv");
 			if(!boost::filesystem::exists(str))
@@ -1494,7 +1498,7 @@ namespace HYDROTEL
 				}
 				else if (cle == "COEFFICIENT ADDITIF PROPRIETE HYDROLIQUE")
 				{
-					SplitString(sList, nom_fichier, ";", true, false);
+					SplitString(sList, nom_fichier, ";", true, false);	//value is integer
 
 					for(x=0; x<sList.size() && x<coeffsol.size(); x++)
 					{
@@ -1878,11 +1882,11 @@ namespace HYDROTEL
 
 					ChangeInterpolationDonnees(nom_fichier);
 				}
-				else if (cle == "FONTE DE NEIGE")
+				else if (cle == "FONTE DE NEIGE" || cle == "FONTE NEIGE")
 				{
 					ChangeFonteNeige(nom_fichier);
 				}
-				else if (cle == "FONTE GLACIER")
+				else if (cle == "FONTE DE GLACIER" || cle == "FONTE GLACIER")
 				{
 					ChangeFonteGlacier(nom_fichier);
 				}
@@ -2015,12 +2019,6 @@ namespace HYDROTEL
 					if (!Racine(nom_fichier))
 						nom_fichier = Combine(repertoire_simulation, nom_fichier);
 					_vevapotranspiration[ETP_PENMAN_MONTEITH]->ChangeNomFichierParametres(nom_fichier);
-				}
-				else if (cle == "ETP-MC-GUINESS")
-				{
-					if (!Racine(nom_fichier))
-						nom_fichier = Combine(repertoire_simulation, nom_fichier);
-					_vevapotranspiration[ENUM_ETP_MC_GUINESS]->ChangeNomFichierParametres(nom_fichier);
 				}
 				else if (cle == "LECTURE BILAN VERTICAL")
 				{
@@ -3335,12 +3333,12 @@ namespace HYDROTEL
 
 		if(_fonte_neige == nullptr)
 			ChangeFonteNeige("DEGRE JOUR MODIFIE");
-		fichier << "FONTE DE NEIGE;" << PrendreNomFonteNeige() << endl;
+		fichier << "FONTE NEIGE;" << PrendreNomFonteNeige() << endl;
 
 		if(_fonte_glacier)
-			fichier << "FONTE DE GLACIER;" << PrendreNomFonteGlacier() << endl;
+			fichier << "FONTE GLACIER;" << PrendreNomFonteGlacier() << endl;
 		else
-			fichier << "FONTE DE GLACIER;" << endl;
+			fichier << "FONTE GLACIER;" << endl;
 		
 		if(_tempsol)
 			fichier << "TEMPERATURE DU SOL;" << PrendreNomTempSol() << endl;
@@ -3403,13 +3401,19 @@ namespace HYDROTEL
 		}
 
 		for (auto iter = begin(_vfonte_neige); iter != end(_vfonte_neige); ++iter)
-			fichier << (*iter)->PrendreNomSousModele() << ';' << PrendreRepertoireRelatif(repertoire_simulation, (*iter)->PrendreNomFichierParametres()) << endl;
+		{
+			if((*iter)->PrendreNomSousModele() != "DEGRE JOUR BANDE")	//file name for this model is fixed
+				fichier << (*iter)->PrendreNomSousModele() << ';' << PrendreRepertoireRelatif(repertoire_simulation, (*iter)->PrendreNomFichierParametres()) << endl;
+		}
 
 		for (auto iter = begin(_vtempsol); iter != end(_vtempsol); ++iter)
 			fichier << (*iter)->PrendreNomSousModele() << ';' << PrendreRepertoireRelatif(repertoire_simulation, (*iter)->PrendreNomFichierParametres()) << endl;
 
-		for (auto iter = begin(_vevapotranspiration); iter != end(_vevapotranspiration); ++iter)
-			fichier << (*iter)->PrendreNomSousModele() << ';' << PrendreRepertoireRelatif(repertoire_simulation, (*iter)->PrendreNomFichierParametres()) << endl;
+		for(auto iter = begin(_vevapotranspiration); iter != end(_vevapotranspiration); ++iter)
+		{
+			if((*iter)->PrendreNomSousModele() != "ETP-MC-GUINESS")		//file name for this model is fixed
+				fichier << (*iter)->PrendreNomSousModele() << ';' << PrendreRepertoireRelatif(repertoire_simulation,(*iter)->PrendreNomFichierParametres()) << endl;
+		}
 
 		for (auto iter = begin(_vbilan_vertical); iter != end(_vbilan_vertical); ++iter)
 		{
@@ -3972,6 +3976,7 @@ namespace HYDROTEL
 			_zones.PrendreNomFichierZone());
 
 		ReseauGeoTIFF2Shapefile(
+			repertoire_physitel,
 			_zones.PrendreNomFichierOrientation(),
 			nom_fichier_reseau,
 			Combine(repertoire_physitel, "rivieres.shp"),
@@ -4306,6 +4311,148 @@ namespace HYDROTEL
 
 		if(sErr != "")
 			throw ERREUR(sErr);
+	}
+
+
+	string SIM_HYD::CreateTronconsTxt()
+	{
+		ifstream filein;
+		ofstream file;
+		size_t i, j;
+		string str, sErr;
+		int x, y, nbPixel, idTroncon;
+
+		map<int, vector<int>> mapTronconCellX;
+		map<int, vector<int>> mapTronconCellY;
+
+		COORDONNEE coord;
+
+		const RASTER<int>& rasUhrh = _zones.PrendreGrille();
+
+		sErr = "";
+		str = Combine(PrendreRepertoireProjet(), "physitel/troncons.txt");
+
+		try{
+		file.open(str, ios_base::trunc);
+		if(!file.is_open())
+			sErr = "error creating file: " + str;
+		else
+		{
+			filein.open(_troncons.PrendreNomFichierPixels(), ios_base::in);
+			if(!filein)
+				sErr = "error opening file: " + _troncons.PrendreNomFichierPixels();
+			else
+			{
+				//lecture fichier points.rdx
+				filein >> x >> y >> nbPixel;	//header	//nbLigne, nbCol, nbPixel
+
+				for(i=0; i!=nbPixel; i++)
+				{
+					filein >> y >> x >> idTroncon;
+
+					mapTronconCellX[idTroncon].push_back(x);
+					mapTronconCellY[idTroncon].push_back(y);
+				}
+
+				filein.close();
+
+				//ecriture troncons.txt
+				file << _troncons.PrendreNbTroncon() << endl;
+
+				for(i=0; i!=_troncons.PrendreNbTroncon(); i++)
+				{
+					file << endl;
+
+					if(_troncons._troncons[i]->PrendreType() == 0 || _troncons._troncons[i]->PrendreType() == 3)	//type RIVIERE ou BARRAGE_HISTORIQUE
+						file << "1" << endl;	//riviere
+					else
+						file << "2" << endl;	//lac
+
+					//noeud aval
+					coord = _troncons._troncons[i]->_noeuds_aval[0]->PrendreCoordonnee();
+					rasUhrh.CoordonneeVersLigCol(coord, y, x);
+					file << y << " " << x << endl;
+
+					//nb noeuds amont
+					file << _troncons._troncons[i]->_noeuds_amont.size() << endl;
+
+					//noeud amont
+					for(j=0; j!=_troncons._troncons[i]->_noeuds_amont.size(); j++)
+					{
+						coord = _troncons._troncons[i]->_noeuds_amont[j]->PrendreCoordonnee();
+						rasUhrh.CoordonneeVersLigCol(coord, y, x);
+						file << y << " " << x << endl;
+					}
+
+					//nb pixels troncon
+					file << mapTronconCellX[_troncons._troncons[i]->PrendreIdent()].size() << endl;
+
+					//pixels troncon
+					for(j=0; j!=mapTronconCellX[_troncons._troncons[i]->PrendreIdent()].size(); j++)
+						file << mapTronconCellY[_troncons._troncons[i]->PrendreIdent()][j] << " " << mapTronconCellX[_troncons._troncons[i]->PrendreIdent()][j] << endl;
+				}
+
+				file.close();
+			}
+		}
+
+		}
+		catch(const exception& ex)
+		{
+			if(file && file.is_open())
+				file.close();
+			if(filein && filein.is_open())
+				filein.close();
+
+			sErr = "error: exception: ";
+			sErr+= ex.what();
+		}
+
+		return sErr;
+	}
+
+
+	string SIM_HYD::CreateUhrhTxt()
+	{
+		ofstream file;
+		size_t i;
+		string str, sErr;
+
+		sErr = "";
+		str = Combine(PrendreRepertoireProjet(), "physitel/uhrh.txt");
+
+		try{
+		file.open(str, ios_base::trunc);
+		if(!file.is_open())
+			sErr = "error creating file: " + str;
+		else
+		{
+			file << _zones.PrendreNbZone() << endl;
+
+			file << "id_uhrh; type (1=sous-bassin, 2=lac); id_troncon; rive (0=aucun, 1=gauche, 2=droite, 3=tete, 4=lac, 5=berge, 6=ile)" << endl;
+
+			for(i=0; i!=_zones.PrendreNbZone(); i++)
+			{
+				if(_zones[i].PrendreTypeZone() == 1) //LAC
+					file << _zones[i].PrendreIdent() << ";" << "2" << ";" << _zones[i].PrendreTronconAval()->PrendreIdent() << ";" << "-1" << endl;
+				else
+					file << _zones[i].PrendreIdent() << ";" << "1" << ";" << _zones[i].PrendreTronconAval()->PrendreIdent() << ";" << "-1" << endl;
+			}
+
+			file.close();
+		}
+
+		}
+		catch(const exception& ex)
+		{
+			if(file && file.is_open())
+				file.close();
+
+			sErr = "error: exception: ";
+			sErr+= ex.what();
+		}
+
+		return sErr;
 	}
 
 }

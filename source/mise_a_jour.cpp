@@ -129,7 +129,7 @@ namespace HYDROTEL
 	}
 
 
-	void PhysitelPoint2Shapefile(const string& fichier_points, const string& fichier_troncons, const 
+	void PhysitelPoint2Shapefile(const string& sTempFolder, const string& fichier_points, const string& fichier_troncons, const 
 									string& dst_rivieres, const string& dst_lacs, const string& masque)
 	{		
 		RASTER<int> rmasque = ReadGeoTIFF_int(masque);
@@ -160,7 +160,7 @@ namespace HYDROTEL
 
 		// sauvegarde les lacs en shapefile
 		{
-			string tmp = Combine(GetTempDirectory(), GetTempFilename()) + ".tif";
+			string tmp = Combine(sTempFolder, GetTempFilename()) + ".tif";
 			WriteGeoTIFF(points, tmp, 0);
 
 			Polygonize(tmp, dst_lacs);
@@ -170,8 +170,6 @@ namespace HYDROTEL
 
 		// sauvegarde les rivieres en shapefile
 		{
-			OGRRegisterAll();
-
 			GDALDataset* dataset = (GDALDataset*)GDALOpen(masque.c_str(), GA_ReadOnly);
 			if(dataset == nullptr)
 				throw ERREUR_LECTURE_FICHIER(masque.c_str());
@@ -183,7 +181,7 @@ namespace HYDROTEL
 				throw ERREUR("ESRI Shapefile driver not found");
 			}
 
-			GDALDataset* datasource = driver->Create(dst_rivieres.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+			GDALDataset* datasource = driver->Create(dst_rivieres.c_str(), 0, 0, 0, GDT_Int64, NULL);
 			if(datasource == nullptr)
 			{
 				GDALClose((GDALDatasetH)dataset);
@@ -200,7 +198,7 @@ namespace HYDROTEL
 				throw ERREUR_ECRITURE_FICHIER(dst_rivieres);
 			}
 
-			OGRFieldDefn field("ident", OFTInteger);
+			OGRFieldDefn field("ident", OFTInteger64);
 
 			if(layer->CreateField(&field) != OGRERR_NONE)
 			{
@@ -654,7 +652,7 @@ namespace HYDROTEL
 		}
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		ReseauGeoTIFF2Shapefile(zones.PrendreNomFichierOrientation(), Combine(repertoire_physitel, "reseau.tif"), 
+		ReseauGeoTIFF2Shapefile(repertoire_physitel, zones.PrendreNomFichierOrientation(), Combine(repertoire_physitel, "reseau.tif"), 
 									Combine(repertoire_physitel, "rivieres.shp"), Combine(repertoire_physitel, "lacs.shp"));
 
 		// copie le fichier des groupes d'uhrh dans la simulation

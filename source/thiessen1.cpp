@@ -680,7 +680,7 @@ namespace HYDROTEL
 		fichier << "PARAMETRES HYDROTEL VERSION;" << HYDROTEL_VERSION << endl;
 		fichier << endl;
 
-		fichier << "SOUS MODELE;" << PrendreNomSousModele() << endl;
+		fichier << "SOUS MODELE;" << PrendreNomSousModeleWithoutVersion() << endl;
 		fichier << endl;
 
 		fichier << "UHRH ID;GRADIENT TEMPERATURE(C/100m);GRADIENT PRECIPITATION(mm/100m);PASSAGE PLUIE NEIGE(C);" << endl;

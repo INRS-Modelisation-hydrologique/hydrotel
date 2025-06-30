@@ -329,14 +329,14 @@ namespace HYDROTEL
 		fichier << "PARAMETRES HYDROTEL VERSION;" << HYDROTEL_VERSION << endl;
 		fichier << endl;
 
-		fichier << "SOUS MODELE;" << PrendreNomSousModele() << endl;
+		fichier << "SOUS MODELE;" << PrendreNomSousModeleWithoutVersion() << endl;
 		fichier << endl;
 
 		fichier << "GRADIENT TEMPERATURE STATION(C/100m);" << _gradient_station_temp << endl;
 		fichier << "GRADIENT PRECIPITATION STATION(mm/100m);" << _gradient_station_precip << endl;
 		fichier << endl;
 
-		fichier << "UHRH ID;GRADIENT TEMPERATURE(C/100m);GRADIENT PRECIPITATION(mm/100m);PASSAGE PLUIE NEIGE(C);" << endl;
+		fichier << "UHRH ID;GRADIENT TEMPERATURE(C/100m);GRADIENT PRECIPITATION(mm/100m);PASSAGE PLUIE NEIGE(C)" << endl;
 		for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 		{
 			fichier << zones[index].PrendreIdent() << ';';

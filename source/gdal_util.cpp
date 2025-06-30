@@ -176,8 +176,6 @@ namespace HYDROTEL
 
 	void Polygonize(const string& src, const string& dst, const string& mask)
 	{
-		OGRRegisterAll();
-
 		GDALDataset* dataset = (GDALDataset*)(GDALOpen(src.c_str(), GA_ReadOnly));
 		if(dataset == nullptr)
 			throw ERREUR_LECTURE_FICHIER(src.c_str());
@@ -201,7 +199,7 @@ namespace HYDROTEL
 			throw ERREUR("ESRI Shapefile driver not found");
 		}
 
-		GDALDataset* poDS = driver->Create(dst.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+		GDALDataset* poDS = driver->Create(dst.c_str(), 0, 0, 0, GDT_Int64, NULL);
 		if(poDS == nullptr)
 		{
 			GDALClose((GDALDatasetH)dataset);
@@ -220,7 +218,7 @@ namespace HYDROTEL
 			throw ERREUR_ECRITURE_FICHIER(dst);
 		}
 
-		OGRFieldDefn field("ident", OFTInteger);
+		OGRFieldDefn field("ident", OFTInteger64);
 
 		if(layer->CreateField(&field) != OGRERR_NONE)
 		{
@@ -240,8 +238,6 @@ namespace HYDROTEL
 
 	void Polygonize(const string& src, const string& dst)
 	{
-		OGRRegisterAll();
-
 		GDALDataset* dataset = (GDALDataset*)(GDALOpen(src.c_str(), GA_ReadOnly));
 		if(dataset == nullptr)
 			throw ERREUR_LECTURE_FICHIER(src.c_str());
@@ -255,7 +251,7 @@ namespace HYDROTEL
 			throw ERREUR("ESRI Shapefile driver not found");
 		}
 
-		GDALDataset* datasource = driver->Create(dst.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+		GDALDataset* datasource = driver->Create(dst.c_str(), 0, 0, 0, GDT_Int64, NULL);
 		if(datasource == nullptr)
 		{
 			GDALClose((GDALDatasetH)dataset);
@@ -272,7 +268,7 @@ namespace HYDROTEL
 			throw ERREUR_ECRITURE_FICHIER(dst);
 		}
 
-		OGRFieldDefn field("ident", OFTInteger);
+		OGRFieldDefn field("ident", OFTInteger64);
 
 		if(layer->CreateField(&field) != OGRERR_NONE)
 		{
@@ -356,7 +352,8 @@ namespace HYDROTEL
 	}
 
 
-	void ReseauGeoTIFF2Shapefile(const string& nom_fichier_orientation, const string& nom_fichier_reseau, const string& nom_fichier_riviere, const string& nom_fichier_lac)
+	//est utilisé lors de la création d'un nouveau projet
+	void ReseauGeoTIFF2Shapefile(const string& sTempFolder, const string& nom_fichier_orientation, const string& nom_fichier_reseau, const string& nom_fichier_riviere, const string& nom_fichier_lac)
 	{
 		RASTER<int> orientation = ReadGeoTIFF_int(nom_fichier_orientation);
 		RASTER<int> reseau = ReadGeoTIFF_int(nom_fichier_reseau);
@@ -378,7 +375,7 @@ namespace HYDROTEL
 				}
 			}
 
-			string tmp = Combine(GetTempDirectory(), GetTempFilename()) + ".tif";
+			string tmp = Combine(sTempFolder, GetTempFilename()) + ".tif";
 			WriteGeoTIFF(lac, tmp, 0);
 			Polygonize(tmp, nom_fichier_lac);
 			SupprimerFichier(tmp);
@@ -422,8 +419,6 @@ namespace HYDROTEL
 				}
 			}
 
-			OGRRegisterAll();
-
 			GDALDataset* dataset = (GDALDataset*)GDALOpen(nom_fichier_reseau.c_str(), GA_ReadOnly);
 			if(dataset == nullptr)
 				throw ERREUR_LECTURE_FICHIER(nom_fichier_reseau);
@@ -435,7 +430,8 @@ namespace HYDROTEL
 				throw ERREUR("ESRI Shapefile driver not found");
 			}
 
-			GDALDataset* datasource = driver->Create(nom_fichier_riviere.c_str(), 0, 0, 0, GDT_Unknown, NULL);
+			GDALDataset* datasource = driver->Create(nom_fichier_riviere.c_str(), 0, 0, 0, GDT_Int64, NULL);
+
 			if(datasource == nullptr)
 			{
 				GDALClose((GDALDatasetH)dataset);
@@ -452,7 +448,7 @@ namespace HYDROTEL
 				throw ERREUR_ECRITURE_FICHIER(nom_fichier_riviere);
 			}
 
-			OGRFieldDefn field("ident", OFTInteger);
+			OGRFieldDefn field("ident", OFTInteger64);
 
 			if(layer->CreateField(&field) != OGRERR_NONE)
 			{

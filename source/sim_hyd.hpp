@@ -294,6 +294,9 @@ namespace HYDROTEL
 		void CreateSubmodelsVersionsFile();
 		void ReadSubmodelsVersionsFile();
 
+		std::string CreateTronconsTxt();	//create physitel file troncons.txt using informations from .trl file	//those files are needed for manually create physitel project (from hydrotel project data)
+		std::string CreateUhrhTxt();		//create physitel file uhrh.txt from _zones object						//
+
 
 	public:
 
@@ -302,6 +305,7 @@ namespace HYDROTEL
 		std::string							_versionSimStr;
 		size_t								_versionSim;
 
+		bool                                _bSimul;                //true if hydrotel run a simulation
 		bool								_bUpdatingV26Project;	//true if hydrotel is run with -u switch
 
 		//simulation
