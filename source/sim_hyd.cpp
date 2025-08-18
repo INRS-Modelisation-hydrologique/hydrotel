@@ -2667,7 +2667,13 @@ namespace HYDROTEL
 
 	string SIM_HYD::PrendreRepertoireProjet() const
 	{
-		return PrendreRepertoire(_nom_fichier);
+		string str;
+
+		str = PrendreRepertoire(_nom_fichier);   //IMPORTANT: la string retourné par PrendreRepertoire() peut etre vide lorsque _nom_fichier est un chemin relatif et qu'il n'y a pas de dossier parent.
+		if(str == "")
+			str = boost::filesystem::current_path().string();
+
+		return str;
 	}
 
 	string SIM_HYD::PrendreRepertoireSimulation() const

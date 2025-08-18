@@ -25,6 +25,8 @@
 #include "constantes.hpp"
 #include "version.hpp"
 
+#include <algorithm>
+
 
 using namespace std;
 

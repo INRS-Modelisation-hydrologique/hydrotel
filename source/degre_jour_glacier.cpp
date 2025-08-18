@@ -928,7 +928,6 @@ namespace HYDROTEL
 	void DEGRE_JOUR_GLACIER::LectureParametresFichierGlobal()
 	{
 		ZONES& zones = _sim_hyd.PrendreZones();
-		string repertoire = _sim_hyd.PrendreRepertoireProjet();
 
 		ifstream fichier( _sim_hyd._nomFichierParametresGlobal );
 		if (!fichier)

@@ -24,6 +24,8 @@
 #include "util.hpp"
 #include "version.hpp"
 
+#include <algorithm>
+
 
 using namespace std;
 

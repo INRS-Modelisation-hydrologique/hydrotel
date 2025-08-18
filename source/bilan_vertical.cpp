@@ -24,6 +24,8 @@
 #include "version.hpp"
 #include "erreur.hpp"
 
+#include <algorithm>
+
 
 using namespace std;
 
@@ -73,10 +75,10 @@ namespace HYDROTEL
 			
 				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					if(std::find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 					{
 						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							std::find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 						{
 							oss << zones[index].PrendreIdent() << output.Separator();
 						}
@@ -105,10 +107,10 @@ namespace HYDROTEL
 			
 				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					if(std::find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 					{
 						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							std::find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 						{
 							oss << zones[index].PrendreIdent() << output.Separator();
 						}
@@ -137,10 +139,10 @@ namespace HYDROTEL
 			
 				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					if(std::find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 					{
 						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							std::find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 						{
 							oss << zones[index].PrendreIdent() << output.Separator();
 						}
@@ -187,10 +189,10 @@ namespace HYDROTEL
 
 				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					if(std::find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 					{
 						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							std::find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 						{
 							oss << zones[index].PrendreProdSurf() << output.Separator();
 						}
@@ -221,10 +223,10 @@ namespace HYDROTEL
 
 				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					if(std::find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 					{
 						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							std::find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 						{
 							oss << zones[index].PrendreProdHypo() << output.Separator();
 						}
@@ -255,10 +257,10 @@ namespace HYDROTEL
 
 				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					if(std::find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 					{
 						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							std::find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 						{
 							oss << zones[index].PrendreProdBase() << output.Separator();
 						}

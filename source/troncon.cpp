@@ -23,6 +23,8 @@
 #include "constantes.hpp"
 #include "zone.hpp"
 
+#include <algorithm>
+
 #include <boost/assert.hpp>
 
 

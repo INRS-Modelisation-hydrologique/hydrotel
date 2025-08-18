@@ -2,6 +2,16 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.3.3 - 2025-08-18
+
+- Correction pour compilation sous Linux (ajout de include manquant). 
+
+- Correction pour l'utilisation d'un chemin relatif pour spécifier le fichier de projet lors de l'appel du 
+  programme (ex: hydrotel.exe fichierprojet.csv).
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.3.2 - 2025-06-30
 
 - Correction d'un problème lors de la création d'un nouveau projet (suite à implantation versions sous-modèles) 

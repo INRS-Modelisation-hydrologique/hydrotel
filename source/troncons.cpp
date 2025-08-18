@@ -28,6 +28,7 @@
 #include "sim_hyd.hpp"
 #include "util.hpp"
 
+#include <algorithm>
 #include <fstream>
 
 

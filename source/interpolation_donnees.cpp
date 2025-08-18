@@ -25,6 +25,8 @@
 #include "version.hpp"
 #include "erreur.hpp"
 
+#include <algorithm>
+
 
 using namespace std;
 

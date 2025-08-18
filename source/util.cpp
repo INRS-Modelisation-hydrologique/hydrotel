@@ -582,6 +582,8 @@ namespace HYDROTEL
 		return p.stem().string();
 	}
 
+
+	//IMPORTANT: la string retourné par PrendreRepertoire() peut etre vide lorsque _nom_fichier est un chemin relatif et qu'il n'y a pas de dossier parent.
 	string PrendreRepertoire(const string& nom_fichier)
 	{
 		boost::filesystem::path p(nom_fichier);
