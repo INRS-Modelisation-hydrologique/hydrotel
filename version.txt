@@ -2,6 +2,20 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.3.4 - 2025-08-28
+
+- Correction lors du calcul du fichier des pondérations des stations météo lorsque le modèle THIESSEN1 est 
+  utilisé (*.pth). La rapidité d'exécution du calcul était considérablement plus lent par rapport aux 
+  versions antérieures. 
+  
+- Ajout d'une fonctionnalité permettant de générer un fichier log contenant les détails des temps d'exécution d'une 
+  simulation (options -logperformance, -logperformancesec et -logperformancemin). 
+  
+- Amélioration de l'affichage (console) des étapes et de la progression d'une simulation. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.3.3 - 2025-08-18
 
 - Correction pour compilation sous Linux (ajout de include manquant). 
