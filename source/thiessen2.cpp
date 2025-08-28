@@ -482,7 +482,7 @@ namespace HYDROTEL
 	}
 	
 	
-	void THIESSEN2::CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation, bool bDisplay)
+	void THIESSEN2::CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation, string sOrigin)
 	{
 		vector<double> uhrhPondValue;
 		vector<size_t> index_stations;
@@ -527,12 +527,11 @@ namespace HYDROTEL
 		//nbPixelTotal = nb_ligne * nb_colonne;
 		//pixelEnCours = 0;
 
-		if(bDisplay)
-		{
-			std::cout << std::endl;
-			std::cout << "computing stations/rhhu weightings (thiessen)..." << std::endl;
-			//std::cout << "pixel " << pixelEnCours << "/" << nbPixelTotal << '\r' << std::flush;
-		}
+		std::cout << endl << "Computing stations/rhhu weightings (thiessen) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		//std::cout << endl << "pixel " << pixelEnCours << "/" << nbPixelTotal << '\r' << std::flush;
+		
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (thiessen)");
 
 		for (ligne=0; ligne!=nb_ligne; ligne++)
 		{
@@ -586,11 +585,14 @@ namespace HYDROTEL
 		}
 
 		ponderation = pond;
+
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Completed");
 	}
 
 	void THIESSEN2::CalculePonderation()
 	{
-		CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation);
+		CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation, "THIESSEN2");
 	}
 
 

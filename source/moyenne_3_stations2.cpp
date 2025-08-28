@@ -39,6 +39,8 @@ namespace HYDROTEL
 	MOYENNE_3_STATIONS2::MOYENNE_3_STATIONS2(SIM_HYD& sim_hyd)
 		: INTERPOLATION_DONNEES(sim_hyd, "MOYENNE 3 STATIONS2")
 	{
+		_pSim_hyd = &sim_hyd;
+
 		_gradient_station_temp = -0.5f;		//default values
 		_gradient_station_precip = 0.5f;	//
 	}
@@ -358,7 +360,7 @@ namespace HYDROTEL
 
 	void MOYENNE_3_STATIONS2::CalculePonderation()
 	{
-		return CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation);
+		return CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation, "MOYENNE_3_STATIONS2");
 	}
 
 	bool MOYENNE_3_STATIONS2::LecturePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& pond)
@@ -460,7 +462,7 @@ namespace HYDROTEL
 	//stations ds le map des distance. S'il y a 3 stations au total, on peut finir avec 2 stations dans le map 
 	//et cela n'est pas permis.
 
-	void MOYENNE_3_STATIONS2::CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& pond)
+	void MOYENNE_3_STATIONS2::CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& pond, string sOrigin)
 	{
 		struct StationInfo
 		{
@@ -499,6 +501,11 @@ namespace HYDROTEL
 		const int nb_colonne = static_cast<int>(grille.PrendreNbColonne());
 
 		iNoData = grille.PrendreNoData();
+
+		std::cout << endl << "Computing stations/rhhu weightings (avg3s) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (avg3s)");
 
 		for (ligne=0; ligne<nb_ligne; ligne++)
 		{
@@ -574,6 +581,9 @@ namespace HYDROTEL
 		}
 
 		pond = ponderation;
+		
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Completed");
 	}
 
 

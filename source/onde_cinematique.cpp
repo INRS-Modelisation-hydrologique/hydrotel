@@ -42,6 +42,8 @@ namespace HYDROTEL
 	ONDE_CINEMATIQUE::ONDE_CINEMATIQUE(SIM_HYD& sim_hyd)
 		: RUISSELEMENT_SURFACE(sim_hyd, "ONDE CINEMATIQUE")
 	{
+		_pSim_hyd = &sim_hyd;
+
 		_sauvegarde_etat = false;
 		_sauvegarde_tous_etat = false;
 
@@ -739,12 +741,12 @@ namespace HYDROTEL
 			if((fin - debut)/60.0/60.0 < 1.0)
 			{
 				if((fin - debut)/60.0 < 1.0)
-					oss << "completed in " << setprecision(0) << setiosflags(ios::fixed) << (fin - debut) << " seconds" << endl;
+					oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (fin - debut) << " sec" << flush;
 				else
-					oss << "completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 << " minutes" << endl;
+					oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 << " min" << flush;
 			}
 			else
-				oss << "completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 / 60.0 << " hours" << endl;
+				oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 / 60.0 << " h" << flush;
 
 			std::cout << oss.str();
 			_sim_hyd._bHGMCalculer = true;
@@ -1159,6 +1161,7 @@ namespace HYDROTEL
 
 	void ONDE_CINEMATIQUE::CalculeHgm()
 	{
+		ostringstream oss;
 		double DIV1, POW1, MULT1, EQ1, EQ2;
 		double man;
 		string str;
@@ -1169,7 +1172,7 @@ namespace HYDROTEL
 		vector<int> vTmax;
 
 		std::cout << endl;
-		std::cout << "Computation of the geomorphological hydrograph " << flush;
+		std::cout << "Computing geomorphological hydrograph " << flush;
 
 		TRONCONS& troncons = _sim_hyd.PrendreTroncons();
 		ZONES& zones = _sim_hyd.PrendreZones();
@@ -1311,7 +1314,14 @@ namespace HYDROTEL
 		{
 			//std::cout << endl;
 			//std::cout << "calcul de l'hydrogramme geomorphologique (nb_threads=" << omp_get_num_threads() << ")...     " << flush;
-			std::cout << "(nb thread=" << omp_get_num_threads() << ")...     " << flush;
+			std::cout << "(nb thread=" << omp_get_num_threads() << ")...   " << GetCurrentTimeStr() << flush;
+
+			if(_pSim_hyd->_bLogPerf)
+			{
+				oss.str("");
+				oss << "Computing geomorphological hydrograph (nb thread=" << omp_get_num_threads() << ")";
+				_pSim_hyd->_logPerformance.AddStep(oss.str());
+			}
 		}
 
 		double c, v_pte, v_manning, volte, volts, volume_pas, v_ra, v_rb, v_rc, rd, dVolte, d, fLameCalculee;
@@ -1749,6 +1759,9 @@ namespace HYDROTEL
 			_oc_base[idxZone].distri.resize(_nb_debit);
 			_oc_base[idxZone].debits.resize(_nb_debit);
 		}
+
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Completed");
 	}
 
 

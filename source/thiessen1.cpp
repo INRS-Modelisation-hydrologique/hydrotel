@@ -440,11 +440,11 @@ namespace HYDROTEL
 	
 	void THIESSEN1::CalculePonderation()
 	{
-		CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation);
+		CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation, "THIESSEN1");
 	}
 	
 	
-	void THIESSEN1::CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<float>& ponderation)
+	void THIESSEN1::CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<float>& ponderation, string sOrigin)
 	{
 		vector<size_t> index_stations;
 		COORDONNEE coordonnee;
@@ -478,6 +478,11 @@ namespace HYDROTEL
 		const int nb_ligne = static_cast<int>(grille.PrendreNbLigne());
 		const int nb_colonne = static_cast<int>(grille.PrendreNbColonne());
 
+		std::cout << endl << "Computing stations/rhhu weightings (thiessen) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (thiessen)");
+
 		for (ligne = 0; ligne < nb_ligne; ++ligne)
 		{
 			for (colonne = 0; colonne < nb_colonne; ++colonne)
@@ -487,7 +492,7 @@ namespace HYDROTEL
 				if (ident != 0 && ident != grille.PrendreNoData())
 				{
 					coordonnee = grille.LigColVersCoordonnee(ligne, colonne);					
-					index_stations = CalculDistance(coordonnees, coordonnee);
+					index_stations = CalculDistance_v1(coordonnees, coordonnee);
 					
 					i = zones.IdentVersIndex(ident);
 					j = index_stations[0];					
@@ -525,6 +530,10 @@ namespace HYDROTEL
 		}
 
 		ponderation = pond;
+		
+		
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Completed");
 	}
 
 

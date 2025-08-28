@@ -89,8 +89,10 @@ namespace HYDROTEL
 	// retourne les index des coordonnees les plus proche de la coordonnee
 	std::vector<size_t> CalculDistance(const std::vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee);
 
+	std::vector<size_t>	CalculDistance_v1(const std::vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee);	//for thiessen v1 and moyenne_3_stations v1
+
 	// retourne les distances des stations par rapport à une coordonnee (pixel)
-	void CalculDistanceEx(const std::vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee, std::vector<double>* vDistances);
+	void				CalculDistanceEx(const std::vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee, std::vector<double>* vDistances);
 
 	// calcul la densite de la neige selon la temperature
 	float CalculDensiteNeige(float temperature);
@@ -166,6 +168,9 @@ namespace HYDROTEL
 	std::string Combine(const std::string& racine, const std::string& chemin);
 
 	std::string GetTempFilename();
+
+	std::string GetCurrentTimeStr();
+	std::string GetCurrentTimeStrForFile();
 
 }
 

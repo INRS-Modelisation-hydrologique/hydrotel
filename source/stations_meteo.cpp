@@ -1572,7 +1572,10 @@ namespace HYDROTEL
 
 		DATE_HEURE date_debut(debut.PrendreAnnee(), debut.PrendreMois(), debut.PrendreJour(), 0);
 		DATE_HEURE date_fin(fin.PrendreAnnee(), fin.PrendreMois(), fin.PrendreJour(), 0);
+
 		date_fin.AdditionHeure(24);
+
+		std::cout << endl << "Reading weather data...   " << GetCurrentTimeStr() << flush;
 
 		const size_t nb_station = _stations.size();
 
@@ -1588,6 +1591,7 @@ namespace HYDROTEL
 		if(_bStationInterpolation)
 		{
 			//determine les stations ou il y a des donnees manquantes
+			std::cout << endl << "Checking missing weather data...   " << GetCurrentTimeStr() << flush;
 
 			vector<STATION_METEO*> stations;
 
@@ -1615,6 +1619,8 @@ namespace HYDROTEL
 
 			if(!stations.empty())
 			{
+				std::cout << endl << "Missing weather data interpolation...   " << GetCurrentTimeStr() << flush;
+
 				vector<COORDONNEE> coordonnees_station;
 
 				for(auto iter = begin(_stations); iter != end(_stations); iter++)
@@ -1629,7 +1635,7 @@ namespace HYDROTEL
 					{
 						donnee1 = station1->PrendreDonnees(date_courante, pas_de_temps);
 
-						distances = CalculDistance(coordonnees_station, station1->_coordonneeCRSprojet);
+						distances = CalculDistance_v1(coordonnees_station, station1->_coordonneeCRSprojet);
 				
 						for(index = 1; index < distances.size(); ++index)
 						{
@@ -1697,14 +1703,7 @@ namespace HYDROTEL
 
 		date_fin.AdditionHeure(24);
 
-		std::cout << endl;
-		
-		char buf[20];
-		chrono::system_clock::time_point tp = chrono::system_clock::now();
-		time_t tt = chrono::system_clock::to_time_t(tp);
-		tm* ptm = std::localtime(&tt);
-		std::strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
-		std::cout << "Reading wheater data   " << buf << endl;
+		std::cout << endl << "Reading weather data...   " << GetCurrentTimeStr() << flush;
 
 		const size_t nb_station = _stations.size();
 
@@ -1720,12 +1719,7 @@ namespace HYDROTEL
 		if(_bStationInterpolation)
 		{
 			//determine les stations ou il y a des donnees manquantes
-
-			tp = std::chrono::system_clock::now();
-			tt = std::chrono::system_clock::to_time_t(tp);
-			ptm = std::localtime(&tt);
-			std::strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
-			std::cout << "Checking missing data   " << buf << endl;
+			std::cout << endl << "Checking missing weather data...   " << GetCurrentTimeStr() << flush;
 
 			vector<STATION_METEO*> stations;
 
@@ -1753,11 +1747,7 @@ namespace HYDROTEL
 
 			if(!stations.empty())
 			{
-				tp = std::chrono::system_clock::now();
-				tt = std::chrono::system_clock::to_time_t(tp);
-				ptm = std::localtime(&tt);
-				std::strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
-				std::cout << "Missing data interpolation   " << buf << endl;
+				std::cout << endl << "Missing weather data interpolation...   " << GetCurrentTimeStr() << flush;
 
 				vector<COORDONNEE> coordonnees_station;
 

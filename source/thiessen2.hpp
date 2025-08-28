@@ -50,7 +50,7 @@ namespace HYDROTEL
 
 		bool LecturePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation);
 
-		void CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation, bool bDisplay = true);
+		void CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation, std::string sOrigin);
 
 		void SauvegardePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation);
 

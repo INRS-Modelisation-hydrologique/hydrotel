@@ -169,7 +169,7 @@ namespace HYDROTEL
 
 				if(!_pThiessen1->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifersF))
 				{
-					_pThiessen1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
+					_pThiessen1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF, "DEGRE_JOUR_BANDE");
 					_pThiessen1->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
 				}
 			}
@@ -183,7 +183,7 @@ namespace HYDROTEL
 
 				if(!_pThiessen2->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifers))
 				{
-					_pThiessen2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, false);
+					_pThiessen2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, "DEGRE_JOUR_BANDE");
 					_pThiessen2->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
 				}
 			}
@@ -203,7 +203,7 @@ namespace HYDROTEL
 
 				if(!_pMoy3station1->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifersF))
 				{
-					_pMoy3station1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
+					_pMoy3station1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF, "DEGRE_JOUR_BANDE");
 					_pMoy3station1->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
 				}
 			}
@@ -217,7 +217,7 @@ namespace HYDROTEL
 
 				if(!_pMoy3station2->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifers))
 				{
-					_pMoy3station2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
+					_pMoy3station2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, "DEGRE_JOUR_BANDE");
 					_pMoy3station2->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
 				}
 			}
@@ -246,7 +246,7 @@ namespace HYDROTEL
 
 				if(!_pThiessen1->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF))
 				{
-					_pThiessen1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
+					_pThiessen1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF, "DEGRE_JOUR_BANDE");
 					_pThiessen1->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
 				}
 			}
@@ -260,7 +260,7 @@ namespace HYDROTEL
 
 				if(!_pThiessen2->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus))
 				{
-					_pThiessen2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, false);
+					_pThiessen2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, "DEGRE_JOUR_BANDE");
 					_pThiessen2->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
 				}
 			}
@@ -280,7 +280,7 @@ namespace HYDROTEL
 
 				if(!_pMoy3station1->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF))
 				{
-					_pMoy3station1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
+					_pMoy3station1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF, "DEGRE_JOUR_BANDE");
 					_pMoy3station1->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
 				}
 			}
@@ -294,7 +294,7 @@ namespace HYDROTEL
 
 				if(!_pMoy3station2->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus))
 				{
-					_pMoy3station2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
+					_pMoy3station2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, "DEGRE_JOUR_BANDE");
 					_pMoy3station2->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
 				}
 			}
@@ -323,7 +323,7 @@ namespace HYDROTEL
 
 				if(!_pThiessen1->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouverF))
 				{
-					_pThiessen1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
+					_pThiessen1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF, "DEGRE_JOUR_BANDE");
 					_pThiessen1->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
 				}
 			}
@@ -337,7 +337,7 @@ namespace HYDROTEL
 
 				if(!_pThiessen2->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouver))
 				{
-					_pThiessen2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, false);
+					_pThiessen2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, "DEGRE_JOUR_BANDE");
 					_pThiessen2->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
 				}
 			}
@@ -357,7 +357,7 @@ namespace HYDROTEL
 
 				if(!_pMoy3station1->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouverF))
 				{
-					_pMoy3station1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
+					_pMoy3station1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF, "DEGRE_JOUR_BANDE");
 					_pMoy3station1->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
 				}
 			}
@@ -371,7 +371,7 @@ namespace HYDROTEL
 
 				if(!_pMoy3station2->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouver))
 				{
-					_pMoy3station2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
+					_pMoy3station2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, "DEGRE_JOUR_BANDE");
 					_pMoy3station2->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
 				}
 			}

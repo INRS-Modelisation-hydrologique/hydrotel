@@ -294,6 +294,9 @@
     <ClCompile Include="..\..\source\acheminement_riviere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\log-performance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\acheminement_riviere.hpp">
@@ -591,6 +594,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\zones.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\log-performance.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

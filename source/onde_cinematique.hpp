@@ -127,41 +127,43 @@ namespace HYDROTEL
 		void LectureEtat(DATE_HEURE date_courante);
 		void SauvegardeEtat(DATE_HEURE date_courante) const;
 
-		std::string _nom_fichier_hgm;
+		SIM_HYD*				_pSim_hyd;
 
-		double _lame;	// m
+		std::string				_nom_fichier_hgm;
 
-		std::vector<double> _manning_forets;
-		std::vector<double> _manning_eaux;
-		std::vector<double> _manning_autres;
+		double					_lame;	// m
 
-		std::vector<size_t> _index_forets;
-		std::vector<size_t> _index_eaux;
-		std::vector<size_t> _index_autres;
+		std::vector<double>		_manning_forets;
+		std::vector<double>		_manning_eaux;
+		std::vector<double>		_manning_autres;
 
-		size_t _nb_debit;
+		std::vector<size_t>		_index_forets;
+		std::vector<size_t>		_index_eaux;
+		std::vector<size_t>		_index_autres;
+
+		size_t					_nb_debit;
 
 		// variable pour lecture/ecriture de l'etat
 
-		std::string _nom_fichier_lecture_etat;
-		std::string _repertoire_ecriture_etat;
+		std::string				_nom_fichier_lecture_etat;
+		std::string				_repertoire_ecriture_etat;
 
-		DATE_HEURE _date_sauvegarde_etat;
-		bool _sauvegarde_etat;
+		DATE_HEURE				_date_sauvegarde_etat;
+		bool					_sauvegarde_etat;
 
-		bool _sauvegarde_tous_etat;
+		bool					_sauvegarde_tous_etat;
 
 		// variables de simulation
 
-		std::vector<double> _pourcentage_forets;
-		std::vector<double> _pourcentage_eaux;
-		std::vector<double> _pourcentage_autres;
+		std::vector<double>		_pourcentage_forets;
+		std::vector<double>		_pourcentage_eaux;
+		std::vector<double>		_pourcentage_autres;
 
-		std::vector<oc_zone> _oc_zone;
+		std::vector<oc_zone>	_oc_zone;
 
-		std::vector<oc_zone> _oc_surf;
-		std::vector<oc_zone> _oc_hypo;
-		std::vector<oc_zone> _oc_base;
+		std::vector<oc_zone>	_oc_surf;
+		std::vector<oc_zone>	_oc_hypo;
+		std::vector<oc_zone>	_oc_base;
 	};
 
 }

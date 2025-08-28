@@ -49,8 +49,8 @@ void displayHelp()
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -c" << endl;
 	std::cout << endl;
 	std::cout << " -d (-display)               Display simulation progress." << endl;
-	std::cout << "                             Note: this option can slow down the execution time of simulations." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -d" << endl;
+	std::cout << "                             This option can slow down the execution time of simulations." << endl;
 	std::cout << endl;
 	std::cout << " -g (-hgm)                   Generate hgm file (geomorphological hydrograph)." << endl;
 	std::cout << "                             USAGE: hydrotel -g <hydrotel project filename> <water depth (m)> <new hgm filename> [-t <nb thread>]" << endl;
@@ -61,6 +61,12 @@ void displayHelp()
 	std::cout << " -l (-log)                   Save error messages in the specified file." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -l <log filename>" << endl;
 	std::cout << endl;
+	std::cout << " -lp (-logperformance)       Save detailed program execution times." << endl;
+	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -lp" << endl;
+	std::cout << "                             Times are expressed in seconds, except in minutes if total duration is greater than 10 minutes." << endl;
+	std::cout << "                             To force output in seconds, use -lps or -logperformancesec." << endl;
+	std::cout << "                             To force output in minutes, use -lpm or -logperformancemin." << endl;
+	std::cout << endl;
 	std::cout << " -n (-new)                   Creation of a new Hydrotel project from a Physitel dataset." << endl;
 	std::cout << "                             USAGE: hydrotel -n <input physitel dataset folder> <output hydrotel folder>" << endl;
 	std::cout << endl;
@@ -69,13 +75,13 @@ void displayHelp()
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -r" << endl;
 	std::cout << endl;
 	std::cout << " -s (-skipinterpolation)     Skip interpolation of missing weather data at stations level." << endl;
-	std::cout << "                             Note: this option can be used to speed up the initialization step of a" << endl;
-	std::cout << "                             simulation when there is no missing data in source weather dataset." << endl;
 	std::cout << "                             USAGE: hydrotel <hydrotel project filename> -s" << endl;
+	std::cout << "                             This option can be used to speed up the initialization step of a" << endl;
+	std::cout << "                             simulation when there is no missing data in source weather dataset." << endl;
 	std::cout << endl;
 	std::cout << " -t (-thread)                Number of threads to use for hgm computation." << endl;
-	std::cout << "                             Note: <nb thread> value of 0 will use the maximum number of available threads." << endl;
 	std::cout << "                             USAGE: hydrotel [-g] <hydrotel project filename> [...] -t <nb thread>" << endl;
+	std::cout << "                             <nb thread> value of 0 will use the maximum number of available threads." << endl;
 	std::cout << endl;
 	std::cout << " -u (-update)                Update an older 2.6 (v47 ou V49) Hydrotel project to the current version." << endl;
 	std::cout << "                             USAGE: hydrotel -u <prj filename> <new project folder>" << endl;
@@ -92,12 +98,19 @@ string _nom_fichier_log;
 
 int main(int argc, char* argv[])
 {
+	string sLogExecution = GetCurrentTimeStr() + "   Hydrotel " + HYDROTEL_VERSION + " program execution start";
+
 	ostringstream oss;
+	vector<string> unrecognizedParam;
+	size_t idx;
 	string str, str2, str3;
 	time_t begin;
 	time_t end;
 	bool bAutoInverseTMinTmax, bDisplay, bStationInterpolation, bSkipCharacterValidation, bGenereBdPrelev;
-	int nbThread, ret, n;
+	bool bLogPerformance, bLogPerfForceUnit;
+	int nbThread, iLogPerfUnit, ret, n;
+
+	idx = (size_t)-1;
 
 	nbThread = 1;	//default: use only 1 thread
 
@@ -113,6 +126,9 @@ int main(int argc, char* argv[])
 	bStationInterpolation = true;
 	bSkipCharacterValidation = false;
 	bGenereBdPrelev = false;
+	bLogPerformance = false;
+	iLogPerfUnit = 1; //seconds
+	bLogPerfForceUnit = false;
 
 	if (argc == 1)
 	{
@@ -150,47 +166,67 @@ int main(int argc, char* argv[])
 			}
 			else
 			{
-				if (option.compare("-r") == 0 || option.compare("-autoreversetemp") == 0)
-					bAutoInverseTMinTmax = true;
+				if (option.compare("-lp") == 0 || option.compare("-logperformance") == 0 || 
+					option.compare("-lps") == 0 || option.compare("-logperformancesec") == 0 || 
+					option.compare("-lpm") == 0 || option.compare("-logperformancemin") == 0)
+				{
+					bLogPerformance = true;
+
+					if(option.compare("-lpm") == 0 || option.compare("-logperformancemin") == 0)
+						iLogPerfUnit = 2;	//minutes
+					
+					if(option.compare("-lpm") == 0 || option.compare("-logperformancemin") == 0 || option.compare("-lps") == 0 || option.compare("-logperformancesec") == 0)
+						bLogPerfForceUnit = true;
+				}
 				else
 				{
-					if (option.compare("-c") == 0 || option.compare("-skipcharvalidation") == 0)
-						bSkipCharacterValidation = true;
+					if (option.compare("-r") == 0 || option.compare("-autoreversetemp") == 0)
+						bAutoInverseTMinTmax = true;
 					else
 					{
-						if (option.compare("-d") == 0 || option.compare("-display") == 0)
-							bDisplay = true;
+						if (option.compare("-c") == 0 || option.compare("-skipcharvalidation") == 0)
+							bSkipCharacterValidation = true;
 						else
 						{
-							if (option.compare("-s") == 0 || option.compare("-skipinterpolation") == 0)
-								bStationInterpolation = false;
+							if (option.compare("-d") == 0 || option.compare("-display") == 0)
+								bDisplay = true;
 							else
 							{
-								if (option.compare("-t") == 0 || option.compare("-thread") == 0)
+								if (option.compare("-s") == 0 || option.compare("-skipinterpolation") == 0)
+									bStationInterpolation = false;
+								else
 								{
-									if (n + 1 == argc)
+									if (option.compare("-t") == 0 || option.compare("-thread") == 0)
 									{
-										std::cout << "Missing parameter <nb thread>" << endl << endl;
-										displayHelp();
-										ret = 1;
+										if (n + 1 == argc)
+										{
+											std::cout << "Missing parameter <nb thread>" << endl << endl;
+											displayHelp();
+											ret = 1;
+										}
+										else
+										{
+											str = argv[n + 1];
+											istringstream iss(str);
+											iss >> nbThread;
+
+											if (nbThread < 0)
+											{
+												std::cout << "Parameter <nb thread> is invalid: \"" << argv[n + 1] << "\": must be greater or equal 0" << endl;
+												ret = 1;
+											}
+										}
 									}
 									else
 									{
-										str = argv[n + 1];
-										istringstream iss(str);
-										iss >> nbThread;
-
-										if (nbThread < 0)
+										if (option.compare("-generebdprelevements") == 0)
+											bGenereBdPrelev = true;
+										else
 										{
-											std::cout << "Parameter <nb thread> is invalid: \"" << argv[n + 1] << "\": must be greater or equal 0" << endl;
-											ret = 1;
+											if(n != 1)
+												unrecognizedParam.push_back(option);
 										}
 									}
-								}
-								else
-								{
-									if (option.compare("-generebdprelevements") == 0)
-										bGenereBdPrelev = true;
 								}
 							}
 						}
@@ -300,12 +336,12 @@ int main(int argc, char* argv[])
 							if ((end - begin) / 60.0 / 60.0 < 1.0)
 							{
 								if ((end - begin) / 60.0 < 1.0)
-									oss << "completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " seconds" << endl;
+									oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " sec" << endl;
 								else
-									oss << "completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " minutes" << endl;
+									oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " min" << endl;
 							}
 							else
-								oss << "completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " hours" << endl;
+								oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h" << endl;
 
 							std::cout << oss.str();
 
@@ -374,6 +410,7 @@ int main(int argc, char* argv[])
 					if (bGenereBdPrelev)
 					{
 						//genere fichiers bd prelevements (/simulation/[nom_simulation]/prelevements/BD_*.csv) à partir des fichiers sources (/simulation/[nom_simulation]/prelevements/SitesPrelevements/*.csv)
+
 						SIM_HYD	sim_hyd;
 
 						sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
@@ -389,7 +426,29 @@ int main(int argc, char* argv[])
 					else
 					{
 						//demarre la simulation
+
+						for(n=0; n!=unrecognizedParam.size(); n++)
+							std::cout << "Unknown parameter: " << unrecognizedParam[n] << endl << endl;
+
 						SIM_HYD	sim_hyd;
+
+						str = argv[1];	//[nom fichier projet]
+						std::replace(str.begin(), str.end(), '\\', '/');
+
+						sim_hyd._bLogPerf = bLogPerformance;
+
+						if(sim_hyd._bLogPerf)
+						{
+							sim_hyd._logPerformance._iUnit = iLogPerfUnit;
+							sim_hyd._logPerformance._bForceUnit = bLogPerfForceUnit;
+
+							sim_hyd._logPerformance.AddStep(sLogExecution, false);	//log start of execution
+							sim_hyd._logPerformance.AddStep("Project: " + str);
+
+							sim_hyd._logPerformance._tpInitAndSimBegin = chrono::high_resolution_clock::now();
+						}
+
+						std::time(&begin);
 
 						sim_hyd._bSimul = true;
 						sim_hyd._nbThread = nbThread;
@@ -397,48 +456,48 @@ int main(int argc, char* argv[])
 						sim_hyd._bStationInterpolation = bStationInterpolation;
 						sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
 
-						str = argv[1];	//[nom fichier projet]
-						std::replace(str.begin(), str.end(), '\\', '/');
+						std::cout << "Reading simulation data...   " << GetCurrentTimeStr();
 
 						sim_hyd.ChangeNomFichier(str);
 						sim_hyd.Lecture();
 
-						std::time(&begin);
-						std::cout << "Initialization...     " << flush;
+						if(sim_hyd._bLogPerf)
+						{
+							sim_hyd._logPerformance.EndStep(sim_hyd._tempVal, chrono::high_resolution_clock::now());	//Lecture données
+
+							sim_hyd._logPerformance._tpLectureEnd = chrono::high_resolution_clock::now();
+							sim_hyd._logPerformance._tpInitBegin = chrono::high_resolution_clock::now();
+						}
+
+						std::cout << endl << "Initialization...   " << GetCurrentTimeStr() << flush;
 
 						if (!bStationInterpolation)
 							std::cout << endl << "Interpolation of missing weather data at stations level will be skipped     " << flush;
 
 						sim_hyd.Initialise();
 
-						if(!sim_hyd._bHGMCalculer)
-						{
-							char buf[20];
-							chrono::system_clock::time_point tp = chrono::system_clock::now();
-							time_t tt = chrono::system_clock::to_time_t(tp);
-							tm* ptm = std::localtime(&tt);
-							std::strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
-							std::cout << "Initialization complete   " << buf << endl;
-						}
-						else
-							std::time(&begin);
-
 						DATE_HEURE date_fin, date_courante;
 
 						date_fin = sim_hyd.PrendreDateFin();
 
-						std::cout << endl;
+						std::cout << endl << "Simulation in progress...   " << GetCurrentTimeStr() << flush;
+
 						if(bDisplay)
-							date_courante = sim_hyd.PrendreDateDebut();
-						else
-							std::cout << "Simulation in progress..." << flush;
+							std::cout << endl;
+
+						if(sim_hyd._bLogPerf)
+						{
+							sim_hyd._logPerformance._tpInitEnd = chrono::high_resolution_clock::now();
+							sim_hyd._logPerformance._tpSimBegin = chrono::high_resolution_clock::now();
+							sim_hyd._logPerformance.AddStep("Simulation start");
+						}
 
 						do
 						{
 							if(bDisplay)
 							{
 								date_courante = sim_hyd.PrendreDateCourante();
-								std::cout << "Simulation...     " << date_courante << '\r' << flush;
+								std::cout << date_courante << '\r' << flush;
 							}
 
 							sim_hyd.Calcule();
@@ -446,24 +505,23 @@ int main(int argc, char* argv[])
 						} 
 						while(date_courante < date_fin);
 
+						if(sim_hyd._bLogPerf)
+						{
+							sim_hyd._logPerformance._tpSimEnd = chrono::high_resolution_clock::now();
+							sim_hyd._logPerformance.AddStep("Simulation end");
+
+							idx = sim_hyd._logPerformance.AddStep("Post-processing", chrono::high_resolution_clock::now());
+
+							sim_hyd._logPerformance._tpPostBegin = chrono::high_resolution_clock::now();
+						}
+
 						if(bDisplay)
-							std::cout << "Simulation...     " << date_courante << flush;
+							std::cout << date_courante << flush;
 
 						sim_hyd.Termine();
-						std::time(&end);
 
-						oss.str("");
-						if((end - begin) / 60.0 / 60.0 < 1.0)
-						{
-							if ((end - begin) / 60.0 < 1.0)
-								oss << "     completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " seconds" << endl;
-							else
-								oss << "     completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " minutes" << endl;
-						}
-						else
-							oss << "     completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " hours" << endl;
-
-						std::cout << oss.str();
+						if(sim_hyd._bLogPerf)
+							sim_hyd._logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
 
 						if(!sim_hyd._outputCDF)	//le calcul des statistiques n'est pas adapté aux netCDF
 						{
@@ -472,14 +530,41 @@ int main(int argc, char* argv[])
 							{
 								if(sim_hyd._acheminement_riviere)
 								{
-									std::cout << endl << "Computation of statistics...     " << flush;
+									std::cout << endl << "Computing statistics...   " << GetCurrentTimeStr() << flush;
 									STATISTIQUES stats(sim_hyd, nom_fichier_stats);
-									std::cout << "completed" << endl;
 								}
 							}
 						}
 
+						std::time(&end);
+
+						oss.str("");
+						if((end - begin) / 60.0 / 60.0 < 1.0)
+						{
+							if ((end - begin) / 60.0 < 1.0)
+								oss << "Simulation completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " sec   " << GetCurrentTimeStr() << endl;
+							else
+								oss << "Simulation completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " min   " << GetCurrentTimeStr() << endl;
+						}
+						else
+							oss << "Simulation completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h   " << GetCurrentTimeStr() << endl;
+
+						std::cout << endl << endl << oss.str();
 						std::cout << endl;
+
+						if(sim_hyd._bLogPerf)
+						{
+							sim_hyd._logPerformance._tpPostEnd = chrono::high_resolution_clock::now();
+							sim_hyd._logPerformance._tpInitAndSimEnd = chrono::high_resolution_clock::now();
+
+							sim_hyd._logPerformance.AddStep("Program execution end");
+
+							str = sim_hyd.PrendreRepertoireSimulation() + "/log-performance-" + GetCurrentTimeStrForFile() + ".txt";
+							if(!sim_hyd._logPerformance.SaveFile(str))
+								std::cout << sim_hyd._logPerformance._sErr << endl;
+							else
+								std::cout << "Performance log file saved: " + str << endl << endl;
+						}
 					}
 				}
 			}

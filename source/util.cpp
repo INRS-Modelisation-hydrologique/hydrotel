@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <chrono>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string.hpp>
@@ -677,8 +678,28 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	// retourne les index des coordonnees les plus proche de la coordonnee
+	//----------------------------------------------------------------------------------------------------
+	//For thiessen v1 and moyenne_3_stations v1
+	vector<size_t> CalculDistance_v1(const vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee)
+	{
+		map<double, size_t> distances;
+
+		for (size_t index = 0; index < coordonnees.size(); ++index)
+		{
+			double distance = sqrt(pow(coordonnee.PrendreX() - coordonnees[index].PrendreX(), 2) + pow(coordonnee.PrendreY() - coordonnees[index].PrendreY(), 2));
+			distances[distance] = index;
+		}
+
+		vector<size_t> index;
+		for (auto iter = begin(distances); iter != end(distances); ++iter)
+			index.push_back(iter->second);
+
+		return index;
+	}
+
+
+	//-------------------------------------------------------------------------------------------------
+	//retourne les index des coordonnees les plus proche de la coordonnee
 	vector<size_t> CalculDistance(const vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee)
 	{
 		vector<double> vDistance;
@@ -1541,6 +1562,50 @@ namespace HYDROTEL
 
 			ret = "error validating input files: exception: ";
 			ret+= ex.what();
+		}
+
+		return ret;
+	}
+
+
+	string GetCurrentTimeStr()
+	{
+		string ret;
+		char buf[20];
+
+		try{
+		chrono::system_clock::time_point tp = chrono::system_clock::now();
+		time_t tt = chrono::system_clock::to_time_t(tp);
+		tm* ptm = std::localtime(&tt);
+		std::strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
+		ret = buf;
+
+		}
+		catch(...)
+		{
+			ret = "";
+		}
+
+		return ret;
+	}
+
+
+	string GetCurrentTimeStrForFile()
+	{
+		string ret;
+		char buf[16];
+
+		try{
+			chrono::system_clock::time_point tp = chrono::system_clock::now();
+			time_t tt = chrono::system_clock::to_time_t(tp);
+			tm* ptm = std::localtime(&tt);
+			std::strftime(buf, 16, "%Y%m%d-%H%M%S", ptm);
+			ret = buf;
+
+		}
+		catch(...)
+		{
+			ret = "";
 		}
 
 		return ret;

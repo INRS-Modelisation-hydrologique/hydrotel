@@ -36,6 +36,7 @@
 #include "rayonnement_net.hpp"
 #include "raster_double2.hpp"
 #include "prelevements.hpp"
+#include "log-performance.hpp"
 
 
 namespace HYDROTEL
@@ -361,6 +362,8 @@ namespace HYDROTEL
 		std::string							_sFolderNamePrelevements;		//folder name for prelevements input files	//prelevements
 		std::string							_sFolderNamePrelevementsSrc;	//folder name for source input file for prelevements db generation	//SitesPrelevements
 
+		bool								_bLogPerf;
+
 		//sous modeles courant
 		INTERPOLATION_DONNEES*	_interpolation_donnees;
 		FONTE_NEIGE*			_fonte_neige;
@@ -406,6 +409,10 @@ namespace HYDROTEL
 		std::vector<std::unique_ptr<BILAN_VERTICAL>>		_vbilan_vertical;
 		std::vector<std::unique_ptr<RUISSELEMENT_SURFACE>>	_vruisselement;
 		std::vector<std::unique_ptr<ACHEMINEMENT_RIVIERE>>	_vacheminement;
+
+		LOG_PERFORMANCE										_logPerformance;
+
+		size_t												_tempVal;
 
 
 	private:
