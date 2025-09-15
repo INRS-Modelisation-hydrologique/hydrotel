@@ -101,7 +101,7 @@ namespace HYDROTEL
 	{
 		//Lorsque le modele de fonte de glace est simulé, le modele degre-jour-bande doit etre le modele de fonte de neige sélectionné
 		if(_sim_hyd._fonte_neige->PrendreNomSousModele() != "DEGRE JOUR BANDE")
-			throw ERREUR("DEGRE_JOUR_GLACIER erreur: le modele de fonte de neige utilise doit obligatoirement etre le modele DEGRE JOUR BANDE.");
+			throw ERREUR("DEGRE_JOUR_GLACIER error: the ice melt model requires that DEGRE JOUR BANDE is the selected snow melt model.");
 
 
 		double dVolTotal, dVolUhrh, dAreaM1Bande, dAreaTotalM1, dAlt, dNbBande, dPixelArea, dStockUhrh, superficieUhrh, dNoDataDem, dM, dB, dEpaisseurGlaceBande, dSommeEpaisseur;
@@ -124,20 +124,20 @@ namespace HYDROTEL
 		//trunc les valeur à 7 décimale pour eviter les problemes de resolution numerique lors de la comparaison des valeurs double
 		long long int lx, ly, lxZone, lyZone;
 
-		lxZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreX() * 10000000.0);
-		lyZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreY() * 10000000.0);
+		lxZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreX() * 1000.0);
+		lyZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreY() * 1000.0);
 
-		lx = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreX() * 10000000.0);
-		ly = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreY() * 10000000.0);
-
-		if(lx != lxZone || ly != lyZone)
-			throw ERREUR("DEGRE_JOUR_GLACIER erreur: les coordonnees des matrice altitude et occupation du sol ne correspondent pas avec les coordonnees de la matrice uhrh.");
-
-		lx = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreX() * 10000000.0);
-		ly = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreY() * 10000000.0);
+		lx = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreX() * 1000.0);
+		ly = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreY() * 1000.0);
 
 		if(lx != lxZone || ly != lyZone)
-			throw ERREUR("DEGRE_JOUR_GLACIER erreur: les coordonnees des matrice altitude et occupation du sol ne correspondent pas avec les coordonnees de la matrice uhrh.");
+			throw ERREUR("DEGRE_JOUR_GLACIER error: the extent of the elevation matrix do not match with the extent of the rhhu matrix.");
+
+		lx = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreX() * 1000.0);
+		ly = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreY() * 1000.0);
+
+		if(lx != lxZone || ly != lyZone)
+			throw ERREUR("DEGRE_JOUR_GLACIER error: the extent of the land cover matrix do not match with the extent of the rhhu matrix.");
 
 		nbColZone = grilleZone.PrendreNbColonne();
 		nbRowZone = grilleZone.PrendreNbLigne();

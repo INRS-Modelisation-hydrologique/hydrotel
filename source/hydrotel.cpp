@@ -28,9 +28,9 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
-#include <chrono>
 
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/chrono.hpp>
 
 
 using namespace std;
@@ -102,13 +102,18 @@ int main(int argc, char* argv[])
 
 	ostringstream oss;
 	vector<string> unrecognizedParam;
+	vector<string> unrecognizedParamException;
+	istringstream iss;
 	size_t idx;
-	string str, str2, str3;
+	string option, str, str2, str3;
 	time_t begin;
 	time_t end;
+	float lame;
 	bool bAutoInverseTMinTmax, bDisplay, bStationInterpolation, bSkipCharacterValidation, bGenereBdPrelev;
 	bool bLogPerformance, bLogPerfForceUnit;
 	int nbThread, iLogPerfUnit, ret, n;
+
+	std::unique_ptr<SIM_HYD> sim_hyd;
 
 	idx = (size_t)-1;
 
@@ -142,8 +147,7 @@ int main(int argc, char* argv[])
 	{
 		for (n = 1; n != argc; n++)
 		{
-			string option(argv[n]);
-
+			option = argv[n];
 			boost::algorithm::to_lower(option);
 
 			if (option.compare("-l") == 0 || option.compare("-log") == 0)
@@ -158,6 +162,8 @@ int main(int argc, char* argv[])
 				{
 					_log = true;
 					_nom_fichier_log = argv[n + 1];
+					unrecognizedParamException.push_back(_nom_fichier_log);
+
 					std::replace(_nom_fichier_log.begin(), _nom_fichier_log.end(), '\\', '/');		//replace \ to / for compatibility between windows and unix, / are ok for windows but \ are not ok for unix...
 
 					if (FichierExiste(_nom_fichier_log))
@@ -207,7 +213,10 @@ int main(int argc, char* argv[])
 										else
 										{
 											str = argv[n + 1];
-											istringstream iss(str);
+											unrecognizedParamException.push_back(str);
+
+											iss.clear();
+											iss.str(str);
 											iss >> nbThread;
 
 											if (nbThread < 0)
@@ -224,7 +233,11 @@ int main(int argc, char* argv[])
 										else
 										{
 											if(n != 1)
-												unrecognizedParam.push_back(option);
+											{
+												str = argv[n];
+												if(std::find(std::begin(unrecognizedParamException), std::end(unrecognizedParamException), str) == std::end(unrecognizedParamException))
+													unrecognizedParam.push_back(option);
+											}
 										}
 									}
 								}
@@ -240,7 +253,7 @@ int main(int argc, char* argv[])
 			try
 			{
 				// verifie les options
-				string option(argv[1]);
+				option = argv[1];
 
 				if (option.compare("-u") == 0 || option.compare("-update") == 0)
 				{
@@ -301,8 +314,8 @@ int main(int argc, char* argv[])
 					{
 						str = argv[3];
 						std::replace(str.begin(), str.end(), ',', '.');
-						istringstream iss(str);
-						float lame;
+						iss.clear();
+						iss.str(str);
 						iss >> lame;
 
 						if (lame <= 0.0f || lame > 1000.0f)
@@ -314,21 +327,20 @@ int main(int argc, char* argv[])
 						{
 							GDALAllRegister();
 
-							SIM_HYD	sim_hyd;
-
-							sim_hyd._nbThread = nbThread;
-							sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
+							sim_hyd = std::make_unique<SIM_HYD>();
+							sim_hyd->_nbThread = nbThread;
+							sim_hyd->_bSkipCharacterValidation = bSkipCharacterValidation;
 
 							str = argv[2];
 							std::replace(str.begin(), str.end(), '\\', '/');
-							sim_hyd.ChangeNomFichier(str);
-							sim_hyd.Lecture();
+							sim_hyd->ChangeNomFichier(str);
+							sim_hyd->Lecture();
 
 							std::time(&begin);
 
 							str = argv[4];
 							std::replace(str.begin(), str.end(), '\\', '/');
-							sim_hyd.CalculeHgm(lame, str);
+							sim_hyd->CalculeHgm(lame, str);
 
 							std::time(&end);
 
@@ -387,9 +399,9 @@ int main(int argc, char* argv[])
 
 						std::cout << "Creating hydrotel project... " << endl;
 
-						SIM_HYD sim_hyd;
-						sim_hyd.ChangeNomFichier(nom_fichier);
-						sim_hyd.CreerNouveauProjet(path_out);
+						sim_hyd = std::make_unique<SIM_HYD>();
+						sim_hyd->ChangeNomFichier(nom_fichier);
+						sim_hyd->CreerNouveauProjet(path_out);
 
 						std::cout << endl << "Hydrotel project created: " << path_out << endl << endl;
 					}
@@ -411,62 +423,62 @@ int main(int argc, char* argv[])
 					{
 						//genere fichiers bd prelevements (/simulation/[nom_simulation]/prelevements/BD_*.csv) à partir des fichiers sources (/simulation/[nom_simulation]/prelevements/SitesPrelevements/*.csv)
 
-						SIM_HYD	sim_hyd;
+						sim_hyd = std::make_unique<SIM_HYD>();
 
-						sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
-						sim_hyd._bGenereBdPrelevements = true;
+						sim_hyd->_bSkipCharacterValidation = bSkipCharacterValidation;
+						sim_hyd->_bGenereBdPrelevements = true;
 
 						str = argv[1];
 						std::replace(str.begin(), str.end(), '\\', '/');
-						sim_hyd.ChangeNomFichier(str);	// [nom fichier projet]
-						sim_hyd.Lecture();
+						sim_hyd->ChangeNomFichier(str);	// [nom fichier projet]
+						sim_hyd->Lecture();
 
-						sim_hyd._pr->GenerateBdPrelevements();
+						sim_hyd->_pr->GenerateBdPrelevements();
 					}
 					else
 					{
 						//demarre la simulation
 
-						for(n=0; n!=unrecognizedParam.size(); n++)
-							std::cout << "Unknown parameter: " << unrecognizedParam[n] << endl << endl;
+						for(idx=0; idx!=unrecognizedParam.size(); idx++)
+							std::cout << "Unknown parameter: " << unrecognizedParam[idx] << endl << endl;
 
-						SIM_HYD	sim_hyd;
+						sim_hyd = std::make_unique<SIM_HYD>();
 
 						str = argv[1];	//[nom fichier projet]
 						std::replace(str.begin(), str.end(), '\\', '/');
 
-						sim_hyd._bLogPerf = bLogPerformance;
+						sim_hyd->_bLogPerf = bLogPerformance;
 
-						if(sim_hyd._bLogPerf)
+						if(sim_hyd->_bLogPerf)
 						{
-							sim_hyd._logPerformance._iUnit = iLogPerfUnit;
-							sim_hyd._logPerformance._bForceUnit = bLogPerfForceUnit;
+							sim_hyd->_logPerformance._iUnit = iLogPerfUnit;
+							sim_hyd->_logPerformance._bForceUnit = bLogPerfForceUnit;
 
-							sim_hyd._logPerformance.AddStep(sLogExecution, false);	//log start of execution
-							sim_hyd._logPerformance.AddStep("Project: " + str);
+							sim_hyd->_logPerformance.AddStep(sLogExecution, false);	//log start of execution
+							sim_hyd->_logPerformance.AddStep("Project: " + str);
 
-							sim_hyd._logPerformance._tpInitAndSimBegin = chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpInitAndSimBegin =  boost::chrono::high_resolution_clock::now();
 						}
 
 						std::time(&begin);
 
-						sim_hyd._bSimul = true;
-						sim_hyd._nbThread = nbThread;
-						sim_hyd._bAutoInverseTMinTMax = bAutoInverseTMinTmax;
-						sim_hyd._bStationInterpolation = bStationInterpolation;
-						sim_hyd._bSkipCharacterValidation = bSkipCharacterValidation;
+						sim_hyd->_bSimul = true;
+						sim_hyd->_nbThread = nbThread;
+						sim_hyd->_bAutoInverseTMinTMax = bAutoInverseTMinTmax;
+						sim_hyd->_bStationInterpolation = bStationInterpolation;
+						sim_hyd->_bSkipCharacterValidation = bSkipCharacterValidation;
 
 						std::cout << "Reading simulation data...   " << GetCurrentTimeStr();
 
-						sim_hyd.ChangeNomFichier(str);
-						sim_hyd.Lecture();
+						sim_hyd->ChangeNomFichier(str);
+						sim_hyd->Lecture();
 
-						if(sim_hyd._bLogPerf)
+						if(sim_hyd->_bLogPerf)
 						{
-							sim_hyd._logPerformance.EndStep(sim_hyd._tempVal, chrono::high_resolution_clock::now());	//Lecture données
+							sim_hyd->_logPerformance.EndStep(sim_hyd->_tempVal, boost::chrono::high_resolution_clock::now());	//Lecture données
 
-							sim_hyd._logPerformance._tpLectureEnd = chrono::high_resolution_clock::now();
-							sim_hyd._logPerformance._tpInitBegin = chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpLectureEnd = boost::chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpInitBegin = boost::chrono::high_resolution_clock::now();
 						}
 
 						std::cout << endl << "Initialization...   " << GetCurrentTimeStr() << flush;
@@ -474,64 +486,64 @@ int main(int argc, char* argv[])
 						if (!bStationInterpolation)
 							std::cout << endl << "Interpolation of missing weather data at stations level will be skipped     " << flush;
 
-						sim_hyd.Initialise();
+						sim_hyd->Initialise();
 
 						DATE_HEURE date_fin, date_courante;
 
-						date_fin = sim_hyd.PrendreDateFin();
+						date_fin = sim_hyd->PrendreDateFin();
 
 						std::cout << endl << "Simulation in progress...   " << GetCurrentTimeStr() << flush;
 
 						if(bDisplay)
 							std::cout << endl;
 
-						if(sim_hyd._bLogPerf)
+						if(sim_hyd->_bLogPerf)
 						{
-							sim_hyd._logPerformance._tpInitEnd = chrono::high_resolution_clock::now();
-							sim_hyd._logPerformance._tpSimBegin = chrono::high_resolution_clock::now();
-							sim_hyd._logPerformance.AddStep("Simulation start");
+							sim_hyd->_logPerformance._tpInitEnd = boost::chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpSimBegin = boost::chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance.AddStep("Simulation start");
 						}
 
 						do
 						{
 							if(bDisplay)
 							{
-								date_courante = sim_hyd.PrendreDateCourante();
+								date_courante = sim_hyd->PrendreDateCourante();
 								std::cout << date_courante << '\r' << flush;
 							}
 
-							sim_hyd.Calcule();
-							date_courante = sim_hyd.PrendreDateCourante();
+							sim_hyd->Calcule();
+							date_courante = sim_hyd->PrendreDateCourante();
 						} 
 						while(date_courante < date_fin);
 
-						if(sim_hyd._bLogPerf)
+						if(sim_hyd->_bLogPerf)
 						{
-							sim_hyd._logPerformance._tpSimEnd = chrono::high_resolution_clock::now();
-							sim_hyd._logPerformance.AddStep("Simulation end");
+							sim_hyd->_logPerformance._tpSimEnd = boost::chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance.AddStep("Simulation end");
 
-							idx = sim_hyd._logPerformance.AddStep("Post-processing", chrono::high_resolution_clock::now());
+							idx = sim_hyd->_logPerformance.AddStep("Post-processing", boost::chrono::high_resolution_clock::now());
 
-							sim_hyd._logPerformance._tpPostBegin = chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpPostBegin = boost::chrono::high_resolution_clock::now();
 						}
 
 						if(bDisplay)
 							std::cout << date_courante << flush;
 
-						sim_hyd.Termine();
+						sim_hyd->Termine();
 
-						if(sim_hyd._bLogPerf)
-							sim_hyd._logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+						if(sim_hyd->_bLogPerf)
+							sim_hyd->_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 
-						if(!sim_hyd._outputCDF)	//le calcul des statistiques n'est pas adapté aux netCDF
+						if(!sim_hyd->_outputCDF)	//le calcul des statistiques n'est pas adapté aux netCDF
 						{
-							string nom_fichier_stats = Combine(sim_hyd.PrendreRepertoireSimulation(), "stats.txt");
+							string nom_fichier_stats = Combine(sim_hyd->PrendreRepertoireSimulation(), "stats.txt");
 							if(FichierExiste(nom_fichier_stats))
 							{
-								if(sim_hyd._acheminement_riviere)
+								if(sim_hyd->_acheminement_riviere)
 								{
 									std::cout << endl << "Computing statistics...   " << GetCurrentTimeStr() << flush;
-									STATISTIQUES stats(sim_hyd, nom_fichier_stats);
+									STATISTIQUES stats(*sim_hyd, nom_fichier_stats);
 								}
 							}
 						}
@@ -552,16 +564,16 @@ int main(int argc, char* argv[])
 						std::cout << endl << endl << oss.str();
 						std::cout << endl;
 
-						if(sim_hyd._bLogPerf)
+						if(sim_hyd->_bLogPerf)
 						{
-							sim_hyd._logPerformance._tpPostEnd = chrono::high_resolution_clock::now();
-							sim_hyd._logPerformance._tpInitAndSimEnd = chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpPostEnd = boost::chrono::high_resolution_clock::now();
+							sim_hyd->_logPerformance._tpInitAndSimEnd = boost::chrono::high_resolution_clock::now();
 
-							sim_hyd._logPerformance.AddStep("Program execution end");
+							sim_hyd->_logPerformance.AddStep("Program execution end");
 
-							str = sim_hyd.PrendreRepertoireSimulation() + "/log-performance-" + GetCurrentTimeStrForFile() + ".txt";
-							if(!sim_hyd._logPerformance.SaveFile(str))
-								std::cout << sim_hyd._logPerformance._sErr << endl;
+							str = sim_hyd->PrendreRepertoireSimulation() + "/log-performance-" + GetCurrentTimeStrForFile() + ".txt";
+							if(!sim_hyd->_logPerformance.SaveFile(str))
+								std::cout << sim_hyd->_logPerformance._sErr << endl;
 							else
 								std::cout << "Performance log file saved: " + str << endl << endl;
 						}

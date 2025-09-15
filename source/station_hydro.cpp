@@ -27,7 +27,9 @@ namespace HYDROTEL
 	STATION_HYDRO::STATION_HYDRO(const std::string& nom_fichier)
 		: STATION(nom_fichier)
 	{
+		_iIdTronconReservoirWithHistory = 0;
 	}
+
 
 	STATION_HYDRO::~STATION_HYDRO()
 	{

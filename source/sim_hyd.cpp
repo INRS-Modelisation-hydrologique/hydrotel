@@ -56,6 +56,7 @@
 #include "erreur.hpp"
 #include "version.hpp"
 #include "constantes.hpp"
+#include "station_hydro.hpp"
 
 #include <fstream>
 #include <regex>
@@ -328,8 +329,8 @@ namespace HYDROTEL
 			{
 				_logPerformance.AddStep("Simulation: " + _nom_simulation);
 
-				_tempVal = _logPerformance.AddStep("Simulation data reading", chrono::high_resolution_clock::now());
-				_logPerformance._tpLectureBegin = chrono::high_resolution_clock::now();
+				_tempVal = _logPerformance.AddStep("Simulation data reading", boost::chrono::high_resolution_clock::now());
+				_logPerformance._tpLectureBegin = boost::chrono::high_resolution_clock::now();
 			}
 
 			if(_bSimul)
@@ -1000,9 +1001,23 @@ namespace HYDROTEL
 		_stations_meteo.Lecture(_zones.PrendreProjection());
 	}
 
+
 	void SIM_HYD::LectureDonneesHydrologiques()
 	{
+		STATIONS_HYDRO* pHydro;
+		STATION_HYDRO* pStation;
+		size_t i;
+
 		_stations_hydro.Lecture(_zones.PrendreProjection());
+
+		pHydro = &PrendreStationsHydro();
+
+		for(i=0; i!=_troncons._listHydroStationReservoirHistory.size(); i++)
+		{
+			pStation = static_cast<STATION_HYDRO*>(pHydro->Recherche(_troncons._listHydroStationReservoirHistory[i]));
+			if(pStation != nullptr)
+				pStation->_iIdTronconReservoirWithHistory = _troncons._listHydroStationReservoirHistoryIdTroncon[i];
+		}
 	}
 
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2730,7 +2745,7 @@ namespace HYDROTEL
 		idx = (size_t)-1;
 
 		if(_bLogPerf)
-			idx = _logPerformance.AddStep("Initialization (global)", chrono::high_resolution_clock::now());
+			idx = _logPerformance.AddStep("Initialization (global)", boost::chrono::high_resolution_clock::now());
 
 		_bHGMCalculer = false;
 
@@ -2960,7 +2975,7 @@ namespace HYDROTEL
 		}
 
 		if(_bLogPerf)
-			_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());	//initialise
+			_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());	//initialise
 		
 		//sub model initialisation
 		if (_interpolation_donnees)
@@ -2971,13 +2986,13 @@ namespace HYDROTEL
 					throw ERREUR("GRILLE_PREVISION; la date de debut des previsions meteorologique est invalide.");
 
 				if(_bLogPerf) 
-					idx = _logPerformance.AddStep("Initialization GRILLE_PREVISION", chrono::high_resolution_clock::now());
+					idx = _logPerformance.AddStep("Initialization GRILLE_PREVISION", boost::chrono::high_resolution_clock::now());
 
 				_grille_prevision._sim_hyd = this;
 				_grille_prevision.Initialise();
 
 				if(_bLogPerf) 
-					_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+					_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 			}
 
 			if(! (_bSimulePrevision && _grille_prevision._date_debut_prevision == _date_debut && !_bLectInterpolation) )
@@ -2997,90 +3012,90 @@ namespace HYDROTEL
 				}
 
 				if(_bLogPerf) 
-					idx = _logPerformance.AddStep("Initialization " + _interpolation_donnees->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+					idx = _logPerformance.AddStep("Initialization " + _interpolation_donnees->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 				_interpolation_donnees->Initialise();
 
 				if(_bLogPerf) 
-					_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+					_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 			}
 		}
 
 		if (_fonte_neige)
 		{
 			if(_bLogPerf) 
-				idx = _logPerformance.AddStep("Initialization " + _fonte_neige->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _fonte_neige->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_fonte_neige->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		if (_fonte_glacier)
 		{
 			if(_bLogPerf)
-				idx = _logPerformance.AddStep("Initialization " + _fonte_glacier->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _fonte_glacier->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_fonte_glacier->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		if (_tempsol)
 		{
 			if(_bLogPerf)
-				idx = _logPerformance.AddStep("Initialization " + _tempsol->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _tempsol->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_tempsol->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		if (_evapotranspiration)
 		{
 			if(_bLogPerf)
-				idx = _logPerformance.AddStep("Initialization " + _evapotranspiration->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _evapotranspiration->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_evapotranspiration->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		if (_bilan_vertical)
 		{
 			if(_bLogPerf)
-				idx = _logPerformance.AddStep("Initialization " + _bilan_vertical->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _bilan_vertical->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_bilan_vertical->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		if (_ruisselement_surface)
 		{
 			if(_bLogPerf)
-				idx = _logPerformance.AddStep("Initialization " + _ruisselement_surface->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _ruisselement_surface->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_ruisselement_surface->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		if (_acheminement_riviere)
 		{
 			if(_bLogPerf)
-				idx = _logPerformance.AddStep("Initialization " + _acheminement_riviere->PrendreNomSousModele(), chrono::high_resolution_clock::now());
+				idx = _logPerformance.AddStep("Initialization " + _acheminement_riviere->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_acheminement_riviere->Initialise();
 
 			if(_bLogPerf)
-				_logPerformance.EndStep(idx, chrono::high_resolution_clock::now());
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
 		_date_courante = _date_debut;
@@ -3096,8 +3111,8 @@ namespace HYDROTEL
 		size_t index_troncon, nbTroncon, nbZone, i, j;
 		float fWeight, fTMin, fTMax, fTMoy, densite, neige;
 
-		chrono::steady_clock::time_point t1;
-		chrono::steady_clock::time_point t2;
+		boost::chrono::steady_clock::time_point t1;
+		boost::chrono::steady_clock::time_point t2;
 
 		// initialise les variables cumulant les resultats
 		for (index_troncon = 0; index_troncon < _troncons.PrendreNbTroncon(); ++index_troncon)
@@ -3113,7 +3128,7 @@ namespace HYDROTEL
 		if (_interpolation_donnees)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			if(!_bLectInterpolation && _bSimulePrevision && _date_courante >= _grille_prevision._date_debut_prevision)
 			{
@@ -3125,8 +3140,8 @@ namespace HYDROTEL
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecInterpolation+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3134,14 +3149,14 @@ namespace HYDROTEL
 		if (_fonte_neige)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_fonte_neige->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecFonteNeige+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3149,14 +3164,14 @@ namespace HYDROTEL
 		if (_fonte_glacier)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_fonte_glacier->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecFonteGlacier+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3164,14 +3179,14 @@ namespace HYDROTEL
 		if (_tempsol)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_tempsol->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecTempSol+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3179,14 +3194,14 @@ namespace HYDROTEL
 		if (_evapotranspiration)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_evapotranspiration->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecETP+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3194,14 +3209,14 @@ namespace HYDROTEL
 		if (_bilan_vertical)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_bilan_vertical->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecBilanVertical+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3209,14 +3224,14 @@ namespace HYDROTEL
 		if (_ruisselement_surface)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_ruisselement_surface->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecRuissellement+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -3224,14 +3239,14 @@ namespace HYDROTEL
 		if (_acheminement_riviere)
 		{
 			if(_bLogPerf)
-				t1 = chrono::high_resolution_clock::now();
+				t1 = boost::chrono::high_resolution_clock::now();
 
 			_acheminement_riviere->Calcule();
 
 			if(_bLogPerf)
 			{
-				t2 = chrono::high_resolution_clock::now();
-				chrono::duration<double, std::milli> ms_double = t2 - t1;
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecAcheminement+= (ms_double.count() / 1000.0);
 			}
 		}
@@ -4530,9 +4545,9 @@ namespace HYDROTEL
 	{
 		ifstream filein;
 		ofstream file;
-		size_t i, j;
+		size_t i, j, nbPixel;
 		string str, sErr;
-		int x, y, nbPixel, idTroncon;
+		int x, y, idTroncon;
 
 		map<int, vector<int>> mapTronconCellX;
 		map<int, vector<int>> mapTronconCellY;

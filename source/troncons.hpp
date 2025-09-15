@@ -76,13 +76,18 @@ namespace HYDROTEL
 		void CalculeShreve();
 		void CalculeStrahler();
 
-		size_t* _pRasterTronconId;
 
-		std::vector<int>	_tronconNoeudAval;	//[indexTronxon]	id noeud aval du troncon
+		SIM_HYD*								_pSimHyd;
 
-		std::vector<std::shared_ptr<TRONCON>> _troncons;
+		std::vector<std::shared_ptr<TRONCON>>	_troncons;
 
-		SIM_HYD*		_pSimHyd;
+		std::vector<int>						_tronconNoeudAval;	//[indexTronxon]	id noeud aval du troncon
+
+		size_t*									_pRasterTronconId;
+
+		std::vector<std::string>				_listHydroStationReservoirHistory;
+		std::vector<int>						_listHydroStationReservoirHistoryIdTroncon;
+
 
 	private:
 		void DetruireTroncons();
@@ -90,7 +95,7 @@ namespace HYDROTEL
 		std::shared_ptr<TRONCON> LectureRiviere(std::ifstream& fichier, ZONES& zones, NOEUDS& noeuds);
 		std::shared_ptr<TRONCON> LectureLac(std::ifstream& fichier, ZONES& zones, NOEUDS& noeuds);
 		std::shared_ptr<TRONCON> LectureLacSansLaminage(std::ifstream& fichier, ZONES& zones, NOEUDS& noeuds);
-		std::shared_ptr<TRONCON> LectureBarrageHistorique(std::ifstream& fichier, ZONES& zones, NOEUDS& noeuds);
+		std::shared_ptr<TRONCON> LectureBarrageHistorique(std::ifstream& fichier, ZONES& zones, NOEUDS& noeuds, int idTroncon);
 
 		void LectureZoneAmont(std::ifstream& fichier, ZONES& zones, TRONCON* troncon);
 

@@ -33,7 +33,6 @@
 #include <fstream>
 #include <map>
 #include <sstream>
-#include <chrono>
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/shared_array.hpp>
@@ -1577,6 +1576,9 @@ namespace HYDROTEL
 
 		std::cout << endl << "Reading weather data...   " << GetCurrentTimeStr() << flush;
 
+		if(_pSimHyd->_bLogPerf)
+			_pSimHyd->_logPerformance.AddStep("Reading weather data");
+
 		const size_t nb_station = _stations.size();
 
 		if(_netCdf_iType == -1)	//lecture seulement si type different de NetCDF (si NetCDF les donnees sont deja lu)
@@ -1592,6 +1594,9 @@ namespace HYDROTEL
 		{
 			//determine les stations ou il y a des donnees manquantes
 			std::cout << endl << "Checking missing weather data...   " << GetCurrentTimeStr() << flush;
+
+			if(_pSimHyd->_bLogPerf)
+				_pSimHyd->_logPerformance.AddStep("Checking missing weather data");
 
 			vector<STATION_METEO*> stations;
 
@@ -1620,6 +1625,9 @@ namespace HYDROTEL
 			if(!stations.empty())
 			{
 				std::cout << endl << "Missing weather data interpolation...   " << GetCurrentTimeStr() << flush;
+
+				if(_pSimHyd->_bLogPerf)
+					_pSimHyd->_logPerformance.AddStep("Missing weather data interpolation");
 
 				vector<COORDONNEE> coordonnees_station;
 
@@ -1678,6 +1686,9 @@ namespace HYDROTEL
 						date_courante+= pas_de_temps;
 					}
 				}
+
+				if(_pSimHyd->_bLogPerf)
+					_pSimHyd->_logPerformance.AddStep("Completed");
 			}
 		}
 	}
@@ -1705,6 +1716,9 @@ namespace HYDROTEL
 
 		std::cout << endl << "Reading weather data...   " << GetCurrentTimeStr() << flush;
 
+		if(_pSimHyd->_bLogPerf)
+			_pSimHyd->_logPerformance.AddStep("Reading weather data");
+
 		const size_t nb_station = _stations.size();
 
 		if(_netCdf_iType == -1)	//lecture seulement si type different de NetCDF (si cest NetCDF les donnees ont deja ete lu)
@@ -1720,6 +1734,9 @@ namespace HYDROTEL
 		{
 			//determine les stations ou il y a des donnees manquantes
 			std::cout << endl << "Checking missing weather data...   " << GetCurrentTimeStr() << flush;
+
+			if(_pSimHyd->_bLogPerf)
+				_pSimHyd->_logPerformance.AddStep("Checking missing weather data");
 
 			vector<STATION_METEO*> stations;
 
@@ -1748,6 +1765,9 @@ namespace HYDROTEL
 			if(!stations.empty())
 			{
 				std::cout << endl << "Missing weather data interpolation...   " << GetCurrentTimeStr() << flush;
+
+				if(_pSimHyd->_bLogPerf)
+					_pSimHyd->_logPerformance.AddStep("Missing weather data interpolation");
 
 				vector<COORDONNEE> coordonnees_station;
 
@@ -1824,6 +1844,9 @@ namespace HYDROTEL
 
 					++idxLoop;
 				}
+
+				if(_pSimHyd->_bLogPerf)
+					_pSimHyd->_logPerformance.AddStep("Completed");
 			}
 		}
 	}

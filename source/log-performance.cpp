@@ -20,7 +20,6 @@
 
 #include "log-performance.hpp"
 
-#include <chrono>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -60,12 +59,12 @@ namespace HYDROTEL
 		tm* ptm;
 		char buf[20];
 
-		chrono::system_clock::time_point tp;
+		boost::chrono::system_clock::time_point tp;
 
 		if(bAddTimeString)
 		{
-			tp = chrono::system_clock::now();
-			tt = chrono::system_clock::to_time_t(tp);
+			tp = boost::chrono::system_clock::now();
+			tt = boost::chrono::system_clock::to_time_t(tp);
 			ptm = localtime(&tt);
 			strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
 
@@ -76,23 +75,23 @@ namespace HYDROTEL
 		str+= sMess;
 		_listStr.push_back(str);
 
-		_listTimePointBegin.push_back(chrono::steady_clock::time_point::max());	//no time for this step: values will not be used
-		_listTimePointEnd.push_back(chrono::steady_clock::time_point::max());	//
+		_listTimePointBegin.push_back(boost::chrono::steady_clock::time_point::max());	//no time for this step: values will not be used
+		_listTimePointEnd.push_back(boost::chrono::steady_clock::time_point::max());	//
 	}
 
 
-	size_t LOG_PERFORMANCE::AddStep(string sMess, chrono::steady_clock::time_point timePointBegin)
+	size_t LOG_PERFORMANCE::AddStep(string sMess, boost::chrono::steady_clock::time_point timePointBegin)
 	{
 		string str;
 		time_t tt;
 		tm* ptm;
 		char buf[20];
 
-		chrono::system_clock::time_point tp;
-		chrono::steady_clock::time_point tp2;
+		boost::chrono::system_clock::time_point tp;
+		boost::chrono::steady_clock::time_point tp2;
 
-		tp = chrono::system_clock::now();
-		tt = chrono::system_clock::to_time_t(tp);
+		tp = boost::chrono::system_clock::now();
+		tt = boost::chrono::system_clock::to_time_t(tp);
 		ptm = localtime(&tt);
 		strftime(buf, 20, "%Y-%m-%d %H:%M:%S", ptm);
 		str = buf;
@@ -102,13 +101,13 @@ namespace HYDROTEL
 		_listStr.push_back(str);
 
 		_listTimePointBegin.push_back(timePointBegin);
-		_listTimePointEnd.push_back(chrono::steady_clock::time_point::max());
+		_listTimePointEnd.push_back(boost::chrono::steady_clock::time_point::max());
 
 		return _listTimePointBegin.size()-1;
 	}
 
 
-	void LOG_PERFORMANCE::EndStep(size_t idx, std::chrono::steady_clock::time_point timePointEnd)
+	void LOG_PERFORMANCE::EndStep(size_t idx, boost::chrono::steady_clock::time_point timePointEnd)
 	{
 		_listTimePointEnd[idx] = timePointEnd;
 	}
@@ -116,7 +115,7 @@ namespace HYDROTEL
 
 	bool LOG_PERFORMANCE::SaveFile(string sPathFile)
 	{
-		chrono::duration<double, std::milli> ms_double;
+		boost::chrono::duration<double, boost::milli> ms_double;
 		ostringstream oss;
 		ofstream file;
 		size_t i;
@@ -148,7 +147,7 @@ namespace HYDROTEL
 			{
 				oss.str("");
 
-				if(_listTimePointBegin[i] != chrono::steady_clock::time_point::max())
+				if(_listTimePointBegin[i] != boost::chrono::steady_clock::time_point::max())
 				{
 					//add step duration
 					//std::chrono::milliseconds ms_int = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);

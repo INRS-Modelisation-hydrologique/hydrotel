@@ -204,6 +204,18 @@ namespace HYDROTEL
 			if (nb_debit > 0)
 				debit = debit / nb_debit;
 
+			if(debit <= VALEUR_MANQUANTE && _iIdTronconReservoirWithHistory != 0)
+			{
+				ostringstream oss;
+
+				date.SoustraitHeure(pas_de_temps_lu);
+				oss << "Error: the hydro station (" << PrendreIdent() << ") contain no data value for date (" << date << "). The station should not contain no data " << 
+					   "values for the simulation period because it is linked with the reach segment (" << _iIdTronconReservoirWithHistory << 
+					   ") of type (Reservoir with history).";
+
+				throw ERREUR(oss.str());
+			}
+
 			_debits.push_back(debit);
 		}
 

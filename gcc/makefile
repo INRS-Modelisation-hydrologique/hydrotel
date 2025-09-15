@@ -13,7 +13,7 @@ CC = gcc
 CFLAGS   = -c -g -fopenmp -Wall -O2 -march=native -D BOOST_NO_CXX11_SCOPED_ENUMS -std=c++14 -I$(SRCDIR) -I$(GDAL_INCLUDE_DIR) -I$(HDF5_INCLUDE_DIR)
 
 LDFLAGSA = -std=c++14 -I$(SRCDIR)
-LDFLAGSB = -L$(HDF5_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lboost_date_time -lgdal -lnetcdf -fopenmp -lm -lstdc++ -lhdf5
+LDFLAGSB = -L$(HDF5_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lboost_date_time -lboost_chrono -lgdal -lnetcdf -fopenmp -lm -lstdc++ -lhdf5
 
 
 SOURCE_FILES= \
@@ -55,6 +55,7 @@ $(SRCDIR)/lecture_interpolation_donnees.cpp \
 $(SRCDIR)/lecture_ruisselement_surface.cpp \
 $(SRCDIR)/lecture_tempsol.cpp \
 $(SRCDIR)/linacre.cpp \
+$(SRCDIR)/log-performance.cpp \
 $(SRCDIR)/milieu_humide_isole.cpp \
 $(SRCDIR)/milieu_humide_riverain.cpp \
 $(SRCDIR)/mise_a_jour.cpp \
@@ -151,6 +152,7 @@ $(SRCDIR)/lecture_interpolation_donnees.hpp \
 $(SRCDIR)/lecture_ruisselement_surface.hpp \
 $(SRCDIR)/lecture_tempsol.hpp \
 $(SRCDIR)/linacre.hpp \
+$(SRCDIR)/log-performance.hpp \
 $(SRCDIR)/matrice.hpp \
 $(SRCDIR)/milieu_humide_isole.hpp \
 $(SRCDIR)/milieu_humide_riverain.hpp \

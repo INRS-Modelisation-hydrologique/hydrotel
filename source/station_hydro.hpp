@@ -42,6 +42,10 @@ namespace HYDROTEL
 
 		// retourne le debit (m3/s)
 		virtual float PrendreDebit(DATE_HEURE date_heure, unsigned short pas_de_temps) const = 0;
+
+	public:
+		int		_iIdTronconReservoirWithHistory;	//id of the reach of type (Reservoir with history) linked with this station. 0 if not linked. 
+													//if linked, there should be no nodata values as the values are used as the reach outflow.
 	};
 
 }

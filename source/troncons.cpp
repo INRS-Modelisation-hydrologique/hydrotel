@@ -31,6 +31,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include <boost/algorithm/string/case_conv.hpp>
+
 
 using namespace std;
 
@@ -206,7 +208,7 @@ namespace HYDROTEL
 					break;
 
 				case 4:
-					troncon = LectureBarrageHistorique(fichier, zones, noeuds);
+					troncon = LectureBarrageHistorique(fichier, zones, noeuds, id_troncon);
 					break;
 
 				default:
@@ -366,25 +368,32 @@ namespace HYDROTEL
 		return lac;
 	}
 
-	shared_ptr<TRONCON> TRONCONS::LectureBarrageHistorique(ifstream& fichier, ZONES& zones, NOEUDS& noeuds)
+	shared_ptr<TRONCON> TRONCONS::LectureBarrageHistorique(ifstream& fichier, ZONES& zones, NOEUDS& noeuds, int idTroncon)
 	{
 		shared_ptr<BARRAGE_HISTORIQUE> barrage = make_shared<BARRAGE_HISTORIQUE>(BARRAGE_HISTORIQUE());					
 
 		size_t nb_noeud_amont;
+		string str, ident_station_hydro;
+		int id_noeud_amont;
+
 		fichier >> nb_noeud_amont;
 
 		vector<NOEUD*> noeuds_amont(nb_noeud_amont);					
 		for (size_t index = 0; index < nb_noeud_amont; ++index)
 		{
-			int id_noeud_amont;
 			fichier >> id_noeud_amont;
 			noeuds_amont[index] = noeuds.Recherche(id_noeud_amont);
 		}
 
-		string ident_station_hydro;
 		fichier >> ident_station_hydro;
 
 		barrage->ChangeIdentStationHydro(ident_station_hydro);
+
+		str = ident_station_hydro;
+		boost::algorithm::to_lower(str);
+		_listHydroStationReservoirHistory.push_back(str);
+		_listHydroStationReservoirHistoryIdTroncon.push_back(idTroncon);
+
 		barrage->ChangeNoeudsAmont(noeuds_amont);
 
 		LectureZoneAmont(fichier, zones, barrage.get());

@@ -26,7 +26,8 @@
 
 #include <vector>
 #include <string>
-#include <chrono>
+
+#include <boost/chrono.hpp>
 
 
 namespace HYDROTEL
@@ -42,9 +43,9 @@ namespace HYDROTEL
 
 		void	AddStep(std::string sMess, bool bAddTimeString = true);
 
-		size_t	AddStep(std::string sMess, std::chrono::steady_clock::time_point timePointBegin);
+		size_t	AddStep(std::string sMess, boost::chrono::steady_clock::time_point timePointBegin);
 
-		void	EndStep(size_t idx, std::chrono::steady_clock::time_point timePointEnd);
+		void	EndStep(size_t idx, boost::chrono::steady_clock::time_point timePointEnd);
 
 		bool	SaveFile(std::string sPathFile);
 
@@ -63,20 +64,20 @@ namespace HYDROTEL
 		double													_nbSecRuissellement;
 		double													_nbSecAcheminement;
 
-		std::chrono::steady_clock::time_point					_tpInitAndSimBegin;
-		std::chrono::steady_clock::time_point					_tpInitAndSimEnd;
+		boost::chrono::steady_clock::time_point					_tpInitAndSimBegin;
+		boost::chrono::steady_clock::time_point					_tpInitAndSimEnd;
 
-		std::chrono::steady_clock::time_point					_tpLectureBegin;
-		std::chrono::steady_clock::time_point					_tpLectureEnd;
+		boost::chrono::steady_clock::time_point					_tpLectureBegin;
+		boost::chrono::steady_clock::time_point					_tpLectureEnd;
 
-		std::chrono::steady_clock::time_point					_tpInitBegin;
-		std::chrono::steady_clock::time_point					_tpInitEnd;
+		boost::chrono::steady_clock::time_point					_tpInitBegin;
+		boost::chrono::steady_clock::time_point					_tpInitEnd;
 
-		std::chrono::steady_clock::time_point					_tpSimBegin;
-		std::chrono::steady_clock::time_point					_tpSimEnd;
+		boost::chrono::steady_clock::time_point					_tpSimBegin;
+		boost::chrono::steady_clock::time_point					_tpSimEnd;
 
-		std::chrono::steady_clock::time_point					_tpPostBegin;
-		std::chrono::steady_clock::time_point					_tpPostEnd;
+		boost::chrono::steady_clock::time_point					_tpPostBegin;
+		boost::chrono::steady_clock::time_point					_tpPostEnd;
 
 
 	private:
@@ -86,8 +87,8 @@ namespace HYDROTEL
 
 		std::vector<std::string>								_listStr;				//log file content
 
-		std::vector<std::chrono::steady_clock::time_point>      _listTimePointBegin;    //time point at the beginning of the step (according to _listStr)
-		std::vector<std::chrono::steady_clock::time_point>      _listTimePointEnd;		//time point at the end of the step (according to _listStr)
+		std::vector<boost::chrono::steady_clock::time_point>      _listTimePointBegin;    //time point at the beginning of the step (according to _listStr)
+		std::vector<boost::chrono::steady_clock::time_point>      _listTimePointEnd;		//time point at the end of the step (according to _listStr)
 
 	};
 

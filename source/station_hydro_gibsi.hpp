@@ -42,8 +42,8 @@ namespace HYDROTEL
 		virtual float PrendreDebit(DATE_HEURE date_heure, unsigned short pas_de_temps) const;
 
 	private:
-		std::vector<float> _debits; // m3/s
-		DATE_HEURE _date_debut;
+		std::vector<float>	_debits; // m3/s
+		DATE_HEURE			_date_debut;
 	};
 
 }
