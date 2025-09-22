@@ -1192,6 +1192,15 @@ namespace HYDROTEL
 
             bool valid = true;
 
+            d_lat = 0.0;
+            d_long = 0.0;
+            d_prelevement = 0.0;
+            d_coef_consommation = 0.0;
+            i_critere = 0;
+            i_continue = 0;
+            i_moisD = 0;
+            i_moisF = 0;
+
             try {
                 // Check if object is valid
                 if (!in)

@@ -33,7 +33,7 @@ namespace HYDROTEL
 		POINT() : x(0), y(0) {}
 		POINT(int y, int x) : x(x), y(y) {}
 
-		bool operator==(const POINT& p)
+		bool operator==(const POINT& p) const
 		{
 			return x == p.x && y == p.y;
 		}

@@ -2,6 +2,20 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.3.5 - 2025-09-22
+
+- Ajout de validations pour ne pas qu'il y ait de valeurs nodata (pour la période de simulation) dans les données 
+  hydrologiques d'une station liée à un troncon de type 'Barrage avec historique'. 
+  
+- Correction message 'Paramètre non valide' pour ligne de commande. 
+
+- Fichier log performance: ajout des détails de l'interpolation des données météo manquante aux stations.
+
+- Correction compilation sous linux.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.3.4 - 2025-08-28
 
 - Correction lors du calcul du fichier des pondérations des stations météo lorsque le modèle THIESSEN1 est 

@@ -10,10 +10,10 @@ HDF5_LIB_DIR = /usr/lib/x86_64-linux-gnu/hdf5/serial
 #compiler settings
 CC = gcc
 
-CFLAGS   = -c -g -fopenmp -Wall -O2 -march=native -D BOOST_NO_CXX11_SCOPED_ENUMS -std=c++14 -I$(SRCDIR) -I$(GDAL_INCLUDE_DIR) -I$(HDF5_INCLUDE_DIR)
+CFLAGS   = -c -g -fopenmp -Wall -O2 -march=native -DBOOST_NO_CXX11_SCOPED_ENUMS -std=c++20 -I$(SRCDIR) -I$(GDAL_INCLUDE_DIR) -I$(HDF5_INCLUDE_DIR)
 
-LDFLAGSA = -std=c++14 -I$(SRCDIR)
-LDFLAGSB = -L$(HDF5_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lboost_program_options -lboost_date_time -lboost_chrono -lgdal -lnetcdf -fopenmp -lm -lstdc++ -lhdf5
+LDFLAGSA = -std=c++20 -I$(SRCDIR)
+LDFLAGSB = -L$(HDF5_LIB_DIR) -lboost_thread -lboost_filesystem -lboost_system -lboost_program_options -lboost_date_time -lboost_chrono -lgdal -lnetcdf -fopenmp -lm -lstdc++ -lhdf5
 
 
 SOURCE_FILES= \
@@ -221,12 +221,14 @@ OBJECTS=$(SOURCE_FILES:.cpp=.o)
 EXECUTABLE=hydrotel
 
 all: $(SOURCES) $(EXECUTABLE)
+
 		
 $(EXECUTABLE): $(OBJECTS) 
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGSA) $(LDFLAGSB)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
+
 
 clean:
 	rm -f $(SRCDIR)/*.o

@@ -707,6 +707,8 @@ namespace HYDROTEL
 		double distance;
 		size_t index, nbCoord, i, j, indexTemp;
 
+		indexTemp = 0;
+
 		nbCoord = coordonnees.size();
 
 		//calcule les distances
