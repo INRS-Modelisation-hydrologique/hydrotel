@@ -39,7 +39,7 @@ using namespace HYDROTEL;
 
 void displayHelp()
 {
-	std::cout << "hydrotel [-i/g/n/u/v] [<project filename>] [-c/d/r/s] [-t <nb thread>] [-l <log filename>]" << endl;
+	std::cout << "hydrotel [-h/i/g/mr/n/u/v] [<project filename>] [-c/d/lp/r/s] [-t <nb thread>] [-l <log filename>]" << endl;
 	std::cout << endl;
 
 	std::cout << " <project filename>          Run the simulation currently selected in the project file (*.csv)." << endl;
@@ -55,6 +55,9 @@ void displayHelp()
 	std::cout << " -g (-hgm)                   Generate hgm file (geomorphological hydrograph)." << endl;
 	std::cout << "                             USAGE: hydrotel -g <hydrotel project filename> <water depth (m)> <new hgm filename> [-t <nb thread>]" << endl;
 	std::cout << endl;
+	std::cout << " -h (-help)                  Display help." << endl;
+	std::cout << "                             USAGE: hydrotel -h" << endl;
+	std::cout << endl;
 	std::cout << " -i (-info)                  Save connectivity and RHHUs informations in the `project-info` folder." << endl;
 	std::cout << "                             USAGE: hydrotel -i <hydrotel project filename>" << endl;
 	std::cout << endl;
@@ -66,6 +69,24 @@ void displayHelp()
 	std::cout << "                             Times are expressed in seconds, except in minutes if total duration is greater than 10 minutes." << endl;
 	std::cout << "                             To force output in seconds, use -lps or -logperformancesec." << endl;
 	std::cout << "                             To force output in minutes, use -lpm or -logperformancemin." << endl;
+	std::cout << endl;
+	std::cout << " -mr (-modreach)             Modify river reach type." << endl;
+	std::cout << "                             USAGE: hydrotel -mr <reach id> <new reach type> [param] <hydrotel project filename>" << endl;
+	std::cout << "                             Reach types: 1 (river): [param] = <width (m)> <manning coefficient>" << endl;
+	std::cout << "                                          2 (lake): [param] = <length (m)> <area (km2)> <c coefficient> <k coefficient>" << endl;
+	std::cout << "                                          4 (lake without storage)" << endl;
+	std::cout << "                                          5 (reservoir with history): [param] = <hydrological station id>" << endl;
+	std::cout << "                             Use `d` character instead of the parameter value to use default value." << endl;
+	std::cout << "                             If only one `d` character is specified for [param], all parameters will be set to default values." << endl;
+	std::cout << "                             Parameters default value: <width> = Physitel default value" << endl;
+	std::cout << "                                                       <manning coefficient> = 0.04" << endl;
+	std::cout << "                                                       <length> = Physitel default value" << endl;
+	std::cout << "                                                       <area> = Physitel default value" << endl;
+	std::cout << "                                                       <c coefficient> = Physitel default value" << endl;
+	std::cout << "                                                       <k coefficient> = 1.5" << endl;
+	std::cout << "                             Ex: hydrotel -mr 10 1 100.25 0.06 /projectfolder/projectfile.csv" << endl;
+	std::cout << "                                 hydrotel -mr 10 1 100.25 d \"/project folder/project file.csv\"" << endl;
+	std::cout << "                                 hydrotel -mr 10 1 d \"/project folder/project file.csv\"" << endl;
 	std::cout << endl;
 	std::cout << " -n (-new)                   Creation of a new Hydrotel project from a Physitel dataset." << endl;
 	std::cout << "                             USAGE: hydrotel -n <input physitel dataset folder> <output hydrotel folder>" << endl;
@@ -121,10 +142,20 @@ int main(int argc, char* argv[])
 
 	ret = 0;
 
-	std::cout << endl;
-	std::cout << "HYDROTEL " << HYDROTEL_VERSION << endl;
-	std::cout << "INRS - Eau Terre Environnement Research Center" << endl;
-	std::cout << endl;
+	str = argv[0];
+	for(n=1; n!=argc; n++)
+	{
+		str2 = argv[n];
+		str+= " " + str2;
+	}
+	HYDROTEL::_listLog.push_back(str);
+	HYDROTEL::_listLog.push_back("");
+
+	HYDROTEL::Log("");
+	oss << "HYDROTEL " << HYDROTEL_VERSION;
+	HYDROTEL::Log(oss.str());
+	HYDROTEL::Log("INRS - Eau Terre Environnement Research Center");
+	HYDROTEL::Log("");
 
 	bAutoInverseTMinTmax = false;
 	bDisplay = false;
@@ -136,13 +167,7 @@ int main(int argc, char* argv[])
 	bLogPerfForceUnit = false;
 
 	if (argc == 1)
-	{
 		displayHelp();
-
-#ifdef _WIN32
-		system("pause");	//Press any key to continue . . .
-#endif
-	}
 	else
 	{
 		for (n = 1; n != argc; n++)
@@ -277,7 +302,7 @@ int main(int argc, char* argv[])
 						std::cout << "Updating project..." << endl;
 						std::cout << str2 << endl;
 
-						MiseAJourProjet(str2, str3);
+						HYDROTEL::MiseAJourProjet(str2, str3);
 						std::cout << endl << "Update completed: " << str3 << endl << endl;
 					}
 				}
@@ -348,16 +373,15 @@ int main(int argc, char* argv[])
 							if ((end - begin) / 60.0 / 60.0 < 1.0)
 							{
 								if ((end - begin) / 60.0 < 1.0)
-									oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " sec" << endl;
+									oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " sec";
 								else
-									oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " min" << endl;
+									oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " min";
 							}
 							else
-								oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h" << endl;
+								oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h";
 
-							std::cout << oss.str();
-
-							std::cout << endl << "File saved: " << str << endl;
+							std::cout << oss.str() << endl << endl;
+							std::cout << "File saved: " << str << endl;
 						}
 					}
 				}
@@ -391,9 +415,9 @@ int main(int argc, char* argv[])
 						string nom_fichier = Combine(path_out, nom_bassin + ".csv");
 
 						string repertoire_physitel = Combine(path_out, "physitel");
-						CreeRepertoire(repertoire_physitel);
+						HYDROTEL::CreeRepertoire(repertoire_physitel);
 
-						CopieRepertoire(path_in, repertoire_physitel);
+						HYDROTEL::CopieRepertoire(path_in, repertoire_physitel);
 
 						std::cout << "Input: " << path_in << endl << endl;
 
@@ -406,6 +430,44 @@ int main(int argc, char* argv[])
 						std::cout << endl << "Hydrotel project created: " << path_out << endl << endl;
 					}
 				}
+				else if (option.compare("-mr") == 0 || option.compare("-modreach") == 0)
+				{
+					if(argc < 5)
+					{
+						std::cout << "Missing parameters..." << endl << endl;
+						displayHelp();
+						ret = 1;
+					}
+					else
+					{
+						GDALAllRegister();
+
+						sim_hyd = std::make_unique<SIM_HYD>();
+						sim_hyd->_bSkipCharacterValidation = true;
+
+						str = argv[argc-1];
+						std::replace(str.begin(), str.end(), '\\', '/');
+						sim_hyd->ChangeNomFichier(str);
+						sim_hyd->Lecture(false);
+
+						str = "";
+						for(n=2; n!=argc-1; n++)
+						{
+							option = argv[n];
+							str+= " " + option;
+						}
+						str = str.substr(1);
+
+						str = sim_hyd->Command_ChangeReachType(str);
+						if(str != "")
+						{
+							std::cout << "Error modifying reach type: " << str << endl << endl;
+							ret = 1;
+						}
+						else
+							std::cout << "Reach id " << argv[2] << " modified successfully." << endl << endl;
+					}
+				}
 				else if (option.compare("-v") == 0 || option.compare("-version") == 0)
 				{
 					std::cout << "GDAL/OGR  " << GDAL_RELEASE_NAME << endl;
@@ -414,6 +476,10 @@ int main(int argc, char* argv[])
 					std::cout << "https://inrs.ca/en/inrs/research-centres/eau-terre-environnement-research-centre" << endl << endl;
 					std::cout << "https://github.com/INRS-Modelisation-hydrologique/hydrotel" << endl;
 					std::cout << endl;
+				}
+				else if (option.compare("-h") == 0 || option.compare("-help") == 0)
+				{
+					displayHelp();
 				}
 				else
 				{
@@ -438,11 +504,13 @@ int main(int argc, char* argv[])
 					else
 					{
 						//demarre la simulation
+						sim_hyd = std::make_unique<SIM_HYD>();
 
 						for(idx=0; idx!=unrecognizedParam.size(); idx++)
-							std::cout << "Unknown parameter: " << unrecognizedParam[idx] << endl << endl;
-
-						sim_hyd = std::make_unique<SIM_HYD>();
+						{
+							HYDROTEL::Log("Unknown parameter: " + unrecognizedParam[idx]);
+							HYDROTEL::Log("");
+						}
 
 						str = argv[1];	//[nom fichier projet]
 						std::replace(str.begin(), str.end(), '\\', '/');
@@ -468,10 +536,13 @@ int main(int argc, char* argv[])
 						sim_hyd->_bStationInterpolation = bStationInterpolation;
 						sim_hyd->_bSkipCharacterValidation = bSkipCharacterValidation;
 
-						std::cout << "Reading simulation data...   " << GetCurrentTimeStr();
+						HYDROTEL::Log("Reading simulation data...   " + GetCurrentTimeStr());
 
 						sim_hyd->ChangeNomFichier(str);
 						sim_hyd->Lecture();
+
+						if(_log && _nom_fichier_log.find('/') == string::npos)
+							_nom_fichier_log = sim_hyd->PrendreRepertoireSimulation() + "/" + _nom_fichier_log; //save log file to simulation folder if only filename without path is specified
 
 						if(sim_hyd->_bLogPerf)
 						{
@@ -482,9 +553,14 @@ int main(int argc, char* argv[])
 						}
 
 						std::cout << endl << "Initialization...   " << GetCurrentTimeStr() << flush;
+						HYDROTEL::_listLog.push_back("");
+						HYDROTEL::_listLog.push_back("Initialization...   " + GetCurrentTimeStr());
 
 						if (!bStationInterpolation)
+						{
 							std::cout << endl << "Interpolation of missing weather data at stations level will be skipped     " << flush;
+							HYDROTEL::_listLog.push_back("Interpolation of missing weather data at stations level will be skipped");
+						}
 
 						sim_hyd->Initialise();
 
@@ -493,6 +569,7 @@ int main(int argc, char* argv[])
 						date_fin = sim_hyd->PrendreDateFin();
 
 						std::cout << endl << "Simulation in progress...   " << GetCurrentTimeStr() << flush;
+						HYDROTEL::_listLog.push_back("Simulation in progress...   " + GetCurrentTimeStr());
 
 						if(bDisplay)
 							std::cout << endl;
@@ -543,10 +620,14 @@ int main(int argc, char* argv[])
 								if(sim_hyd->_acheminement_riviere)
 								{
 									std::cout << endl << "Computing statistics...   " << GetCurrentTimeStr() << flush;
+									HYDROTEL::_listLog.push_back("Computing statistics...   " + GetCurrentTimeStr());
+
 									STATISTIQUES stats(*sim_hyd, nom_fichier_stats);
 								}
 							}
 						}
+
+						std::cout << endl;
 
 						std::time(&end);
 
@@ -554,15 +635,16 @@ int main(int argc, char* argv[])
 						if((end - begin) / 60.0 / 60.0 < 1.0)
 						{
 							if ((end - begin) / 60.0 < 1.0)
-								oss << "Simulation completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " sec   " << GetCurrentTimeStr() << endl;
+								oss << "Simulation completed in " << setprecision(0) << setiosflags(ios::fixed) << (end - begin) << " sec   " << GetCurrentTimeStr();
 							else
-								oss << "Simulation completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " min   " << GetCurrentTimeStr() << endl;
+								oss << "Simulation completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 << " min   " << GetCurrentTimeStr();
 						}
 						else
-							oss << "Simulation completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h   " << GetCurrentTimeStr() << endl;
+							oss << "Simulation completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h   " << GetCurrentTimeStr();
 
-						std::cout << endl << endl << oss.str();
-						std::cout << endl;
+						HYDROTEL::Log("");
+						HYDROTEL::Log(oss.str());
+						HYDROTEL::Log("");
 
 						if(sim_hyd->_bLogPerf)
 						{
@@ -573,9 +655,12 @@ int main(int argc, char* argv[])
 
 							str = sim_hyd->PrendreRepertoireSimulation() + "/log-performance-" + GetCurrentTimeStrForFile() + ".txt";
 							if(!sim_hyd->_logPerformance.SaveFile(str))
-								std::cout << sim_hyd->_logPerformance._sErr << endl;
+								HYDROTEL::Log(sim_hyd->_logPerformance._sErr);
 							else
-								std::cout << "Performance log file saved: " + str << endl << endl;
+							{
+								HYDROTEL::Log("Performance log file saved: " + str);
+								HYDROTEL::Log("");
+							}
 						}
 					}
 				}
@@ -584,18 +669,48 @@ int main(int argc, char* argv[])
 			{
 				ret = 1;
 
-				std::cerr << endl << endl << e.what() << endl << endl;
+				std::cout << endl << endl << e.what() << endl << endl;
 
 				if(_log)
 				{
 					ofstream fichier_log(_nom_fichier_log);
-					if (fichier_log)
-						fichier_log << e.what() << endl;
+					if(fichier_log)
+					{
+						for(idx=0; idx!=HYDROTEL::_listLog.size(); idx++)
+						{
+							if(HYDROTEL::_listLog[idx] == "")
+								fichier_log << endl;
+							else
+								fichier_log << HYDROTEL::_listLog[idx] << endl;
+						}
+
+						fichier_log << endl << endl << e.what() << endl << endl;
+						fichier_log.close();
+					}
 					else
 						std::cout << "Error saving log file: " << _nom_fichier_log << endl << endl;
 				}
 			}
 		}
+	}
+
+	if(ret != 1 && _log && HYDROTEL::_listLog.size() != 0)
+	{
+		ofstream fichier_log(_nom_fichier_log);
+		if(fichier_log)
+		{
+			for(idx=0; idx!=HYDROTEL::_listLog.size(); idx++)
+			{
+				if(HYDROTEL::_listLog[idx] == "")
+					fichier_log << endl;
+				else
+					fichier_log << HYDROTEL::_listLog[idx] << endl;
+			}
+
+			fichier_log.close();
+		}
+		else
+			std::cout << "Error saving log file: " << _nom_fichier_log << endl << endl;
 	}
 
 	return ret;
@@ -608,7 +723,10 @@ namespace boost
 
 	void assertion_failed(char const* expr, char const* function, char const* file, long line)
 	{
-		string str = function;
+		size_t i;
+		string str;
+		
+		str = function;
 
 		ostringstream oss;
 		oss.str("");
@@ -620,12 +738,26 @@ namespace boost
 		str += file;
 		str += ", line" + oss.str();
 
-		std::cerr << endl << endl << str << endl;
+		std::cout << endl << endl << str << endl;
 
-		if (_log)
+		if(_log)
 		{
 			ofstream fichier_log(_nom_fichier_log);
-			fichier_log << str << endl;
+			if(fichier_log)
+			{
+				for(i=0; i!=HYDROTEL::_listLog.size(); i++)
+				{
+					if(HYDROTEL::_listLog[i] == "")
+						fichier_log << endl;
+					else
+						fichier_log << HYDROTEL::_listLog[i] << endl;
+				}
+
+				fichier_log << endl << endl << str << endl;
+				fichier_log.close();
+			}
+			else
+				std::cout << "Error saving log file: " << _nom_fichier_log << endl << endl;
 		}
 
 		exit(2);

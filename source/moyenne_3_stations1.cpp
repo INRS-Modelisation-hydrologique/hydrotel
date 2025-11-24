@@ -376,7 +376,7 @@ namespace HYDROTEL
 		}
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//----------------------------------------------------------------------------------------------------------
 	//utilise des vecteur plutot qu'une map pour trier les distances pour augmenter la rapidité d'execution
 	//egalement le map considère la clé identique à 4 decimale de la valeur, ce qui fait qu'il peut manquer des 
 	//stations ds le map des distance. S'il y a 3 stations au total, on peut finir avec 2 stations dans le map 
@@ -423,6 +423,7 @@ namespace HYDROTEL
 		iNoData = grille.PrendreNoData();
 
 		std::cout << endl << "Computing stations/rhhu weightings (avg3s) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Computing stations/rhhu weightings (avg3s) (" + sOrigin + ")...   " + GetCurrentTimeStr());
 
 		if(_pSim_hyd->_bLogPerf)
 			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (avg3s)");

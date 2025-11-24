@@ -43,7 +43,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-----------------------------------------------------------------------------------------------
 	void STATION_NEIGE_MEF::LectureDonnees(const DATE_HEURE& date_debut, const DATE_HEURE& date_fin)
 	{
 		ifstream fichier(_nom_fichier);

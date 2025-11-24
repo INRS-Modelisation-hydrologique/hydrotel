@@ -143,7 +143,8 @@ namespace HYDROTEL
 			else
 				_sim_hyd._smThiessen2->LectureParametres();	//_sim_hyd._versionTHIESSEN == 2
 
-			std::cout << std::endl << "warning: degre_jour_bande submodel will use parameters from the thiessen submodel file because the interpolation model is in read mode" << std::endl;
+			Log("");
+			Log("warning: degre_jour_bande submodel will use parameters from the thiessen submodel file because the interpolation model is in read mode");
 		}
 		
 		//ponderations et lecture des donnees des stations de neige
@@ -2167,7 +2168,7 @@ namespace HYDROTEL
 	}
 
 
-	////~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	////---------------------------------------------------------------------------------------------------------
 	//void DEGRE_JOUR_BANDE::MiseAJourGrille(size_t index_zone, STATION_NEIGE::typeOccupationStation occupation)
 	//{
 	//	size_t row, col, nbCol;
@@ -2206,7 +2207,7 @@ namespace HYDROTEL
 
 	//	nbCol = _grilleneige._grilleEquivalentEau[0].PrendreNbColonne();
 	//	
-	//	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//	//------------------------------------------------------
 	//	_maj_conifers[index_zone].nb_pas_derniere_correction++;
 
 	//	for (auto iter2 = begin(_grilleneige._mapPonderation[iIdent]); iter2 != end(_grilleneige._mapPonderation[iIdent]); iter2++)
@@ -2291,7 +2292,7 @@ namespace HYDROTEL
 	//		}
 	//	}
 
-	//	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//	//------------------------------------------------------
 	//	_maj_feuillus[index_zone].nb_pas_derniere_correction++;
 
 	//	for (auto iter2 = begin(_grilleneige._mapPonderation[iIdent]); iter2 != end(_grilleneige._mapPonderation[iIdent]); iter2++)
@@ -2378,7 +2379,7 @@ namespace HYDROTEL
 	//		}
 	//	}
 
-	//	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//	//------------------------------------------------------
 	//	_maj_decouver[index_zone].nb_pas_derniere_correction++;
 
 	//	for (auto iter2 = begin(_grilleneige._mapPonderation[iIdent]); iter2 != end(_grilleneige._mapPonderation[iIdent]); iter2++)

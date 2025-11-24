@@ -135,7 +135,7 @@ namespace HYDROTEL
 
 
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 		//MLB
 		// Obtient l'id d'un troncon, l'id du type de sol et le nom du type de sol et l'uhrh avec coord Lat/Long
         bool FonctionObtientUhrhTroncon(std::vector<double> vLon, std::vector<double> vLat, std::vector<int>& vidUhrh, std::vector<int>& vidTroncon, std::vector<int>& vidOccsol, std::vector<std::string>& vsOccsol, std::vector<int>& vindex);

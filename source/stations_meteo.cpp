@@ -105,7 +105,7 @@ namespace HYDROTEL
 		{
 			herr_t status = H5Fclose(_hdid);
 			if(status < 0)
-				std::cout << "Error ~STATIONS_METEO H5Fclose(): " << _nom_fichier << endl;
+				Log("Error ~STATIONS_METEO H5Fclose(): " + _nom_fichier);
 		}
 	}
 
@@ -170,7 +170,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string STATIONS_METEO::LectureExtentLimit()
 	{
 		vector<string> valeurs;
@@ -283,7 +283,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string STATIONS_METEO::LectureFormatNetCDFConfig()
 	{		
 		vector<string> valeurs; 
@@ -553,7 +553,7 @@ namespace HYDROTEL
 	//ret = nc_inq(_ncid, &ndims, &nvars, &ngatts, &unlimdimid);
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Pour type == STATION
 	//Format H2.1
 
@@ -910,7 +910,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Pour type == GRID
 	//Format 9.3.1
 
@@ -1379,7 +1379,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-----------------------------------------------------------------------------------
 	//Il ne doit pas y avoir de ligne vide dans le fichier, excepté pour le commentaire.
 	void STATIONS_METEO::LectureFormatSTM(const PROJECTION& projection)
 	{
@@ -1575,6 +1575,7 @@ namespace HYDROTEL
 		date_fin.AdditionHeure(24);
 
 		std::cout << endl << "Reading weather data...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Reading weather data...   " + GetCurrentTimeStr());
 
 		if(_pSimHyd->_bLogPerf)
 			_pSimHyd->_logPerformance.AddStep("Reading weather data");
@@ -1594,6 +1595,7 @@ namespace HYDROTEL
 		{
 			//determine les stations ou il y a des donnees manquantes
 			std::cout << endl << "Checking missing weather data...   " << GetCurrentTimeStr() << flush;
+			_listLog.push_back("Checking missing weather data...   " + GetCurrentTimeStr());
 
 			if(_pSimHyd->_bLogPerf)
 				_pSimHyd->_logPerformance.AddStep("Checking missing weather data");
@@ -1625,6 +1627,7 @@ namespace HYDROTEL
 			if(!stations.empty())
 			{
 				std::cout << endl << "Missing weather data interpolation...   " << GetCurrentTimeStr() << flush;
+				_listLog.push_back("Missing weather data interpolation...   " + GetCurrentTimeStr());
 
 				if(_pSimHyd->_bLogPerf)
 					_pSimHyd->_logPerformance.AddStep("Missing weather data interpolation");
@@ -1715,6 +1718,7 @@ namespace HYDROTEL
 		date_fin.AdditionHeure(24);
 
 		std::cout << endl << "Reading weather data...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Reading weather data...   " + GetCurrentTimeStr());
 
 		if(_pSimHyd->_bLogPerf)
 			_pSimHyd->_logPerformance.AddStep("Reading weather data");
@@ -1734,6 +1738,7 @@ namespace HYDROTEL
 		{
 			//determine les stations ou il y a des donnees manquantes
 			std::cout << endl << "Checking missing weather data...   " << GetCurrentTimeStr() << flush;
+			_listLog.push_back("Checking missing weather data...   " + GetCurrentTimeStr());
 
 			if(_pSimHyd->_bLogPerf)
 				_pSimHyd->_logPerformance.AddStep("Checking missing weather data");
@@ -1765,6 +1770,7 @@ namespace HYDROTEL
 			if(!stations.empty())
 			{
 				std::cout << endl << "Missing weather data interpolation...   " << GetCurrentTimeStr() << flush;
+				_listLog.push_back("Missing weather data interpolation...   " + GetCurrentTimeStr());
 
 				if(_pSimHyd->_bLogPerf)
 					_pSimHyd->_logPerformance.AddStep("Missing weather data interpolation");

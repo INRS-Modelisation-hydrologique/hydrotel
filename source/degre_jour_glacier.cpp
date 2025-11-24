@@ -169,7 +169,8 @@ namespace HYDROTEL
 			else
 				_sim_hyd._smThiessen2->LectureParametres();	//_sim_hyd._versionTHIESSEN == 2
 
-			std::cout << std::endl << "warning: degre_jour_glacier submodel will use parameters from the thiessen submodel file because the interpolation model is in read mode" << std::endl;
+			Log("");
+			Log("warning: degre_jour_glacier submodel will use parameters from the thiessen submodel file because the interpolation model is in read mode");
 		}
 
 		//determine les uhrh contenant de la glace
@@ -804,7 +805,9 @@ namespace HYDROTEL
 				if (!fichier)
 					throw ERREUR_LECTURE_FICHIER("FICHIER PARAMETRES DEGRE_JOUR_GLACIER");
 
-				std::cout << endl << "Warning: the file `" << PrendreNomFichierParametres() << "` was missing: a file with default parameters has been created." << endl << endl;
+				Log("");
+				Log("Warning: the file `" + PrendreNomFichierParametres() + "` was missing: a file with default parameters has been created.");
+				Log("");
 			}
 
 			istringstream iss;

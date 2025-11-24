@@ -316,6 +316,9 @@ namespace HYDROTEL
 		_q12.resize(nb_zone);
 		_q23.resize(nb_zone);
 
+		if(!propriete_hydroliques._bDisponible)
+			throw ERREUR("BV3C: error: hydraulic properties not available (proprietehydrolique.sol)");
+
 		vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
 
 		for (size_t index = 0; index < index_zones.size(); ++index)
@@ -674,7 +677,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void BV3C1::CalculeUHRH(int iIndexZone)
 	{
 		OCCUPATION_SOL& occupation_sol = _sim_hyd.PrendreOccupationSol();
@@ -806,7 +809,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void BV3C1::Calcule()
 	{
 		DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
@@ -1730,7 +1733,7 @@ namespace HYDROTEL
 		float fCin = _cin[index_zone];
 
 		
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 		//correctif pas de temps bv3c, 2019/02/05	//revision 2019/09/11
 		
 		float dtcTemp, dVal1, dVal2, fVal;
@@ -1806,7 +1809,7 @@ namespace HYDROTEL
 
 		//	bDtcMod = true;
 		//}
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 
 
 		if ((fabs(q12z * dtc) >= fCin * theta1) || (fabs((q23z + q2s) * dtc) >= fCin * theta2))

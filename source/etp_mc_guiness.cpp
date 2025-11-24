@@ -176,7 +176,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Calcul du rayonnement extraterrestre pour la formule d'ETP de McGuiness - Bordne. 
 	//Fonction invalide au-delà du cercle polaire. Invalide if(dLatitudeDD > 66.5).
 	//
@@ -252,7 +252,9 @@ namespace HYDROTEL
 				if (!fichier)
 					throw ERREUR_LECTURE_FICHIER("FICHIER PARAMETRES ETP-MC-GUINESS");
 
-				std::cout << endl << "warning: the file `" << PrendreNomFichierParametres() << "` was missing: a file with default parameters has been created." << endl << endl;
+				Log("");
+				Log("warning: the file `" + PrendreNomFichierParametres() + "` was missing: a file with default parameters has been created.");
+				Log("");
 			}
 
 			string cle, valeur, ligne;

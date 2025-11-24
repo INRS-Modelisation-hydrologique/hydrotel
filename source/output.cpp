@@ -360,7 +360,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//création d'un fichier avec valeurs par defaut
 	void OUTPUT::Sauvegarde(const string& repertoire_simulation)
 	{
@@ -575,7 +575,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//--------------------------------------------------------------------------------------------------------------------
 	string OUTPUT::SauvegardeOutputNetCDF(string sPathFile, bool bUHRH, 
 											string sOutputVariableName, float* pData, string sUnits, string sDescription)
 	{

@@ -61,6 +61,8 @@ namespace HYDROTEL
 
 		void LectureFichierLargeur(std::string sFile);
 
+		std::string CalculeLongueurTroncons();
+
 		/// retourne le troncon a l'index
 		TRONCON* operator[] (size_t index);
 

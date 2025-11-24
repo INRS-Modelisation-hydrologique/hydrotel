@@ -699,7 +699,8 @@ namespace HYDROTEL
 				}
 				catch(const ERREUR& err)
 				{
-					std::cout << endl << err.what();
+					Log("");
+					Log(err.what());
 				}
 			}
 		}
@@ -741,14 +742,17 @@ namespace HYDROTEL
 			if((fin - debut)/60.0/60.0 < 1.0)
 			{
 				if((fin - debut)/60.0 < 1.0)
-					oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (fin - debut) << " sec" << flush;
+					oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (fin - debut) << " sec";
 				else
-					oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 << " min" << flush;
+					oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 << " min";
 			}
 			else
-				oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 / 60.0 << " h" << flush;
+				oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 / 60.0 << " h";
 
-			std::cout << oss.str();
+			std::cout << oss.str() << flush;
+
+			_listLog[_listLog.size()-1]+= oss.str();
+
 			_sim_hyd._bHGMCalculer = true;
 		}
 		else
@@ -1189,7 +1193,10 @@ namespace HYDROTEL
 
 			zones._pRasterUhrhId = new RasterInt2();
 			if(!zones._pRasterUhrhId->Open(str))
+			{
+				_listLog.push_back("Computing geomorphological hydrograph");
 				throw ERREUR(zones._pRasterUhrhId->_sError);
+			}
 		}
 
 		const size_t nb_ligne = zones._pRasterUhrhId->_ySize;
@@ -1197,22 +1204,24 @@ namespace HYDROTEL
 
 		uhrhNoData = zones._pRasterUhrhId->_noData;
 
-		//lecture des pixels pour chaque troncons
-		//nécessaire seulement pour le calcul du HGM
-		troncons.LectureFichierPixels();
-
 		if(_sim_hyd._pRasterOri == nullptr)
 		{
 			_sim_hyd._pRasterOri = new RasterInt2();
 			if(!_sim_hyd._pRasterOri->Open(zones.PrendreNomFichierOrientation()))
+			{
+				_listLog.push_back("Computing geomorphological hydrograph");
 				throw ERREUR(_sim_hyd._pRasterOri->_sError);
+			}
 		}
 
 		if(_sim_hyd._pRasterPente == nullptr)
 		{
 			_sim_hyd._pRasterPente = new RasterDouble2();
 			if(!_sim_hyd._pRasterPente->Open(zones.PrendreNomFichierPente()))
+			{
+				_listLog.push_back("Computing geomorphological hydrograph");
 				throw ERREUR(_sim_hyd._pRasterPente->_sError);
+			}
 		}
 
 		double resolution = _sim_hyd._pRasterPente->_geotransform[1];	//pentes.PrendreTailleCelluleX();
@@ -1225,7 +1234,10 @@ namespace HYDROTEL
 
 		vector<rectangle> eng_zones(nb_zone);	//limite des zones
 		if(eng_zones[0].nb_car != 0)	//validation pour s'assurer que nb_car a été initialisé à 0
+		{
+			_listLog.push_back("Computing geomorphological hydrograph");
 			throw ERREUR("CalculeHGM: error: eng_zones[0].nb_car != 0");
+		}
 		
 		double* manning = new double[nb_colonne*nb_ligne]();	//Zero-initialized -> ()
 
@@ -1314,7 +1326,11 @@ namespace HYDROTEL
 		{
 			//std::cout << endl;
 			//std::cout << "calcul de l'hydrogramme geomorphologique (nb_threads=" << omp_get_num_threads() << ")...     " << flush;
-			std::cout << "(nb thread=" << omp_get_num_threads() << ")...   " << GetCurrentTimeStr() << flush;
+			oss.str("");
+			oss << "(nb thread=" << omp_get_num_threads() << ")...   " << GetCurrentTimeStr();
+			std::cout << oss.str() << flush;
+
+			_listLog.push_back("Computing geomorphological hydrograph " + oss.str());
 
 			if(_pSim_hyd->_bLogPerf)
 			{

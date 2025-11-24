@@ -631,7 +631,6 @@ namespace HYDROTEL
 				} 
 				while(c != ';');
 
-
 				fichier	>> altitude >> c
 					>> pente >> c
 					>> orientation >> c
@@ -647,7 +646,13 @@ namespace HYDROTEL
 
 				zone->ChangeIdent(ident);
 
-				//les types de zone sont lu dans le fichier troncon.trl
+				//type de zone originale
+				if(type == "LAC;")
+					zone->_type_zone_original = ZONE::TYPE_ZONE::LAC;
+				//else par defaut a type SOUS_BASSIN dans constructeur ZONE
+
+				//type de zone lu dans le fichier troncon.trl
+				//important pour type barrage avec historique: meme si est un lac à l'origine, sera de type sous_bassin pour que les traitements dans onde_cinematique soient correcte
 
 				//if (regex_match(type, regex("(.*)SOUS-BASSIN(.*)")))
 				//	zone->ChangeTypeZone(ZONE::SOUS_BASSIN);

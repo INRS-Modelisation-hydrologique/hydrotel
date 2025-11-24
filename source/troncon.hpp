@@ -64,7 +64,7 @@ namespace HYDROTEL
 
 		std::vector<ZONE*> PrendreZonesAmont() const;
 
-		float PrendreSurfaceDrainee() const;
+		double PrendreSuperficieDrainee() const;	//km2
 
 		// retourne l'apport lateral (m3/s)
 		float PrendreApportLateral() const;
@@ -123,6 +123,8 @@ namespace HYDROTEL
 
 		TYPE_TRONCON			_type_troncon;
 
+		std::vector<std::pair<size_t, size_t>> _vCells;		//liste des pixels (cellules) du troncon: first == x (col), second == y (row): zero-based (0 à x)
+
 		std::vector<NOEUD*>		_noeuds_aval;
 		std::vector<NOEUD*>		_noeuds_amont;
 
@@ -130,6 +132,8 @@ namespace HYDROTEL
 
 		std::vector<TRONCON*>	_troncons_aval;
 		std::vector<TRONCON*>	_troncons_amont;
+
+		double					_dLongueur;		//m
 
 		//variables de simulations
 

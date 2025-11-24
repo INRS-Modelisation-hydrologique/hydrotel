@@ -40,7 +40,10 @@ using namespace std;
 namespace HYDROTEL 
 {
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	std::vector<std::string>		_listLog;
+
+
+	//------------------------------------------------------------------------------------------------
 	//Interprete la string et retourne en decimal degree.
 	//
 	//Formats acceptés: ddd.d						//decimal degree
@@ -215,7 +218,7 @@ namespace HYDROTEL
     }
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//---------------------------------------------------------------------------------------------
 	//Calcule l'ordre de Shreve pour chaque troncon et ajoute ds le fichier TRL (derniere colonne)
 	bool ShreveCompute(const string& sTronconFile)
 	{
@@ -653,7 +656,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-----------------------------------------------------------------------------------------------
 	size_t GetIndexNearestCoord(const vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee)
 	{
 		double distance, minDistance;
@@ -749,7 +752,7 @@ namespace HYDROTEL
 	}
 
 	
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//---------------------------------------------------------------------------------------------------------------------
 	void CalculDistanceEx(const vector<COORDONNEE>& coordonnees, const COORDONNEE& coordonnee, vector<double>* vDistances)
 	{
 		double distance;
@@ -972,7 +975,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool DeleteFolderContent(string sDirectory)
 	{
 		try{
@@ -997,7 +1000,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//----------------------------------------------------------------------------------------------------------------
 	//pvExcludedFolderName; nom des dossier a exclure (doit etre en lower case)
 	bool CopieRepertoireRecursive(boost::filesystem::path const & source, 
 									boost::filesystem::path const & destination, vector<string>* pvExcludedFolderName)
@@ -1187,7 +1190,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//retourne les valeurs (size_t) en les diminuant de 1 (zero-based index)
 	vector<size_t> extrait_valeur(const string& csv)
 	{
@@ -1212,7 +1215,7 @@ namespace HYDROTEL
 	}
 
 	
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-------------------------------------------------------------------------------
 	vector<size_t> extrait_svaleur(const string& csv,  const std::string& separator)
 	{
 		vector<size_t> valeurs;
@@ -1236,7 +1239,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------
 	vector<float> extrait_fvaleur(const string& csv,  const std::string& separator)
 	{
 		vector<float> valeurs;
@@ -1264,7 +1267,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------
 	vector<double> extrait_dvaleur(const string& csv, const std::string& separator)
 	{
 		vector<double> valeurs;
@@ -1292,7 +1295,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-----------------------------------------------------
 	vector<string> extrait_stringValeur(const string& csv)
 	{
 		vector<string> sVal;
@@ -1417,7 +1420,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------
 	void SplitString(std::vector<std::string>& sList, const std::string& input, 
 						const std::string& separators, bool remove_empty, bool bReplaceVirgule)
 	{
@@ -1451,7 +1454,7 @@ namespace HYDROTEL
 		}
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//----------------------------------------------------------------------------------------------
 	//Fait un trim sur les strings lues
 	void SplitString2(std::vector<std::string>& sList, 
 						const std::string& input, const std::string& separators, bool remove_empty)
@@ -1479,7 +1482,7 @@ namespace HYDROTEL
 			sList.push_back(sTemp); 
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Trim string leading and trailing whitespaces
 	string TrimString(string str)
 	{
@@ -1530,22 +1533,31 @@ namespace HYDROTEL
 					for(j=0; j!=str.size(); j++)
 					{
 						if( (str[j] < 32 || str[j] > 126) && str[j] != 9)	//exclude code 9 -> TABULATION
-						{
-							//invalid character
-							str2 = str[j];
-							k = std::find(listChar.begin(), listChar.end(), str2) - listChar.begin();	//get index
-
-							if(k >= listChar.size()) //not found
+						{																									//exclude comments in some files
+							if( !(listInputFiles[i].size() > 4 && listInputFiles[i].substr(listInputFiles[i].size()-4) == ".stm" && line == 3) &&							//.stm (line 3)
+								!(listInputFiles[i].size() > 4 && listInputFiles[i].substr(listInputFiles[i].size()-4) == ".sth" && line == 3) &&							//.sth (line 3)
+								!(listInputFiles[i].size() > 10 && listInputFiles[i].substr(listInputFiles[i].size()-11) == "troncon.trl" && line == 3) &&					//troncon.trl (line 3)
+								!(listInputFiles[i].size() > 17 && listInputFiles[i].substr(listInputFiles[i].size()-18) == "occupation_sol.cla" && line == 3) && 			//occupation_sol.cla
+								!(listInputFiles[i].size() > 4 && listInputFiles[i].substr(listInputFiles[i].size()-4) == ".sol" && line == 3) && 							//.sol (line 3)
+								!(listInputFiles[i].size() > 10 && listInputFiles[i].substr(listInputFiles[i].size()-11) == "ind_fol.def" && (line == 3 || line == 4)) && 	//ind_fol.def (line 3 & 4)
+								!(listInputFiles[i].size() > 10 && listInputFiles[i].substr(listInputFiles[i].size()-11) == "pro_rac.def" && (line == 3 || line == 4)) )	//ind_fol.def (line 3 & 4)
 							{
-								listChar.push_back(str2);
+								//invalid character
+								str2 = str[j];
+								k = std::find(listChar.begin(), listChar.end(), str2) - listChar.begin();	//get index
 
-								oss.str("");
+								if(k >= listChar.size()) //not found
+								{
+									listChar.push_back(str2);
+
+									oss.str("");
 								
-								oss << "Invalid character in file: " << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";								
-								//int code = str[j];
-								//oss << "Invalid character: " << str2 << ": code " << code << ": in file: " << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";
+									oss << "Invalid character in file: " << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";								
+									//int code = str[j];
+									//oss << "Invalid character: " << str2 << ": code " << code << ": in file: " << listInputFiles[i] << " (line " << line << ", col " << (j+1) << ")";
 
-								listErrMessCharValidation.push_back(oss.str());
+									listErrMessCharValidation.push_back(oss.str());
+								}
 							}
 						}
 					}
@@ -1613,6 +1625,16 @@ namespace HYDROTEL
 		return ret;
 	}
 
+
+	void Log(string sLog)
+	{
+		_listLog.push_back(sLog);
+
+		if(sLog == "")
+			std::cout << endl;
+		else
+			std::cout << sLog << endl;
+	}
 
 }
 

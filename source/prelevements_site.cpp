@@ -278,7 +278,7 @@ namespace HYDROTEL
         try {
 
         if (!in)
-            std::cout << "impossible d`ouvrir fichier GPE: " << filename << std::endl;
+            Log("impossible d`ouvrir fichier GPE: " + filename);
         else
         {
             // Read the next line from File untill it reaches the end.
@@ -342,7 +342,10 @@ namespace HYDROTEL
                 }
                 catch (...)
                 {
-                    std::cout << "erreur lors de la lecture du fichier: " << filename << ": ligne " << no_ligne+1 << ": " << ligne << endl << endl;
+                    ostringstream oss;
+                    oss << "erreur lors de la lecture du fichier: " << filename << ": ligne " << no_ligne+1 << ": " << ligne;
+                    Log(oss.str());
+                    Log("");
                 }
 
 				no_ligne++;
@@ -352,7 +355,7 @@ namespace HYDROTEL
         }
         catch (...)
         {
-            std::cout << "erreur lors de la lecture du fichier: " << filename << endl;
+            Log("erreur lors de la lecture du fichier: " + filename);
         }
 
         return v_sitePrelevementGPE;
@@ -395,7 +398,7 @@ namespace HYDROTEL
                 // Check if object is valid
                 if (!in)
                 {
-                    std::cout << "impossible d`ouvrir fichier GPE: " << filenames[h] << std::endl;
+                    Log("impossible d`ouvrir fichier GPE: " + filenames[h]);
                     ok = false;
                 }
                 else
@@ -579,14 +582,17 @@ namespace HYDROTEL
                         }
                         catch (...)
                         {
-                            std::cout << "erreur lors de la lecture du fichier: " << filenames[h] << ": ligne " << nbr+1 << ": " << str << endl << endl;
+                            oss.str("");
+                            oss << "erreur lors de la lecture du fichier: " << filenames[h] << ": ligne " << nbr+1 << ": " << str;
+                            Log(oss.str());
+                            Log("");
                         }
                     }
                 }
             }
             catch (...)
             {
-                std::cout << "erreur lors de la lecture du fichier: " << filenames[h] << endl;
+                Log("erreur lors de la lecture du fichier: " + filenames[h]);
                 ok = false;
             }
         }
@@ -730,7 +736,7 @@ namespace HYDROTEL
             // Check if object is valid
             if (!in)
             {
-                std::cout << "impossible d`ouvrir fichier consommation cheptel: " << filename << std::endl;
+                Log("impossible d`ouvrir fichier consommation cheptel: " + filename);
             }
             else
             {
@@ -773,7 +779,10 @@ namespace HYDROTEL
                     }
                     catch (...)
                     {
-                        std::cout << "erreur lors de la lecture du fichier: " << filename << ": ligne " << no_ligne+1 << ": " << sLigne << endl << endl;
+                        ostringstream oss;
+                        oss << "erreur lors de la lecture du fichier: " << filename << ": ligne " << no_ligne+1 << ": " << sLigne;
+                        Log(oss.str());
+                        Log("");
                     }
                     no_ligne++;
                 }
@@ -781,7 +790,7 @@ namespace HYDROTEL
         }
         catch (...)
         {
-            std::cout << "erreur lors de la lecture du fichier: " << filename << endl;
+            Log("erreur lors de la lecture du fichier: " + filename);
             return false;
         }
         return true;
@@ -821,9 +830,7 @@ namespace HYDROTEL
             try {
                 // Check if object is valid
                 if (!in)
-                {
-                    std::cout << "impossible d`ouvrir fichier prelevement agricole: " << filename[h] << std::endl;
-                }
+                    Log("impossible d`ouvrir fichier prelevement agricole: " + filename[h]);
                 else
                 {
                     // Read the next line from File untill it reaches the end.
@@ -988,7 +995,10 @@ namespace HYDROTEL
                         }
                         catch (...)
                         {
-                            std::cout << "erreur lors de la lecture du fichier: " << filename[h] << ": ligne " << no_ligne+1 << ": " << sLigne << endl << endl;
+                            ostringstream oss;
+                            oss << "erreur lors de la lecture du fichier: " << filename[h] << ": ligne " << no_ligne+1 << ": " << sLigne;
+                            Log(oss.str());
+                            Log("");
                         }
                         no_ligne++;
                     }
@@ -996,7 +1006,7 @@ namespace HYDROTEL
             }
             catch (...)
             {
-                std::cout << "erreur lors de la lecture du fichier: " << filename[h] << endl;
+                Log("erreur lors de la lecture du fichier: " + filename[h]);
                 return false;
             }
         }
@@ -1029,9 +1039,7 @@ namespace HYDROTEL
         try {
             // Check if object is valid
             if (!in)
-            {
-                std::cout << "impossible d`ouvrir fichier prelevement agricole: " << filename << std::endl;
-            }
+                Log("impossible d`ouvrir fichier prelevement agricole: " + filename);
             else
             {
                 // Read the next line from File untill it reaches the end.
@@ -1072,7 +1080,10 @@ namespace HYDROTEL
                     }
                     catch (...)
                     {
-                        std::cout << "erreur lors de la lecture du fichier: " << filename << ": ligne " << no_ligne+1 << ": " << ligne << endl << endl;
+                        ostringstream oss;
+                        oss << "erreur lors de la lecture du fichier: " << filename << ": ligne " << no_ligne+1 << ": " << ligne;
+                        Log(oss.str());
+                        Log("");
                     }
 
                     no_ligne++;
@@ -1081,7 +1092,7 @@ namespace HYDROTEL
         }
         catch (...)
         {
-            std::cout << "erreur lors de la lecture du fichier: " << filename << endl;
+            Log("erreur lors de la lecture du fichier: " + filename);
         }
         return v_sitePrelevementagricole;
     }
@@ -1204,9 +1215,7 @@ namespace HYDROTEL
             try {
                 // Check if object is valid
                 if (!in)
-                {
-                    std::cout << "impossible d`ouvrir fichier prelevement eau: " << v_filename[k] << std::endl;
-                }
+                    Log("impossible d`ouvrir fichier prelevement eau: " + v_filename[k]);
                 else
                 {
                     // Read the next line from File untill it reaches the end.
@@ -1382,7 +1391,10 @@ namespace HYDROTEL
                         }
                         catch (...)
                         {
-                            std::cout << "erreur lors de la lecture du fichier: " << v_filename[k] << ": ligne " << no_ligne+1 << ": " << str << endl << endl;
+                            ostringstream oss;
+                            oss << "erreur lors de la lecture du fichier: " << v_filename[k] << ": ligne " << no_ligne+1 << ": " << str;
+                            Log(oss.str());
+                            Log("");
                         }
 
                         no_ligne++;
@@ -1391,7 +1403,7 @@ namespace HYDROTEL
             }
             catch (...)
             {
-                std::cout << "erreur lors de la lecture du fichier: " << v_filename[k] << endl;
+                Log("erreur lors de la lecture du fichier: " + v_filename[k]);
             }
         }
     }
@@ -1498,9 +1510,7 @@ namespace HYDROTEL
             try {
                 // Check if object is valid
                 if (!in)
-                {
-                    std::cout << "Cannot open the file : " << v_filename[k] << std::endl;
-                }
+                    Log("Cannot open the file : " + v_filename[k]);
                 else
                 {
                     // Read the next line from File untill it reaches the end.
@@ -1630,7 +1640,9 @@ namespace HYDROTEL
                         }
                         catch (...)
                         {
-                            std::cout << "No ligne :" << no_ligne << " impossible to read" << endl;
+                            ostringstream oss;
+                            oss << "No ligne:" << no_ligne << " impossible to read: file " << v_filename[k];
+                            Log(oss.str());
                         }
                     no_ligne++;
                     }
@@ -1638,7 +1650,7 @@ namespace HYDROTEL
             }
             catch (...)
             {
-                std::cout << "Impossible to read the file" << endl;
+                Log("Error reading file: " + v_filename[k]);
             }
         }
     }

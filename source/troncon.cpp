@@ -47,6 +47,8 @@ namespace HYDROTEL
 		, _debit_amont(VALEUR_MANQUANTE)
 		, _iSchreve(-1)
 	{
+		_dLongueur = -1.0;
+
 		_hauteurAvalMoy = dVALEUR_MANQUANTE;
 
 		_prPrelevementTotal = 0.0;
@@ -130,21 +132,17 @@ namespace HYDROTEL
 		_troncons_amont = troncons_amont;
 	}
 
-	float TRONCON::PrendreSurfaceDrainee() const
+	double TRONCON::PrendreSuperficieDrainee() const
 	{
-		float surface = 0;
+		double superficie = 0.0;
 
-		//for (auto iter = begin(_troncons_amont); iter != end(_troncons_amont); ++iter)
-		//{
-		//	surface += (*iter)->PrendreSurfaceDrainee();
-		//}
+		for(auto iter = begin(_troncons_amont); iter != end(_troncons_amont); ++iter)
+			superficie+= (*iter)->PrendreSuperficieDrainee();
 
-		//for (auto iter = begin(_zones_amont); iter != end(_zones_amont); ++iter)
-		//{
-		//	surface += (*iter)->PrendreSurface();
-		//}
+		for(auto iter = begin(_zones_amont); iter != end(_zones_amont); ++iter)
+			superficie+= (*iter)->PrendreSuperficie();	//km2
 
-		return surface;
+		return superficie;	//km2
 	}
 
 	float TRONCON::PrendreApportLateral() const

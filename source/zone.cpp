@@ -34,6 +34,7 @@ namespace HYDROTEL
 		, _theta2(VALEUR_MANQUANTE)
 		, _theta3(VALEUR_MANQUANTE)
 		, _prJourIrrigation(false)
+		, _type_zone_original(SOUS_BASSIN)
 		, _ident(-1)
 		, _type_zone(SOUS_BASSIN)
 		, _nb_pixel(0)

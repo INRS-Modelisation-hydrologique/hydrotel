@@ -342,6 +342,9 @@ namespace HYDROTEL
 			_q23_sum.resize(nb_zone);
 		}
 
+		if(!propriete_hydroliques._bDisponible)
+			throw ERREUR("BV3C: error: hydraulic properties not available (proprietehydrolique.sol)");
+
 		vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
 
 		for (size_t index = 0; index < index_zones.size(); ++index)
@@ -744,7 +747,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void BV3C2::CalculeUHRH(int iIndexZone)
 	{
 		OCCUPATION_SOL& occupation_sol = _sim_hyd.PrendreOccupationSol();
@@ -893,7 +896,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void BV3C2::Calcule()
 	{
 		unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
@@ -1938,7 +1941,7 @@ namespace HYDROTEL
 		float fCin = _cin[index_zone];
 
 		
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 		//correctif pas de temps bv3c, 2019/02/05	//revision 2019/09/11
 		
 		float dtcTemp, dVal1, dVal2, fVal;
@@ -2013,7 +2016,7 @@ namespace HYDROTEL
 
 		//	bDtcMod = true;
 		//}
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 
 
 		if ((fabs(q12z * dtc) >= fCin * theta1) || (fabs((q23z + q2s) * dtc) >= fCin * theta2))
@@ -2375,11 +2378,14 @@ namespace HYDROTEL
 
 		vector<string> vStr;
 		istringstream iss;
-		int ident;
-		float z11, z22, z33, theta1, theta2, theta3, des, rec, coef_assech, fCin, coefRechargeSousTerrain;
 		size_t index_zone;
+		float z11, z22, z33, theta1, theta2, theta3, des, rec, coef_assech, fCin, coefRechargeSousTerrain;
+		bool bWarningDisplayed;
+		int ident;
 
 		coefRechargeSousTerrain = 0.0f;		//default value
+
+		bWarningDisplayed = false;
 
 		ZONES& zones = _sim_hyd.PrendreZones();
 
@@ -2471,10 +2477,14 @@ namespace HYDROTEL
 			}
 
 			//validation
-			if(z11 < 0.025f || z22 < 0.05f || z33 < 0.15f)
+			if(!bWarningDisplayed)
 			{
-				fichier.close();
-				throw ERREUR("Error: invalid BV3C parameters: thickness of soil layers: thicknesses must be greater than or equal to the following values: 0.025 m (layer 1), 0.05 m (layer 2), 0.3 m (layer 3).");
+				if(z11 < 0.025f || z22 < 0.05f || z33 < 0.15f)
+				{
+					Log("Warning: BV3C parameters: thickness of soil layers: thicknesses should be greater than or equal to the following values: 0.025 m (layer 1), 0.05 m (layer 2), 0.3 m (layer 3).");
+					Log("");
+					bWarningDisplayed = true;
+				}
 			}
 
 			//
@@ -2542,9 +2552,11 @@ namespace HYDROTEL
 
 		size_t nbGroupe, x, y, index_zone;
 		float fVal;
+		bool bWarningDisplayed;
 		int no_ligne = 2;
 		int ident;
 
+		bWarningDisplayed = false;
 		nbGroupe = _sim_hyd.PrendreNbGroupe();
 
 		while (!fichier.eof())
@@ -2577,8 +2589,15 @@ namespace HYDROTEL
 					{
 						//validation
 						//epaisseur couches de sol 1,2,3
-						if(vValeur[1] < 0.025f || vValeur[2] < 0.05f || vValeur[3] < 0.15f)
-							throw ERREUR("Error: invalid BV3C parameters: thickness of soil layers: the thicknesses must be greater than or equal to the following values: 0.025 m (layer 1), 0.05 m (layer 2), 0.3 m (layer 3).");
+						if(!bWarningDisplayed)
+						{
+							if(vValeur[1] < 0.025f || vValeur[2] < 0.05f || vValeur[3] < 0.15f)
+							{
+								Log("Warning: BV3C parameters: thickness of soil layers: thicknesses should be greater than or equal to the following values: 0.025 m (layer 1), 0.05 m (layer 2), 0.3 m (layer 3).");
+								Log("");
+								bWarningDisplayed = true;
+							}
+						}
 
 						//
 						ident = _sim_hyd.PrendreGroupeZone(x).PrendreIdent(y);

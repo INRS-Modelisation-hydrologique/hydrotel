@@ -51,14 +51,16 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::GenerateBdPrelevements()
 	{
 		vector<string> fileList;
 		size_t i;
 		string str, str2, path;
 
-		std::cout << endl << "creation bd prelevements..." << endl << endl;
+		Log("");
+		Log("creation bd prelevements...");
+		Log("");
 
 		try{
 
@@ -130,9 +132,8 @@ namespace HYDROTEL
 
 				if(_sim_hyd._listErrMessCharValidation.size() != 0)
 				{
-					std::cout << endl;
 					for(i=0; i!=_sim_hyd._listErrMessCharValidation.size(); i++)
-						std::cout << _sim_hyd._listErrMessCharValidation[i] << endl;
+						Log(_sim_hyd._listErrMessCharValidation[i]);
 
 					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
 				}
@@ -145,10 +146,10 @@ namespace HYDROTEL
 			{
 				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_GPE.csv";
 				_sim_hyd._pr->trierDonnePrelevementGPE(v_fichier, str);
-				std::cout << "creation BD_GPE.csv ok" << endl;
+				Log("creation BD_GPE.csv ok");
 			}
 			else
-				std::cout << "donnees GPE_Volumes_prelevements_YYYY.csv absent" << endl;
+				Log("donnees GPE_Volumes_prelevements_YYYY.csv absent");
 
 			//Agricole	//Elevage
 			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "ELEVAGES_AGR_lieuxElevage.csv";
@@ -160,10 +161,10 @@ namespace HYDROTEL
 
 				str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_ELEVAGES.csv";
 				_sim_hyd._pr->trierDonnePrelevementagricole(v_fichier, str2, str);
-				std::cout << "creation BD_ELEVAGES.csv ok" << endl;
+				Log("creation BD_ELEVAGES.csv ok");
 			}
 			else
-				std::cout << "donnees ELEVAGES_AGR_lieuxElevage.csv et ELEVAGES_Consommation_cheptel.csv absent" << endl;
+				Log("donnees ELEVAGES_AGR_lieuxElevage.csv et ELEVAGES_Consommation_cheptel.csv absent");
 
 			//Sites prelevements
 			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "PRELEVEMENTS_SITES.csv";
@@ -171,12 +172,12 @@ namespace HYDROTEL
 			{
 				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_PRELEVEMENTS.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
-					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
+					Log("erreur Prelevements_AddTronconUhrhToFile: " + str);
 				else
-					std::cout << "creation BD_PRELEVEMENTS.csv ok" << endl;
+					Log("creation BD_PRELEVEMENTS.csv ok");
 			}
 			else
-				std::cout << "donnees PRELEVEMENTS_SITES.csv absent" << endl;
+				Log("donnees PRELEVEMENTS_SITES.csv absent");
 
 			//Sites SIH
 			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "SIH_SITES.csv";
@@ -184,12 +185,12 @@ namespace HYDROTEL
 			{
 				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_SIH.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
-					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
+					Log("erreur Prelevements_AddTronconUhrhToFile: " + str);
 				else
-					std::cout << "creation BD_SIH.csv ok" << endl;
+					Log("creation BD_SIH.csv ok");
 			}
 			else
-				std::cout << "donnees SIH_SITES.csv absent" << endl;
+				Log("donnees SIH_SITES.csv absent");
 
 			//Sites CULTURES
 			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "CULTURES_SITES.csv";
@@ -197,12 +198,12 @@ namespace HYDROTEL
 			{
 				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_CULTURES.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
-					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
+					Log("erreur Prelevements_AddTronconUhrhToFile: " + str);
 				else
-					std::cout << "creation BD_CULTURES.csv ok" << endl;
+					Log("creation BD_CULTURES.csv ok");
 			}
 			else
-				std::cout << "donnees CULTURES_SITES.csv absent" << endl;
+				Log("donnees CULTURES_SITES.csv absent");
 
 			//Sites EFFLUENTS
 			str = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + _FolderNameSrc + "/" + "EFFLUENTS_SITES.csv";
@@ -210,17 +211,23 @@ namespace HYDROTEL
 			{
 				str2 = _sim_hyd.PrendreRepertoireSimulation() + "/" + _FolderName + "/" + "BD_EFFLUENTS.csv";
 				if(!_sim_hyd._pr->AddTronconUhrhToFile(str, str2, 1))
-					std::cout << "erreur Prelevements_AddTronconUhrhToFile: " << str << endl;
+					Log("erreur Prelevements_AddTronconUhrhToFile: " + str);
 				else
-					std::cout << "creation BD_EFFLUENTS.csv ok" << endl;
+					Log("creation BD_EFFLUENTS.csv ok");
 			}
 			else
-				std::cout << "donnees EFFLUENTS_SITES.csv absent" << endl;
+				Log("donnees EFFLUENTS_SITES.csv absent");
 
-			std::cout << endl << "termine" << endl << endl;
+			Log("");
+			Log("termine");
+			Log("");
 		}
 		else
-			std::cout << endl << "dossier de donnees sources introuvable (/simulation/[nom_simulation]/prelevements/SitesPrelevements)" << endl << endl;
+		{
+			Log("");
+			Log("dossier de donnees sources introuvable (/simulation/[nom_simulation]/prelevements/SitesPrelevements)");
+			Log("");
+		}
 
 		}
 		catch(const ERREUR& err)
@@ -229,7 +236,11 @@ namespace HYDROTEL
 		}
 		catch(const exception& ex)
 		{
-			std::cout << endl << "Error (exception): " << ex.what() << endl << endl;
+			Log("");
+			str = "Error (exception): ";
+			str+= ex.what();
+			Log(str);
+			Log("");
 			return false;
 		}
 
@@ -237,7 +248,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevements()
 	{
 		_donneesREDCOEFF.clear();
@@ -571,9 +582,9 @@ namespace HYDROTEL
 
 		if(vErr.size() != 0)
 		{
-			std::cout << endl;
+			Log("");
 			for(i=0; i!=vErr.size(); i++)
-				std::cout << vErr[i] << endl;
+				Log(vErr[i]);
 
 			return false;
 		}
@@ -586,7 +597,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsTYPES()
 	{
 		vector<string> sList;
@@ -616,7 +627,8 @@ namespace HYDROTEL
 
 			if(file.fail())
 			{
-				std::cout << "erreur LecturePrelevementsTYPES: le fichier est vide"<< endl << endl;
+				Log("erreur LecturePrelevementsTYPES: le fichier est vide");
+				Log("");
 				return false;
 			}
 
@@ -632,7 +644,8 @@ namespace HYDROTEL
 						if(sList.size() != 2 && sList.size() != 3)
 						{
 							file.close();
-							std::cout << "erreur LecturePrelevementsTYPES: nombre de colonne invalide. Le fichier doit avoir les colonnes suivantes: Type;Inclu dans la simulation (0 ou 1);Coefficient Reduction (0 ou 1)" << endl << endl;
+							Log("erreur LecturePrelevementsTYPES: nombre de colonne invalide. Le fichier doit avoir les colonnes suivantes: Type;Inclu dans la simulation (0 ou 1);Coefficient Reduction (0 ou 1)");
+							Log("");
 							return false;
 						}
 
@@ -641,7 +654,8 @@ namespace HYDROTEL
 						if(str == "")
 						{
 							file.close();
-							std::cout << "erreur LecturePrelevementsTYPES: type non valide (valeur vide)" << endl << endl;
+							Log("erreur LecturePrelevementsTYPES: type non valide (valeur vide)");
+							Log("");
 							return false;
 						}
 						boost::algorithm::to_upper(str);	//uppercase
@@ -649,7 +663,8 @@ namespace HYDROTEL
 						if(_donneesTYPE.count(str) != 0)
 						{
 							file.close();
-							std::cout << "erreur LecturePrelevementsTYPES: le type " << str << " existe plus d`une fois" << endl << endl;
+							Log("erreur LecturePrelevementsTYPES: le type " + str + " existe plus d`une fois");
+							Log("");
 							return false;
 						}
 
@@ -664,7 +679,8 @@ namespace HYDROTEL
 							else
 							{							
 								file.close();
-								std::cout << "erreur LecturePrelevementsTYPES: colonne 2 non valide (doit être 0 ou 1)" << endl << endl;
+								Log("erreur LecturePrelevementsTYPES: colonne 2 non valide (doit être 0 ou 1)");
+								Log("");
 								return false;
 							}
 						}
@@ -686,7 +702,8 @@ namespace HYDROTEL
 								else
 								{							
 									file.close();
-									std::cout << "erreur LecturePrelevementsTYPES: colonne 3 non valide (doit être 0 ou 1)" << endl << endl;
+									Log("erreur LecturePrelevementsTYPES: colonne 3 non valide (doit être 0 ou 1)");
+									Log("");
 									return false;
 								}
 							}
@@ -700,7 +717,8 @@ namespace HYDROTEL
 						catch(...)
 						{
 							file.close();
-							std::cout << "erreur LecturePrelevementsTYPES: exception lors de la lecture du fichier" << endl << endl;
+							Log("erreur LecturePrelevementsTYPES: exception lors de la lecture du fichier");
+							Log("");
 							return false;
 						}
 					}
@@ -719,7 +737,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsREDCOEFF()
 	{
 		vector<string> sList;
@@ -747,7 +765,8 @@ namespace HYDROTEL
 
 			if(file.fail())
 			{
-				std::cout << "erreur lecture: " << sPathFile << ": le fichier est vide" << endl << endl;
+				Log("erreur lecture: " + sPathFile + ": le fichier est vide");
+				Log("");
 				return false;
 			}
 
@@ -763,7 +782,8 @@ namespace HYDROTEL
 						if(sList.size() != 2)
 						{
 							file.close();
-							std::cout << "erreur lecture: " << sPathFile << ": nombre de colonne invalide. Le fichier doit avoir les colonnes suivantes: Date(JJ/MM/AAAA);Reduction (0:1)" << endl << endl;
+							Log("erreur lecture: " + sPathFile + ": nombre de colonne invalide. Le fichier doit avoir les colonnes suivantes: Date(JJ/MM/AAAA);Reduction (0:1)");
+							Log("");
 							return false;
 						}
 
@@ -773,13 +793,15 @@ namespace HYDROTEL
 						if(str == "")
 						{
 							file.close();
-							std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Date(JJ/MM/AAAA) est vide" << endl << endl;
+							Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Date(JJ/MM/AAAA) est vide");
+							Log("");
 							return false;
 						}
 						if(str.length() != 10)
 						{
 							file.close();
-							std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: " << str << endl << endl;
+							Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: " + str);
+							Log("");
 							return false;
 						}
 
@@ -802,18 +824,29 @@ namespace HYDROTEL
 								if(iVal >= 1000)
 									bValide = true;
 								else
-									std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: l`annee est invalide: " << str << endl << endl;
+								{
+									Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: l`annee est invalide: " + str);
+									Log("");
+								}
 							}
 							else
-								std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: le mois est invalide: " << str << endl << endl;
+							{
+								Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: le mois est invalide: " + str);
+								Log("");
+							}
 						}
 						else
-							std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: le jour est invalide: " << str << endl << endl;
+						{
+							Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: le jour est invalide: " + str);
+							Log("");
+						}
+
 						}
 						catch(...)
 						{
 							file.close();
-							std::cout << "erreur lecture (exception): " << sPathFile << ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: " << str << endl << endl;
+							Log("erreur lecture (exception): " + sPathFile + ": la valeur pour la colonne Date(JJ/MM/AAAA) est invalide: " + str);
+							Log("");
 							return false;
 						}
 
@@ -833,7 +866,8 @@ namespace HYDROTEL
 						if(str == "")
 						{
 							file.close();
-							std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Reduction (0:1) est vide" << endl << endl;
+							Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Reduction (0:1) est vide");
+							Log("");
 							return false;
 						}
 
@@ -845,14 +879,16 @@ namespace HYDROTEL
 						catch(...)
 						{
 							file.close();
-							std::cout << "erreur lecture (exception): " << sPathFile << ": la valeur pour la colonne Reduction (0:1) est invalide: " << str << endl << endl;
+							Log("erreur lecture (exception): " + sPathFile + ": la valeur pour la colonne Reduction (0:1) est invalide: " + str);
+							Log("");
 							return false;
 						}
 
 						if(dVal < 0.0 || dVal > 1.0)
 						{
 							file.close();
-							std::cout << "erreur lecture: " << sPathFile << ": la valeur pour la colonne Reduction (0:1) est invalide: " << str << endl << endl;
+							Log("erreur lecture: " + sPathFile + ": la valeur pour la colonne Reduction (0:1) est invalide: " + str);
+							Log("");
 							return false;
 						}
 
@@ -866,7 +902,8 @@ namespace HYDROTEL
 						catch(...)
 						{
 							file.close();
-							std::cout << "erreur lecture: " << sPathFile << ": exception lors de la lecture du fichier" << endl << endl;
+							Log("erreur lecture: " + sPathFile + ": exception lors de la lecture du fichier");
+							Log("");
 							return false;
 						}
 					}
@@ -882,7 +919,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsGPE()
 	{
 		string ColNbJour = "NBJ M";
@@ -977,7 +1014,10 @@ namespace HYDROTEL
 							else
 							{
 								file.close();
-								std::cout << "erreur LecturePrelevementsGPE: doublon #SITE GPE " << idSite << endl << endl;
+								oss.str("");
+								oss << "erreur LecturePrelevementsGPE: doublon #SITE GPE " << idSite;
+								Log(oss.str());
+								Log("");
 								return false;
 							}
 						}
@@ -1096,9 +1136,10 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsPR()	//BD_PRELEVEMENTS.csv
 	{
+		ostringstream oss;
 		fstream file;
 		string str, sPathFile;
 		int idTroncon, idSite;
@@ -1154,7 +1195,10 @@ namespace HYDROTEL
 							else
 							{
 								file.close();
-								std::cout << "erreur LecturePrelevementsPR: doublon #SITE " << idSite << endl << endl;
+								oss.str("");
+								oss << "erreur LecturePrelevementsPR: doublon #SITE " << idSite;
+								Log(oss.str());
+								Log("");
 								return false;
 							}
 						}
@@ -1165,7 +1209,10 @@ namespace HYDROTEL
 						else
 						{
 							file.close();
-							std::cout << "erreur LecturePrelevementsPR (_donneesPRSite): doublon #SITE " << idSite << endl << endl;
+							oss.str("");
+							oss << "erreur LecturePrelevementsPR (_donneesPRSite): doublon #SITE " << idSite;
+							Log(oss.str());
+							Log("");
 							return false;
 						}
 
@@ -1193,9 +1240,10 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsELEVAGE()
 	{
+		ostringstream oss;
 		fstream file;
 		double dval;
 		string str, sPathFile;
@@ -1257,7 +1305,10 @@ namespace HYDROTEL
 							else
 							{
 								file.close();
-								std::cout << "erreur LecturePrelevementsELEVAGE: doublon #SITE " << idSite << endl << endl;
+								oss.str("");
+								oss << "erreur LecturePrelevementsELEVAGE: doublon #SITE " << idSite;
+								Log(oss.str());
+								Log("");
 								return false;
 							}
 						}
@@ -1286,9 +1337,10 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsEFFLUENT()
 	{
+		ostringstream oss;
 		fstream file;
 		double dval;
 		string str, sPathFile;
@@ -1346,7 +1398,10 @@ namespace HYDROTEL
 							else
 							{
 								file.close();
-								std::cout << "erreur LecturePrelevementsEFFLUENTS: doublon #SITE " << idSite << endl << endl;
+								oss.str("");
+								oss << "erreur LecturePrelevementsEFFLUENTS: doublon #SITE " << idSite;
+								Log(oss.str());
+								Log("");
 								return false;
 							}
 						}
@@ -1375,9 +1430,10 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::LecturePrelevementsCULTURE()
 	{
+		ostringstream oss;
 		fstream file;
 		double dval;
 		string str, sPathFile;
@@ -1428,7 +1484,10 @@ namespace HYDROTEL
 						else
 						{
 							file.close();
-							std::cout << "erreur LecturePrelevementsCULTURE: doublon ID " << idSite << endl << endl;
+							oss.str("");
+							oss << "erreur LecturePrelevementsCULTURE: doublon ID " << idSite;
+							Log(oss.str());
+							Log("");
 							return false;
 						}
 
@@ -1456,8 +1515,8 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	//calcule les prelevements et rejets à effectuer pour le pas de temps courant (pour tous les troncons)
+	//----------------------------------------------------------------------------------------------------------------
+	//Calcule les prelevements et rejets à effectuer pour le pas de temps courant (pour tous les troncons)
 	//
 	//Si le fichier TypePrelevement.csv est présent, le type doit être à 1 pour que le prélèvement soit effectué.
 	//Si le type est absent du fichier (le fichier est présent et contient d'autre type), le prélèvement est effectué.
@@ -1895,7 +1954,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string PRELEVEMENTS::GetGpeStr(string sLine, string sColNameUpperCase)	//sColName doit etre dejà trimer et en upperccase... (il y a un trim sur la valeur du fichier lors de la comparaison)
 	{
 		string ret = "";
@@ -1984,7 +2043,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string PRELEVEMENTS::GetPrStr(string sLine, string sColNameUpperCase)
 	{
 		string ret = "";
@@ -2118,7 +2177,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string PRELEVEMENTS::GetElStr(string sLine, string sColNameUpperCase)
 	{
 		string ret = "";
@@ -2207,7 +2266,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string PRELEVEMENTS::GetEfStr(string sLine, string sColNameUpperCase)
 	{
 		string ret = "";
@@ -2295,7 +2354,7 @@ namespace HYDROTEL
 		return ret;
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	string PRELEVEMENTS::GetCuStr(string sLine, string sColNameUpperCase)
 	{
 		string ret = "";
@@ -2384,7 +2443,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//--------------------------------------------------------------------------------------------------
 	void PRELEVEMENTS::GenerateAlea(size_t nbVal, int iMaxVal, unsigned int uiSeed, vector<int>& vAlea)
 	{
 		int ival;
@@ -2402,7 +2461,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//--------------------------------------------------------------------------------------------------
 	bool PRELEVEMENTS::AddTronconUhrhToFile(string sPathFileIn, string sPathFileOut, size_t indexCoord)
 	{
 		ostringstream oss;
@@ -2573,7 +2632,7 @@ namespace HYDROTEL
 
 
 	
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Code MLB
 
 	//obtient uhrh troncon occ sol et nom d'occ sol avec coordonnée

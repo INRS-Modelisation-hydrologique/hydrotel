@@ -479,6 +479,7 @@ namespace HYDROTEL
 		const int nb_colonne = static_cast<int>(grille.PrendreNbColonne());
 
 		std::cout << endl << "Computing stations/rhhu weightings (thiessen) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Computing stations/rhhu weightings (thiessen) (" + sOrigin + ")...   " + GetCurrentTimeStr());
 		
 		if(_pSim_hyd->_bLogPerf)
 			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (thiessen)");

@@ -410,7 +410,7 @@ namespace HYDROTEL
 			}
 			catch(const boost::filesystem::filesystem_error& e)
 			{
-				std::cerr << e.what() << endl;
+				std::cout << "error deleting file: " << file->path() << ": " << e.what() << endl;
 				//return false;
 			}
 		}

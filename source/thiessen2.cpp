@@ -528,6 +528,8 @@ namespace HYDROTEL
 		//pixelEnCours = 0;
 
 		std::cout << endl << "Computing stations/rhhu weightings (thiessen) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Computing stations/rhhu weightings (thiessen) (" + sOrigin + ")...   " + GetCurrentTimeStr());
+
 		//std::cout << endl << "pixel " << pixelEnCours << "/" << nbPixelTotal << '\r' << std::flush;
 		
 		if(_pSim_hyd->_bLogPerf)

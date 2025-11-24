@@ -263,7 +263,7 @@ namespace HYDROTEL
 	}
 
 
-	void SIM_HYD::Lecture()
+	void SIM_HYD::Lecture(bool bDisplayInfo)
 	{
 		vector<string> fileList;
 		ostringstream oss;
@@ -301,7 +301,11 @@ namespace HYDROTEL
 			LectureGroupeZoneCorrection();
 			LectureSimulationFormatSim();
 
-			DisplayInfo();
+			if(bDisplayInfo)
+			{
+				Log("");
+				DisplayInfo();
+			}
 		}
 		else if (ext == ".csv") //version 4 project file
 		{
@@ -315,9 +319,10 @@ namespace HYDROTEL
 
 				if(_listErrMessCharValidation.size() != 0)
 				{
-					std::cout << endl;
+					Log("");
+					Log("");
 					for(i=0; i!=_listErrMessCharValidation.size(); i++)
-						std::cout << _listErrMessCharValidation[i] << endl;
+						Log(_listErrMessCharValidation[i]);
 
 					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
 				}
@@ -372,15 +377,17 @@ namespace HYDROTEL
 
 				if(_listErrMessCharValidation.size() != 0)
 				{
-					std::cout << endl;
+					Log("");
+					Log("");
 					for(i=0; i!=_listErrMessCharValidation.size(); i++)
-						std::cout << _listErrMessCharValidation[i] << endl;
+						Log(_listErrMessCharValidation[i]);
 
 					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
 				}
 			}
 
 			_troncons.LectureTroncons(_zones, _noeuds);
+			_troncons.LectureFichierPixels();
 
 			if(_zones._bSaveUhrhCsvFile)
 			{
@@ -497,9 +504,10 @@ namespace HYDROTEL
 
 				if(_listErrMessCharValidation.size() != 0)
 				{
-					std::cout << endl;
+					Log("");
+					Log("");
 					for(i=0; i!=_listErrMessCharValidation.size(); i++)
-						std::cout << _listErrMessCharValidation[i] << endl;
+						Log(_listErrMessCharValidation[i]);
 
 					throw ERREUR("Error reading input files: invalid characters: valid characters are ascii/utf8 code 32 to 126.");
 				}
@@ -509,8 +517,11 @@ namespace HYDROTEL
 
 			LectureDonneesHydrologiques();
 
-			std::cout << endl << endl;
-			DisplayInfo();
+			if(bDisplayInfo)
+			{
+				Log("");
+				DisplayInfo();
+			}
 
 			_occupation_sol.Lecture(_zones);
 			_propriete_hydroliques.Lecture((*this));
@@ -555,7 +566,8 @@ namespace HYDROTEL
 		if(boost::filesystem::exists(str))
 		{
 			_troncons.LectureFichierLargeur(str);
-			std::cout << "Using river reach width from file: " << str << endl << endl;
+			Log("Using river reach width from file: " + str);
+			Log("");
 		}
 		else
 		{
@@ -563,7 +575,8 @@ namespace HYDROTEL
 			if(boost::filesystem::exists(str))
 			{
 				_troncons.LectureFichierLargeur(str);
-				std::cout << "Using river reach width from file: " << str << endl << endl;
+				Log("Using river reach width from file: " + str);
+				Log("");
 			}
 		}
 
@@ -1020,7 +1033,7 @@ namespace HYDROTEL
 		}
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void SIM_HYD::LectureGroupeZone()
 	{
 		string nom_fichier_groupe = Combine(PrendreRepertoireSimulation(), _nom_simulation + ".gsb");
@@ -1666,7 +1679,7 @@ namespace HYDROTEL
 						catch(...)
 						{
 							id = -1;
-							std::cout << "Reading disconnected river reach: invalid id " << sList[x] << "." << endl;
+							Log("Reading disconnected river reach: invalid id " + sList[x] + ".");
 						}
 
 						if(id != -1)
@@ -2285,7 +2298,7 @@ namespace HYDROTEL
 
 			ChangeParametresTemporels(date_debut, date_fin, pas_de_temps);
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("PRECIPITATION") == string::npos)
 				getline_mod(fichier, tmp);
 			iss.clear();
@@ -2306,7 +2319,7 @@ namespace HYDROTEL
 				throw ERREUR_LECTURE_FICHIER(_nom_fichier_simulation);
 			}
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("THIESSEN") == string::npos)
 				getline_mod(fichier, tmp);
 
@@ -2360,7 +2373,7 @@ namespace HYDROTEL
 				}
 			}
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("FONTE_DE_NEIGE") == string::npos)
 				getline_mod(fichier, tmp);
 			iss.clear();
@@ -2438,7 +2451,7 @@ namespace HYDROTEL
 			degre_jour->ChangeIndexOccupationConifers(index_conifers);
 			degre_jour->ChangeIndexOccupationFeuillus(index_feuillus);
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("EVAPOTRANSPIRATION_POTENTIEL") == string::npos)
 				getline_mod(fichier, tmp);
 			iss.clear();
@@ -2519,7 +2532,7 @@ namespace HYDROTEL
 				}
 			}
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("BILAN_VERTICAL") == string::npos)
 				getline_mod(fichier, tmp);
 			iss.clear();
@@ -2615,7 +2628,7 @@ namespace HYDROTEL
 			for (int n = 0; n <= 17; ++n)
 				getline_mod(fichier, tmp);
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("RUISSELLEMENT_SURFACE") == string::npos)
 				getline_mod(fichier, tmp);
 			iss.clear();
@@ -2687,7 +2700,7 @@ namespace HYDROTEL
 				onde_cinematique->ChangeIndexEaux(index_eaux);
 			}
 
-			//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			//------------------------------------------------------------------------------------------------
 			while (tmp.find("TRANSFERT_RIVIERE") == string::npos)
 				getline_mod(fichier, tmp);
 			iss.clear();
@@ -2762,6 +2775,9 @@ namespace HYDROTEL
 
 		//
 		InitListeTronconsZonesSimules();
+
+		_date_courante = _date_debut;
+		_lPasTempsCourantIndex = 0;
 
 		//open weighted avg output file
 		if(_output._weighted_avg)
@@ -3097,9 +3113,6 @@ namespace HYDROTEL
 			if(_bLogPerf)
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
-
-		_date_courante = _date_debut;
-		_lPasTempsCourantIndex = 0;
 	}
 
 
@@ -3791,11 +3804,11 @@ namespace HYDROTEL
 		for (size_t index = 0; index < _stations_meteo.PrendreNbStation(); ++index)
 			_stations_meteo[index]->ChangeNomFichier( RemplaceRepertoire(_stations_meteo[index]->PrendreNomFichier(), repertoire_meteo) );
 
-		string repertoire_hydro = Combine(repertoire, "hydro");
-		
-		_stations_hydro.ChangeNomFichier( RemplaceRepertoire(_stations_hydro.PrendreNomFichier(), repertoire_hydro) );
-		for (size_t index = 0; index < _stations_hydro.PrendreNbStation(); ++index)
-			_stations_hydro[index]->ChangeNomFichier( RemplaceRepertoire(_stations_hydro[index]->PrendreNomFichier(), repertoire_hydro) );
+		//string repertoire_hydro = Combine(repertoire, "hydro");
+		//
+		//_stations_hydro.ChangeNomFichier( RemplaceRepertoire(_stations_hydro.PrendreNomFichier(), repertoire_hydro) );
+		//for (size_t index = 0; index < _stations_hydro.PrendreNbStation(); ++index)
+		//	_stations_hydro[index]->ChangeNomFichier( RemplaceRepertoire(_stations_hydro[index]->PrendreNomFichier(), repertoire_hydro) );
 
 		string repertoire_physio = Combine(repertoire, "physio");
 
@@ -4228,7 +4241,7 @@ namespace HYDROTEL
 		ChangeParametresTemporels(dtDebut, dtFin, 24);	//parametres temporel par defaut
 
 		_stations_meteo.ChangeNomFichier(repertoire_meteo+"/station.stm");
-		_stations_hydro.ChangeNomFichier(repertoire_hydro+"/station.sth");
+		//_stations_hydro.ChangeNomFichier(repertoire_hydro+"/station.sth");
 
 		auto ondeCinematiquePtr = static_cast<ONDE_CINEMATIQUE*>(_vruisselement[RUISSELEMENT_ONDE_CINEMATIQUE].get());
 		ondeCinematiquePtr->ChangeNomFichierHGM(repertoire_hgm + "/hydrogramme.hgm");
@@ -4335,59 +4348,89 @@ namespace HYDROTEL
 
 	void SIM_HYD::DisplayInfo()
 	{
+		ostringstream oss;
+
 		NOEUDS&		noeuds = PrendreNoeuds();
 		ZONES&		zones = PrendreZones();
 		TRONCONS&	troncons = PrendreTroncons();
 
 		STATIONS_METEO& stations_meteo = PrendreStationsMeteo();
 
-		std::cout << endl;
-		std::cout << "Simulation                                       " << PrendreNomSimulation() << endl;
-		std::cout << endl;
+		Log("");
+		Log("Simulation                                       " + PrendreNomSimulation());
+		Log("");
 
-		std::cout << "Nb nodes                                         " << noeuds.PrendreNbNoeud() << endl;
-		std::cout << "Nb RHHUs                                         " << zones.PrendreNbZone() << endl;
-		std::cout << "Nb rivers reach                                  " << troncons.PrendreNbTroncon() << endl;
-		std::cout << "Nb groups                                        " << PrendreNbGroupe() << endl;
-		std::cout << "Nb weather stations                              " << stations_meteo.PrendreNbStation() << endl;
-		std::cout << "Nb hydro stations                                " << _stations_hydro.PrendreNbStation() << endl;
-		std::cout << endl;
+		oss << "Nb nodes                                         " << noeuds.PrendreNbNoeud();
+		Log(oss.str());
 
-		std::cout << "Weather data interpolation                       " << PrendreNomInterpolationDonnees() << endl;
-		std::cout << "Snow cover evolution                             " << PrendreNomFonteNeige() << endl;
+		oss.str("");
+		oss << "Nb RHHUs                                         " << zones.PrendreNbZone();
+		Log(oss.str());
+
+		oss.str("");
+		oss << "Nb rivers reach                                  " << troncons.PrendreNbTroncon();
+		Log(oss.str());
+
+		oss.str("");
+		oss << "Nb groups                                        " << PrendreNbGroupe();
+		Log(oss.str());
+
+		oss.str("");
+		oss << "Nb weather stations                              " << stations_meteo.PrendreNbStation();
+		Log(oss.str());
+
+		oss.str("");
+		oss << "Nb hydro stations                                " << _stations_hydro.PrendreNbStation();
+		Log(oss.str());
+		Log("");
+
+		Log("Weather data interpolation                       " + PrendreNomInterpolationDonnees());
+
+		Log("Snow cover evolution                             " + PrendreNomFonteNeige());
 
 		if(PrendreNomFonteGlacier() != "")
-			std::cout << "Glacier melt                                     " << PrendreNomFonteGlacier() << endl;
+			Log("Glacier melt                                     " + PrendreNomFonteGlacier());
 		else
-			std::cout << "Glacier melt                                     " << "(non-simulated)" << endl;
+			Log("Glacier melt                                     (non-simulated)");
 
 		if(PrendreNomTempSol() != "")
-			std::cout << "Soil temperature / Frost depth                   " << PrendreNomTempSol() << endl;
+			Log("Soil temperature / Frost depth                   " + PrendreNomTempSol());
 		else
-			std::cout << "Soil temperature / Frost depth                   " << "(non-simulated)" << endl;
+			Log("Soil temperature / Frost depth                   (non-simulated)");
 
-		std::cout << "Potential evapotranspiration                     " << PrendreNomEvapotranspiration() << endl;
-		std::cout << "Vertical water balance                           " << PrendreNomBilanVertical() << endl;
+		Log("Potential evapotranspiration                     " + PrendreNomEvapotranspiration());
+
+		Log("Vertical water balance                           " + PrendreNomBilanVertical());
 
 		if(_ruisselement_surface)
-			std::cout << "Flow towards the hydrographic network            " << PrendreNomRuisselement() << endl;
+			Log("Flow towards the hydrographic network            " + PrendreNomRuisselement());
 		else
-			std::cout << "Flow towards the hydrographic network            " << "(non-simulated)" << endl;
+			Log("Flow towards the hydrographic network            (non-simulated)");
 
 		if(_acheminement_riviere)
-			std::cout << "Flow into the hydrographic network               " << PrendreNomAcheminement() << endl;
+			Log("Flow into the hydrographic network               " + PrendreNomAcheminement());
 		else
-			std::cout << "Flow into the hydrographic network               " << "(non-simulated)" << endl;
+			Log("Flow into the hydrographic network               (non-simulated)");
 
-		std::cout << endl;
+		Log("");
 
-		std::cout << "Start date                                       " << PrendreDateDebut() << endl;
-		std::cout << "End date                                         " << PrendreDateFin() << endl;
-		std::cout << "Timestep                                         " << PrendrePasDeTemps() << endl;
-		std::cout << endl;
+		oss.str("");
+		oss << "Start date                                       " << PrendreDateDebut();
+		Log(oss.str());
 
-		std::cout << "Outlet river reach id                            " << PrendreIdentTronconExutoire() << endl;
-		std::cout << endl;
+		oss.str("");
+		oss << "End date                                         " << PrendreDateFin();
+		Log(oss.str());
+
+		oss.str("");
+		oss << "Timestep                                         " << PrendrePasDeTemps();
+		Log(oss.str());
+		Log("");
+
+		oss.str("");
+		oss << "Outlet river reach id                            " << PrendreIdentTronconExutoire();
+		Log(oss.str());
+		Log("");
 	}
 
 
@@ -4660,7 +4703,7 @@ namespace HYDROTEL
 
 			for(i=0; i!=_zones.PrendreNbZone(); i++)
 			{
-				if(_zones[i].PrendreTypeZone() == 1) //LAC
+				if(_zones[i]._type_zone_original == ZONE::TYPE_ZONE::LAC)
 					file << _zones[i].PrendreIdent() << ";" << "2" << ";" << _zones[i].PrendreTronconAval()->PrendreIdent() << ";" << "-1" << endl;
 				else
 					file << _zones[i].PrendreIdent() << ";" << "1" << ";" << _zones[i].PrendreTronconAval()->PrendreIdent() << ";" << "-1" << endl;
@@ -4681,5 +4724,416 @@ namespace HYDROTEL
 
 		return sErr;
 	}
+
+
+	//Modify river reach type	//command -mr (-modreach)
+	string SIM_HYD::Command_ChangeReachType(string sParameters)
+	{
+		double dWidth, dManning, dLength, dArea, dC, dK, dDrainedArea;
+		size_t i;
+		string ret, sStationId, str, sNewLine;
+		bool bOldFormat, bOrdreShrevePresent, bIsLake;
+		int iNewType, idTroncon, x, iTemp;
+
+		vector<string> vStr;
+		vector<string> vListFile;
+		istringstream iss;
+		ostringstream oss;
+		ifstream file;
+		ofstream fileOut;
+
+		TRONCON* pTroncon = nullptr;
+
+		ret = "";
+
+		dLength = -1.0;
+		dWidth = -1.0;
+		dManning = -1.0;
+
+		dArea = -1.0;
+		dC = -1.0;
+		dK = -1.0;
+
+		SplitString(vStr, sParameters, " ", false, true);
+
+		iss.str(vStr[0]);
+		iss >> idTroncon;
+
+		if(idTroncon <= 0)
+			ret = "invalid parameter: <reach id> (" + vStr[0] + ")";
+		else
+		{
+			iss.clear();
+			iss.str(vStr[1]);
+			iss >> iNewType;
+
+			//parameters extraction and validation
+			switch(iNewType)
+			{
+			case 1:
+				//river
+				if(vStr.size() < 3)
+					ret = "missing parameters: <width (m)> <manning coefficient>";
+				else
+				{
+					if(vStr.size() == 3)
+					{
+						if(vStr[2] != "d")
+							ret = "missing parameter: <manning coefficient>";
+						//else //default value for all parameters
+					}
+					else
+					{
+						if(vStr.size() == 4)
+						{
+							if(vStr[2] != "d")
+							{
+								iss.clear();
+								iss.str(vStr[2]);
+								iss >> dWidth;
+
+								if(dWidth < 0.01)
+									ret = "invalid parameter: <width (m)> (" + vStr[2] + "): must be greater than or equal to 0.01";
+							}
+
+							if(ret == "")
+							{
+								if(vStr[3] != "d")
+								{
+									iss.clear();
+									iss.str(vStr[3]);
+									iss >> dManning;
+
+									if(dManning <= 0.0)
+										ret = "invalid parameter: <manning coefficient> (" + vStr[3] + "): must be greater than 0";
+								}
+							}
+						}
+						else
+							ret = "too many parameters: expecting <width (m)> <manning coefficient>";
+					}
+				}
+				break;
+
+			case 2:
+				//lake
+				if(vStr.size() < 3)
+					ret = "missing parameters: <length (m)> <area (km2)> <c coefficient> <k coefficient>";
+				else
+				{
+					if(vStr.size() == 3)
+					{
+						if(vStr[2] != "d")
+							ret = "missing parameters: <area (km2)> <c coefficient> <k coefficient>";
+						//else	//default value for all parameters
+					}
+					else
+					{
+						if(vStr.size() == 4)
+							ret = "missing parameters: <c coefficient> <k coefficient>";
+						else
+						{
+							if(vStr.size() == 5)
+								ret = "missing parameter: <k coefficient>";
+							else
+							{
+								if(vStr.size() == 6)
+								{
+									if(vStr[2] != "d")
+									{
+										iss.clear();
+										iss.str(vStr[2]);
+										iss >> dLength;
+
+										if(dLength < 0.01)
+											ret = "invalid parameter: <length (m)> (" + vStr[2] + "): must be greater than or equal to 0.01";
+									}
+
+									if(ret == "")
+									{
+										if(vStr[3] != "d")
+										{
+											iss.clear();
+											iss.str(vStr[3]);
+											iss >> dArea;
+
+											if(dArea < 0.000001)
+												ret = "invalid parameter: <area (km2)> (" + vStr[3] + "): must be greater than or equal to 0.000001 km2 (1 m2)";
+										}
+									}
+
+									if(ret == "")
+									{
+										if(vStr[4] != "d")
+										{
+											iss.clear();
+											iss.str(vStr[4]);
+											iss >> dC;
+
+											if(dC <= 0.0)
+												ret = "invalid parameter: <c coefficient> (" + vStr[4] + "): must be greater than 0";
+										}
+									}
+
+									if(ret == "")
+									{
+										if(vStr[5] != "d")
+										{
+											iss.clear();
+											iss.str(vStr[5]);
+											iss >> dK;
+
+											if(dK <= 0.0)
+												ret = "invalid parameter: <k coefficient> (" + vStr[5] + "): must be greater than 0";
+										}
+									}
+								}
+								else
+									ret = "too many parameters: expecting <length (m)> <area (km2)> <c coefficient> <k coefficient>";
+							}
+						}
+					}
+				}
+				break;
+
+			case 4:
+				//lake without storage (no parameter)
+				if(vStr.size() != 2)
+					ret = "too many parameters: expecting no parameters";
+				break;
+
+			case 5:
+				//reservoir with history
+				if(vStr.size() < 3)
+					ret = "missing parameter: <hydrological station id>";
+				else
+				{
+					if(vStr.size() == 3)
+						sStationId = vStr[2];
+					else
+						ret = "too many parameters: expecting <hydrological station id>";
+				}
+				break;
+
+			default:
+				ret = "invalid parameter: <new reach type> (" + vStr[1] + "): invalid type";
+			}
+
+			//
+			if(ret == "")
+			{
+				pTroncon = PrendreTroncons().RechercheTroncon(idTroncon);
+				if(pTroncon == nullptr)
+					ret = "unable to find specified reach id (" + vStr[0] + ")";
+				else
+				{
+					bIsLake = false;
+					if(pTroncon->PrendreZonesAmont()[0]->_type_zone_original == ZONE::TYPE_ZONE::LAC)
+						bIsLake = true;
+
+					//validation	//a lake cannot be changed to a river and vice versa
+					if(iNewType == 1 && bIsLake)
+						ret = "invalid type: a lake cannot be changed into a river";
+					else
+					{
+						if( (iNewType == 2 || iNewType == 4) && !bIsLake)
+							ret = "invalid type: a river cannot be changed into a lake";
+					}
+
+					if(ret == "")
+					{
+						//read troncon.trl file
+						try{
+
+						file.open(_troncons.PrendreNomFichier());
+						if(!file.is_open())
+							ret = "error opening file: " + _troncons.PrendreNomFichier();
+						else
+						{
+							getline_mod(file, str);		//format (ordre shreve present)
+							vListFile.push_back(str);
+
+							bOrdreShrevePresent = false;
+							str = TrimString(str);
+							if(str == "2")
+								bOrdreShrevePresent = true;
+
+							getline_mod(file, str);		//nb reach
+							vListFile.push_back(str);
+
+							getline_mod(file, str);		//comment
+							vListFile.push_back(str);
+
+							bOldFormat = false;
+							x = 0;
+							while(!file.eof())
+							{
+								getline_mod(file, str);
+
+								if(str != "")
+								{
+									++x;
+									if(x == 1)
+									{
+										SplitString(vStr, str, " ", true, false);
+										iss.clear();
+										iss.str(vStr[0]);
+										iss >> iTemp;
+										if(iTemp == 0)
+											bOldFormat = true;
+									}
+
+									if(x == idTroncon)
+									{
+										SplitString(vStr, str, " ", true, false);
+
+										oss.str("");
+										if(bOldFormat)
+											oss << (iNewType - 1) << " ";
+										else
+										{
+											oss << setfill(' ') << setw(5) << idTroncon << " ";
+											oss << iNewType << " ";
+										}
+
+										oss << pTroncon->PrendreNoeudsAval()[0]->PrendreIdent() << " ";		//downstream node id
+
+										if(iNewType == 1)
+											oss << pTroncon->PrendreNoeudsAmont()[0]->PrendreIdent() << " ";	//upstream node id
+										else
+										{
+											oss << pTroncon->PrendreNoeudsAmont().size() << " ";	//upstream node count
+											for(i=0; i!=pTroncon->PrendreNoeudsAmont().size(); i++)
+												oss << pTroncon->PrendreNoeudsAmont()[i]->PrendreIdent() << " ";	//upstream node id
+										}
+								
+										switch(iNewType)
+										{
+										case 1:
+											//length //m
+											_troncons.CalculeLongueurTroncons();
+											dLength = pTroncon->_dLongueur;
+
+											//width //m
+											if(dWidth == -1.0)
+											{
+												dWidth = (0.49 * pow((pTroncon->PrendreSuperficieDrainee()), 0.62));	//default value
+												if(dWidth < 0.01)
+													dWidth = 0.01;	//minimum width 0.01 m
+											}
+
+											//manning coeff
+											if(dManning == -1)
+												dManning = 0.04;	//default value
+
+											oss << setprecision(2) << setiosflags(ios::fixed) << dLength << " ";
+											oss << setprecision(2) << setiosflags(ios::fixed) << dWidth << " ";
+											oss << setprecision(2) << setiosflags(ios::fixed) << dManning << " ";
+											break;
+
+										case 2:
+											if(dArea == -1.0)
+											{
+												dArea = pTroncon->_vCells.size() * static_cast<double>(PrendreZones().PrendreResolution()*PrendreZones().PrendreResolution()); //m2
+												if(dArea < 1.0)
+													dArea = 1.0;	//minimum area 1 m2
+											}
+											else
+												dArea*= 1000000.0;	//km2 -> m2
+
+											if(dLength == -1.0)
+											{
+												dDrainedArea = pTroncon->PrendreSuperficieDrainee();	//km2
+
+												dWidth = (0.49 * pow((dDrainedArea), 0.62)); //m
+												if(dWidth < 0.01)
+													dWidth = 0.01;	//minimum width 0.01 m
+
+												dLength = dArea / dWidth;	//m
+												if(dLength < 0.01)
+													dLength = 0.01;	//minimum length 0.01 m
+											}
+
+											if(dC == -1.0)
+												dC = sqrt(9.81 * dWidth);
+
+											if(dK == -1.0)
+												dK = 1.5;
+										
+											oss << setprecision(2) << setiosflags(ios::fixed) << dLength << " ";
+											oss << setprecision(6) << setiosflags(ios::fixed) << (dArea/1000000.0) << " ";	//m2 -> km2
+											oss << setprecision(4) << setiosflags(ios::fixed) << dC << " ";
+											oss << setprecision(2) << setiosflags(ios::fixed) << dK << " ";
+											break;
+
+										case 4:
+											break;
+
+										case 5:
+											oss << sStationId << " ";
+											break;
+										}
+
+										oss << pTroncon->PrendreZonesAmont().size();	//upstream rhhu count
+										for(i=0; i!=pTroncon->PrendreZonesAmont().size(); i++)
+											oss << " " << pTroncon->PrendreZonesAmont()[i]->PrendreIdent();	//upstream rhhu id
+
+										if(bOrdreShrevePresent)
+											oss << " " << pTroncon->_iSchreve;
+
+										str = oss.str();
+									}
+
+									vListFile.push_back(str);
+								}
+							}
+
+							file.close();
+
+							if(x < idTroncon)
+								ret = "invalid parameter: <reach id> (" + vStr[0] + ")";
+							else
+							{
+								//save file
+								try{
+								fileOut.open(_troncons.PrendreNomFichier());
+								if(!fileOut.is_open())
+									ret = "error opening file for writing: " + _troncons.PrendreNomFichier();
+								else
+								{
+									for(i=0; i!=vListFile.size(); i++)
+										fileOut << vListFile[i] << endl;
+
+									fileOut.close();
+								}
+								}
+								catch(const exception& ex)
+								{
+									if(fileOut && fileOut.is_open())
+										fileOut.close();
+
+									ret = "exception writing troncon.trl file: ";
+									ret+= ex.what();
+								}
+							}
+						}
+
+						}
+						catch(const exception& ex)
+						{
+							if(file && file.is_open())
+								file.close();
+
+							ret = "exception reading troncon.trl file: ";
+							ret+= ex.what();
+						}
+					}
+				}
+			}
+		}
+
+		return ret;
+	}
+
 
 }

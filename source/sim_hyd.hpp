@@ -273,7 +273,7 @@ namespace HYDROTEL
 		// retourne la liste des corrections
 		CORRECTIONS& PrendreCorrections();
 
-		void Lecture();
+		void Lecture(bool bDisplayInfo = true);
 
 		void SauvegardeSous(std::string repertoire);
 
@@ -294,6 +294,8 @@ namespace HYDROTEL
 		void LectureVersionFichierSim();
 		void CreateSubmodelsVersionsFile();
 		void ReadSubmodelsVersionsFile();
+
+		std::string Command_ChangeReachType(std::string sParameters);
 
 		std::string CreateTronconsTxt();	//create physitel file troncons.txt using informations from .trl file	//those files are needed for manually create physitel project (from hydrotel project data)
 		std::string CreateUhrhTxt();		//create physitel file uhrh.txt from _zones object						//

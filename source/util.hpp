@@ -37,6 +37,11 @@
 namespace HYDROTEL 
 {
 
+	extern std::vector<std::string>		_listLog;
+	
+	void Log(std::string sLog);
+
+
 	//Retourne en decimal degree (sString; coordonnee provenant des fichiers de donnees)
 	double	ParseLatLongCoord(std::string sString, bool bLongitude);
 

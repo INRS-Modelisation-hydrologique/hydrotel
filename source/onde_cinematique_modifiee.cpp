@@ -895,7 +895,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//---------------------------------------------------------------------------------
 	void ONDE_CINEMATIQUE_MODIFIEE::CalculeTroncon(size_t indexTroncon, int t, int dt)
 	{
 		TRONCONS& troncons = _sim_hyd.PrendreTroncons();
@@ -980,7 +980,7 @@ namespace HYDROTEL
 				}
 				else
 				{
-					//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+					//-----------------------------------------------------------
 					//Prélèvements
 					//Pour le cas des troncons de type riviere non milieu humide
 
@@ -1029,7 +1029,7 @@ namespace HYDROTEL
 						if(troncons[indexTroncon]->_prRejetEffluent != 0.0)
 							qamont+= static_cast<float>(troncons[indexTroncon]->_prRejetEffluent);
 					}
-					//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+					//-----------------------------------------------------------
 
 					TransfertRiviere(
 						indexTroncon,
@@ -1095,7 +1095,7 @@ namespace HYDROTEL
 			throw ERREUR("invalid river reach type");
 		}
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 		//Prélèvements
 		//Fichier output test des prélèvements calculés (prelevements_calcule.csv)
 		if(_sim_hyd._pr->_bSimulePrelevements && t == 0)
@@ -1148,7 +1148,7 @@ namespace HYDROTEL
 			//}
 		}
 	
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//--------------------------------------------------------------------------------------------------------------
 		//Prélèvements
 		//Pour le cas des lacs, des rivieres avec milieu humide, des lacs sans laminage et des barrages avec historique
 
@@ -1358,7 +1358,7 @@ namespace HYDROTEL
 				////
 			}
 		}
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------------------------------------------------
 
 		_ocm[indexTroncon].qamont = qamont;
 		_ocm[indexTroncon].qaval = qd;
@@ -1647,7 +1647,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//--------------------------------------------------------------------------------------------------------------------------------------
 	void ONDE_CINEMATIQUE_MODIFIEE::TransfertRiviere(size_t idxTroncon, int pdts, float lng, float lrg, float pte, float man, float qa,
 														float ql,  float qb, float qc, float qm, float& hauteur, float& section, float& qd)
 	{
@@ -1745,7 +1745,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-----------------------------------------------------------------------------------------------------------------------------------------------------------
 	void ONDE_CINEMATIQUE_MODIFIEE::TransfertLac(int dt, float aire, float c, float k, float qa, float ql, float qb, float qc, float qm, float& haut, float& qd)
 	{
 		float fDt, f0, f1;
@@ -2185,7 +2185,7 @@ namespace HYDROTEL
 		}
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Calcul des milieux humides riverains
 	void ONDE_CINEMATIQUE_MODIFIEE::CalculMilieuHumideRiverain(int pdts, size_t index_troncon, TRONCON* pTroncon, MILIEUHUMIDE_RIVERAIN* wetland, float& sur_q, float& qd)
 	{
@@ -2655,7 +2655,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Calcul de la hauteur d'eau dans une section trapézoidale
 	//ManningTiwariEtAl.m (Tiwari et al. (2012))
 	double ONDE_CINEMATIQUE_MODIFIEE::CalculHauteurEauTrapezoidal(double dDischarge, double dLargeur, double dSideSlope, double dManningCoeff, double dLongitudinalSlope)
@@ -2692,7 +2692,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//----------------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Calcul du débit dans une section trapézoidale
 	double ONDE_CINEMATIQUE_MODIFIEE::CalculDebitTrapezoidal(double dProfondeur, double dLargeur, double dSideSlope, double dManningCoeff, double dLongitudinalSlope)
 	{
@@ -2707,7 +2707,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Important: la première hauteur (colonne 2) doit etre 0
 	void ONDE_CINEMATIQUE_MODIFIEE::LectureFichierDebitsHauteurs()
 	{
@@ -2794,7 +2794,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	//Important: la première hauteur (colonne 2) doit etre 0
 	void ONDE_CINEMATIQUE_MODIFIEE::LectureFichierPerimetreMouilleHauteurs()
 	{

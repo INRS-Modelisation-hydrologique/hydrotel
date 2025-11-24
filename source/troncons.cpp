@@ -27,6 +27,7 @@
 #include "erreur.hpp"
 #include "sim_hyd.hpp"
 #include "util.hpp"
+#include "gdal_util.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -111,8 +112,8 @@ namespace HYDROTEL
 		try
 		{
 			bool bAncienneVersionTRL;
-			int type;						//type fichier //1; ancien format, 2; format avec no. ordre shreve a la derniere colonne
-			size_t nb_troncon;
+			int type;						//type fichier //1; ancien format sans no ordre de shreve a la derniere colonne, 2; format avec no ordre de shreve a la derniere colonne
+			size_t nb_troncon;				//le type du fichier (1 ou 2) indique seulement si l'ordre de shreve est inscrit a la fin
 			fichier >> type >> nb_troncon;
 
 			if(bUpdate && type != 2)
@@ -468,6 +469,8 @@ namespace HYDROTEL
 			if (troncon == nullptr)
 				throw ERREUR("river reach id not found");
 
+			troncon->_vCells.push_back(make_pair(colonne, ligne));
+
 			_pixels[code] = troncon;
 			_pRasterTronconId[code] = ident;
 		}
@@ -695,6 +698,96 @@ namespace HYDROTEL
 				}
 			}
 		}
+	}
+
+
+	string TRONCONS::CalculeLongueurTroncons()
+	{
+		double dLongueur, dDistance, dDistanceDiag;
+		ifstream filein;
+		size_t i, j, nbPixel;
+		string str, sErr;
+		int x, y, cx, cy, idTroncon;
+
+		map<int, vector<int>> mapTronconCellX;
+		map<int, vector<int>> mapTronconCellY;
+
+		RASTER<int> ori;
+		COORDONNEE coord;
+
+		sErr = "";
+
+		try{
+		filein.open(PrendreNomFichierPixels(), ios_base::in);
+		if(!filein)
+			sErr = "error opening file: " + PrendreNomFichierPixels();
+		else
+		{
+			//lecture fichier points.rdx
+			filein >> x >> y >> nbPixel;	//header	//nbLigne, nbCol, nbPixel
+
+			for(i=0; i!=nbPixel; i++)
+			{
+				filein >> y >> x >> idTroncon;
+
+				mapTronconCellX[idTroncon].push_back(x);
+				mapTronconCellY[idTroncon].push_back(y);
+			}
+
+			filein.close();
+		}
+		}
+		catch(const exception& ex)
+		{
+			if(filein && filein.is_open())
+				filein.close();
+
+			sErr = "error: exception: ";
+			sErr+= ex.what();
+		}
+
+		if(sErr == "")
+		{
+			dDistance = _pSimHyd->PrendreZones().PrendreResolution();
+			dDistanceDiag = sqrt(dDistance * dDistance * 2.0);
+
+			ori = ReadGeoTIFF_int(_pSimHyd->PrendreZones().PrendreNomFichierOrientation());
+
+			for(i=0; i!=_troncons.size(); i++)
+			{
+				dLongueur = 0.0;
+				
+				for(j=0; j!=mapTronconCellX[_troncons[i]->PrendreIdent()].size()-1; j++)
+				{
+					cx = abs(mapTronconCellX[_troncons[i]->PrendreIdent()][j] - mapTronconCellX[_troncons[i]->PrendreIdent()][j+1]);
+					cy = abs(mapTronconCellY[_troncons[i]->PrendreIdent()][j] - mapTronconCellY[_troncons[i]->PrendreIdent()][j+1]);
+
+					if (cx != 0 && cy != 0)
+						dLongueur+= dDistanceDiag;
+					else
+						dLongueur+= dDistance;
+				}
+
+				x = ori(mapTronconCellY[_troncons[i]->PrendreIdent()][0], mapTronconCellX[_troncons[i]->PrendreIdent()][0]);
+
+				switch(x)	//ajoute la longueur du dernier pixel selon son orientation (le dernier pixel est a la position 0)
+				{
+				case 1:
+				case 3:
+				case 5:
+				case 7:
+					dLongueur+= dDistance;
+					break;
+
+				default:
+					dLongueur+= dDistanceDiag;
+				}
+
+				_troncons[i]->_dLongueur = dLongueur;
+			}
+		}
+
+		return sErr;
 	}
 
 

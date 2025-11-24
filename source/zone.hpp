@@ -293,6 +293,8 @@ namespace HYDROTEL
 		std::vector<double>		_precip_m2;					//precip totale, pour le milieu 2 (feuillus), pour chaque bande de l'uhrh	//mm
 		std::vector<double>		_precip_m3;					//precip totale, pour le milieu 3 (decouvert), pour chaque bande de l'uhrh	//mm
 
+		TYPE_ZONE				_type_zone_original;		//type zone d'origine tel que déterminé lors du montage du projet. provient du fichier uhrh.csv.
+
 	private:
 
 		int			_ident;

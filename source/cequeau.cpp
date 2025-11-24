@@ -151,7 +151,7 @@ namespace HYDROTEL
 		BILAN_VERTICAL::Initialise();
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void CEQUEAU::Calcule()
 	{
 		float frter;              // Frac. du carreau occup‚ par le sol.
@@ -494,7 +494,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//--------------------------------------------------------------------------------------------------------------
 	void CEQUEAU::CalculMilieuHumideIsole(MILIEUHUMIDE_ISOLE* pMilieuHumide, int ident, float hru_ha, 
 											float wet_fr, float evp, float& apport, float& prod, unsigned short pdt)
 	{
@@ -669,7 +669,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void CEQUEAU::LectureParametresFichierGlobal()
 	{
 		ZONES& zones = _sim_hyd.PrendreZones();
@@ -788,7 +788,7 @@ namespace HYDROTEL
 	}
 
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//------------------------------------------------------------------------------------------------
 	void CEQUEAU::LectureMilieuHumideIsole()
 	{
 		ZONES& zones = _sim_hyd.PrendreZones();

@@ -1722,7 +1722,7 @@ namespace HYDROTEL
 
 	}
 
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//-----------------------------------------------------------------------------------------------------------
 	void DEGRE_JOUR_MODIFIE::MiseAJourGrille(size_t index_zone, STATION_NEIGE::typeOccupationStation occupation)
 	{
 		size_t row, col, nbCol;
@@ -1758,7 +1758,7 @@ namespace HYDROTEL
 
 		nbCol = _grilleneige._grilleEquivalentEau[0].PrendreNbColonne();
 		
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------
 		_maj_conifers[index_zone].nb_pas_derniere_correction++;
 
 		for (auto iter2 = begin(_grilleneige._mapPonderation[iIdent]); iter2 != end(_grilleneige._mapPonderation[iIdent]); iter2++)
@@ -1843,7 +1843,7 @@ namespace HYDROTEL
 			}
 		}
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------
 		_maj_feuillus[index_zone].nb_pas_derniere_correction++;
 
 		for (auto iter2 = begin(_grilleneige._mapPonderation[iIdent]); iter2 != end(_grilleneige._mapPonderation[iIdent]); iter2++)
@@ -1930,7 +1930,7 @@ namespace HYDROTEL
 			}
 		}
 
-		//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		//------------------------------------------------------
 		_maj_decouver[index_zone].nb_pas_derniere_correction++;
 
 		for (auto iter2 = begin(_grilleneige._mapPonderation[iIdent]); iter2 != end(_grilleneige._mapPonderation[iIdent]); iter2++)

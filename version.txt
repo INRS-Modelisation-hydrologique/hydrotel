@@ -2,6 +2,16 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.3.6 - 2025-11-24
+
+- Ajout de la commande -modreach (-mr) qui permet de modifier le type des tronçons de rivières. 
+
+- Modification de la commande -log (-l). Le fichier de log généré contient maintenant tous ce qui est affiché à 
+  la console au lieu de contenir seulement les messages d'erreur. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.3.5 - 2025-09-22
 
 - Ajout de validations pour ne pas qu'il y ait de valeurs nodata (pour la période de simulation) dans les données 
