@@ -1,0 +1,73 @@
+
+
+hydrotel [-h/i/g/mr/n/u/v] [<project filename>] [-c/d/lp/r/s] [-t <nb thread>] [-l <log filename>]
+
+
+ <project filename>          Run the simulation currently selected in the project file (*.csv).
+                             USAGE: hydrotel <hydrotel project filename>
+
+ -c (-skipcharvalidation)    Skip validation of input files characters.
+                             USAGE: hydrotel <hydrotel project filename> -c
+
+ -d (-display)               Display simulation progress.
+                             USAGE: hydrotel <hydrotel project filename> -d
+                             This option can slow down the execution time of simulations.
+
+ -g (-hgm)                   Generate hgm file (geomorphological hydrograph).
+                             USAGE: hydrotel -g <hydrotel project filename> <water depth (m)> <new hgm filename> [-t <nb thread>]
+
+ -h (-help)                  Display help.
+                             USAGE: hydrotel -h
+
+ -i (-info)                  Save connectivity and RHHUs informations in the `project-info` folder.
+                             USAGE: hydrotel -i <hydrotel project filename>
+
+ -l (-log)                   Save error messages in the specified file.
+                             USAGE: hydrotel <hydrotel project filename> -l <log filename>
+
+ -lp (-logperformance)       Save detailed program execution times.
+                             USAGE: hydrotel <hydrotel project filename> -lp
+                             Times are expressed in seconds, except in minutes if total duration is greater than 10 minutes.
+                             To force output in seconds, use -lps or -logperformancesec.
+                             To force output in minutes, use -lpm or -logperformancemin.
+
+ -mr (-modreach)             Modify river reach type.
+                             USAGE: hydrotel -mr <reach id> <new reach type> [param] <hydrotel project filename>
+                             Reach types: 1 (river): [param] = <width (m)> <manning coefficient>
+                                          2 (lake): [param] = <length (m)> <area (km2)> <c coefficient> <k coefficient>
+                                          4 (lake without storage)
+                                          5 (reservoir with history): [param] = <hydrological station id>
+                             Use `d` character instead of the parameter value to use default value.
+                             If only one `d` character is specified for [param], all parameters will be set to default values.
+                             Parameters default value: <width> = Physitel default value
+                                                       <manning coefficient> = 0.04
+                                                       <length> = Physitel default value
+                                                       <area> = Physitel default value
+                                                       <c coefficient> = Physitel default value
+                                                       <k coefficient> = 1.5
+                             Ex: hydrotel -mr 10 1 100.25 0.06 /projectfolder/projectfile.csv
+                                 hydrotel -mr 10 1 100.25 d "/project folder/project file.csv"
+                                 hydrotel -mr 10 1 d "/project folder/project file.csv"
+
+ -n (-new)                   Creation of a new Hydrotel project from a Physitel dataset.
+                             USAGE: hydrotel -n <input physitel dataset folder> <output hydrotel folder>
+
+ -r (-autoreversetemp)       Input weather data: automatically reverse inverted minimum and
+                             maximum temperature values (not modifying source dataset).
+                             USAGE: hydrotel <hydrotel project filename> -r
+
+ -s (-skipinterpolation)     Skip interpolation of missing weather data at stations level.
+                             USAGE: hydrotel <hydrotel project filename> -s
+                             This option can be used to speed up the initialization step of a
+                             simulation when there is no missing data in source weather dataset.
+
+ -t (-thread)                Number of threads to use for hgm computation.
+                             USAGE: hydrotel [-g] <hydrotel project filename> [...] -t <nb thread>
+                             <nb thread> value of 0 will use the maximum number of available threads.
+
+ -u (-update)                Update an older 2.6 (v47 ou V49) Hydrotel project to the current version.
+                             USAGE: hydrotel -u <prj filename> <new project folder>
+
+ -v (-version)               Display version informations.
+                             USAGE: hydrotel -v
+
