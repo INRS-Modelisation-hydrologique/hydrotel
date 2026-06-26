@@ -2,6 +2,14 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.3.7 - 2026-06-26
+
+- Correction des unités de temps dans les fichiers de sortie au format NetCDF lorsque la période de simulation est 
+  antérieure au 13/12/1902 ou postérieure au 18/01/2038. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.3.6 - 2025-11-24
 
 - Ajout de la commande -modreach (-mr) qui permet de modifier le type des tronçons de rivières. 
