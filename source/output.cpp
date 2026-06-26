@@ -589,6 +589,9 @@ namespace HYDROTEL
 		int dimidsVar[2];
 		int ret, iNcid, iDimID, iDimTimeID, iVarID, iElemID, iTimeID;
 
+		std::vector<size_t> start = {0};
+		std::vector<size_t> count = {_sim_hyd->_lNbPasTempsSim};
+
 		if(FichierExiste(sPathFile))
 			SupprimerFichier(sPathFile);
 
@@ -613,13 +616,14 @@ namespace HYDROTEL
 
 		if(_timeVectorEpoch == NULL)
 		{
-			int step, currentdate;
+			long long currentdate;
+			int step;
 			size_t x;
 
 			step = _sim_hyd->_pas_de_temps * 60;	//minutes
-			currentdate = static_cast<int>(_sim_hyd->_date_debut.EpochTime() / 60.0);	//minutes since 1970/01/01
+			currentdate = _sim_hyd->_date_debut.EpochTime() / 60;	//minutes since 1970/01/01
 			
-			_timeVectorEpoch = new int[_sim_hyd->_lNbPasTempsSim];
+			_timeVectorEpoch = new long long[_sim_hyd->_lNbPasTempsSim];
 			for(x=0; x<_sim_hyd->_lNbPasTempsSim; x++)
 			{
 				_timeVectorEpoch[x] = currentdate;
@@ -699,7 +703,7 @@ namespace HYDROTEL
 		//time
 		dimidsTime[0] = iDimTimeID;
 
-		ret = nc_def_var(iNcid, "time", NC_INT, 1, dimidsTime, &iTimeID);
+		ret = nc_def_var(iNcid, "time", NC_INT64, 1, dimidsTime, &iTimeID);
 		if (ret != NC_NOERR)
 			return "error creating file: " + sPathFile + ": error 8"; 
 		
@@ -745,7 +749,7 @@ namespace HYDROTEL
 		if (ret != NC_NOERR)
 			return "error creating file: " + sPathFile + ": error 16";
 
-		ret = nc_put_var_int(iNcid, iTimeID, _timeVectorEpoch);
+		ret = nc_put_vara_longlong(iNcid, iTimeID, start.data(), count.data(), _timeVectorEpoch);
 		if (ret != NC_NOERR)
 			return "error creating file: " + sPathFile + ": error 17";
 

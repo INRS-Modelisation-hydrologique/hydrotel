@@ -54,7 +54,7 @@ namespace HYDROTEL
 		unsigned short PrendreJourJulien() const;
 
 		/// retourne unix epoch time value	//[secondes]	//le fuseau horaire n'est pas pris en compte
-		int EpochTime() const;
+		long long EpochTime() const;
 
 		/// retourne la difference en nombre de jour avec date_heure
 		int NbJourEntre(const DATE_HEURE& date_heure) const;

@@ -98,9 +98,12 @@ namespace HYDROTEL
 	}
 
 
-	int DATE_HEURE::EpochTime() const
+	long long DATE_HEURE::EpochTime() const
 	{
-		return (_date - boost::gregorian::date(1970, 1, 1)).days() * 24 * 60 * 60 + (_heure * 60 * 60);
+		long long ret = (_date - boost::gregorian::date(1970, 1, 1)).days();
+		
+		ret*= 24 * 60 * 60 + (_heure * 60 * 60);
+		return ret;
 	}
 
 

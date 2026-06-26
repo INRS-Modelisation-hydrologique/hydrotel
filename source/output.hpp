@@ -168,7 +168,7 @@ namespace HYDROTEL
 		bool				_bOutputUhrhVar;
 		bool				_bOutputTronconVar;
 
-		int*				_timeVectorEpoch; 
+		long long*			_timeVectorEpoch; 
 		
 		size_t				_uhrhOutputNb; 
 		size_t*				_uhrhOutputIndex;
