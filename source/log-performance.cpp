@@ -44,6 +44,7 @@ namespace HYDROTEL
 		_nbSecBilanVertical = 0.0;
 		_nbSecRuissellement = 0.0;
 		_nbSecAcheminement = 0.0;
+		_nbSecTempEau = 0.0;
 	}
 
 
@@ -237,6 +238,13 @@ namespace HYDROTEL
 			{
 				oss.str("");
 				oss << "   Flow in the network (routing):   " << GetTimeValueString(_nbSecAcheminement) << ".";
+				file << oss.str() << endl;
+			}
+
+			if(_nbSecTempEau != 0.0)
+			{
+				oss.str("");
+				oss << "   Water temperature:   " << GetTimeValueString(_nbSecTempEau) << ".";
 				file << oss.str() << endl;
 			}
 

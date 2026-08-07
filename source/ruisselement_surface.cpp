@@ -264,147 +264,150 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_sim_hyd.PrendreOutput()._ecoulement_surf)
+		if(!_sim_hyd._pModeLecture || !( (_sim_hyd._pModeLecture->_iVarMode == 3 || _sim_hyd._pModeLecture->_iVarMode == 4) && _sim_hyd._pModeLecture->_iDimMode == 4 ))	//la sauvegarde par UHRH ne peut etre effectuer si les donnees ont été fournies par troncon
 		{
-			ZONES& zones = _sim_hyd.PrendreZones();
-
-			if (_netCdf_ecoulement_surf != NULL)
+			if (_sim_hyd.PrendreOutput()._ecoulement_surf)
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+				ZONES& zones = _sim_hyd.PrendreZones();
 
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_ecoulement_surf[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._ecoulementSurf;
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-
-				oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
-
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_netCdf_ecoulement_surf != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_ecoulement_surf[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._ecoulementSurf;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+
+					oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
+
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
-							find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index]._ecoulementSurf << _sim_hyd.PrendreOutput().Separator();
+							if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
+								find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+							{
+								oss << zones[index]._ecoulementSurf << _sim_hyd.PrendreOutput().Separator();
+							}
 						}
 					}
+
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_ecoulement_surf << str << endl;
 				}
-
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_ecoulement_surf << str << endl;
 			}
-		}
 
-		if (_sim_hyd.PrendreOutput()._ecoulement_hypo)
-		{
-			ZONES& zones = _sim_hyd.PrendreZones();
-
-			if (_netCdf_ecoulement_hypo != NULL)
+			if (_sim_hyd.PrendreOutput()._ecoulement_hypo)
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+				ZONES& zones = _sim_hyd.PrendreZones();
 
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_ecoulement_hypo[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._ecoulementHypo;
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-
-				oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
-
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_netCdf_ecoulement_hypo != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_ecoulement_hypo[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._ecoulementHypo;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+
+					oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
+
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
-							find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index]._ecoulementHypo << _sim_hyd.PrendreOutput().Separator();
+							if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
+								find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+							{
+								oss << zones[index]._ecoulementHypo << _sim_hyd.PrendreOutput().Separator();
+							}
 						}
 					}
+
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_ecoulement_hypo << str << endl;
 				}
-
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_ecoulement_hypo << str << endl;
 			}
-		}
 
-		if (_sim_hyd.PrendreOutput()._ecoulement_base)
-		{
-			ZONES& zones = _sim_hyd.PrendreZones();
-
-			if (_netCdf_ecoulement_base != NULL)
+			if (_sim_hyd.PrendreOutput()._ecoulement_base)
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+				ZONES& zones = _sim_hyd.PrendreZones();
 
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_ecoulement_base[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._ecoulementBase;
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-
-				oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
-
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_netCdf_ecoulement_base != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_ecoulement_base[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._ecoulementBase;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+
+					oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
+
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
-							find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index]._ecoulementBase << _sim_hyd.PrendreOutput().Separator();
+							if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
+								find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+							{
+								oss << zones[index]._ecoulementBase << _sim_hyd.PrendreOutput().Separator();
+							}
 						}
 					}
+
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_ecoulement_base << str << endl;
 				}
-
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_ecoulement_base << str << endl;
 			}
-		}
 
-		if (_sim_hyd.PrendreOutput()._apport_lateral_uhrh)
-		{
-			ZONES& zones = _sim_hyd.PrendreZones();
-
-			if (_netCdf_apport_lateral_uhrh != NULL)
+			if (_sim_hyd.PrendreOutput()._apport_lateral_uhrh)
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+				ZONES& zones = _sim_hyd.PrendreZones();
 
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_apport_lateral_uhrh[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._apport_lateral_uhrh;
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-
-				oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
-
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_netCdf_apport_lateral_uhrh != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_apport_lateral_uhrh[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._apport_lateral_uhrh;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+
+					oss << _sim_hyd.PrendreDateCourante() << _sim_hyd.PrendreOutput().Separator() << setprecision(_sim_hyd.PrendreOutput()._nbDigit_m3s) << setiosflags(ios::fixed);
+
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
-							find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index]._apport_lateral_uhrh << _sim_hyd.PrendreOutput().Separator();
+							if (_sim_hyd.PrendreOutput()._bSauvegardeTous || 
+								find(begin(_sim_hyd.PrendreOutput()._vIdTronconSelect), end(_sim_hyd.PrendreOutput()._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(_sim_hyd.PrendreOutput()._vIdTronconSelect))
+							{
+								oss << zones[index]._apport_lateral_uhrh << _sim_hyd.PrendreOutput().Separator();
+							}
 						}
 					}
-				}
 
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_apport_lateral_uhrh << str << endl;
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_apport_lateral_uhrh << str << endl;
+				}
 			}
 		}
 	}

@@ -509,7 +509,7 @@ namespace HYDROTEL
 		if(rZones.PrendreNbColonne() != altitudes.PrendreNbColonne() || rZones.PrendreNbLigne() != altitudes.PrendreNbLigne() || 
 			rZones.PrendreCoordonnee().PrendreX() != altitudes.PrendreCoordonnee().PrendreX() || rZones.PrendreCoordonnee().PrendreY() != altitudes.PrendreCoordonnee().PrendreY())
 		{
-			throw ERREUR("Error: inconsistency between rhhu and elevation matrix.");
+			throw ERREUR("Error: inconsistency between RHHU and elevation matrix.");
 		}
 
 		size_t szlig, szcol;

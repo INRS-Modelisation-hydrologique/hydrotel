@@ -43,6 +43,7 @@ namespace HYDROTEL
 	{
 		_pSim_hyd = &sim_hyd;
 		_ponderation2 = nullptr;
+		_ponderationTroncon2 = nullptr;
 
 		_gradient_station_temp = -0.5f;		//default values
 		_gradient_station_precip = 0.5f;	//
@@ -102,11 +103,24 @@ namespace HYDROTEL
 	{
 		if(_ponderation2)
 			delete [] _ponderation2;
+		if(_ponderationTroncon2)
+			delete [] _ponderationTroncon2;
 
 		if (!LecturePonderation())
 		{
 			CalculePonderation();
 			SauvegardePonderation();
+		}
+
+		if(_sim_hyd._bInterpolationMeteoTroncon)
+		{
+			if(!LecturePonderationTroncon())
+			{
+				CalculePonderationTroncon();
+				SauvegardePonderationTroncon();
+			}
+
+			_sim_hyd.PrendreTroncons().CalculeAltitudeTroncons();
 		}
 
 		_sim_hyd.PrendreStationsMeteo().LectureDonnees_v2(
@@ -123,6 +137,9 @@ namespace HYDROTEL
 		RepartieDonnees();
 		PassagePluieNeige();
 
+		if(_sim_hyd._bInterpolationMeteoTroncon)
+			RepartieDonneesTroncon();
+
 		INTERPOLATION_DONNEES::Calcule();
 	}
 
@@ -131,6 +148,9 @@ namespace HYDROTEL
 	{
 		if(_ponderation2)
 			delete [] _ponderation2;
+
+		if(_ponderationTroncon2)
+			delete [] _ponderationTroncon2;
 
 		INTERPOLATION_DONNEES::Termine();
 	}
@@ -259,6 +279,102 @@ namespace HYDROTEL
 			pZone->ChangeTemperatureJournaliere(tmin_jour, tmax_jour);
 			pZone->ChangePluie(pluie);
 			pZone->ChangeNeige(neige);
+		}
+	}
+
+
+	void THIESSEN2::RepartieDonneesTroncon()
+	{
+		TRONCONS& troncons = _sim_hyd.PrendreTroncons();
+		STATIONS_METEO& stations_meteo = _sim_hyd.PrendreStationsMeteo();
+
+		DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
+		unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
+
+		vector<size_t> index_troncons = _sim_hyd.PrendreTronconsSimules();
+
+		std::pair<float, float> temp_jour;
+		DONNEE_METEO donnee_station;
+		STATION_METEO* pStation;
+		TRONCON* pTroncon;
+		size_t nbStation, nbStationTotal, index_station, index, index_troncon;
+		float ponderation, tmin, tmax, tmin_jour, tmax_jour, altStation, diff_alt;
+		float tmin_station, tmax_station, tmin_jour_station, tmax_jour_station;
+
+		nbStationTotal = stations_meteo.PrendreNbStation();		
+
+		for (index = 0; index < _pondIndexTroncon.size(); index++)
+		{
+			index_troncon = _pondIndexTroncon[index];
+
+			pTroncon = troncons[index_troncon];
+
+			tmin = VALEUR_MANQUANTE;
+			tmax = VALEUR_MANQUANTE;
+			tmin_jour = VALEUR_MANQUANTE;
+			tmax_jour = VALEUR_MANQUANTE;
+
+			nbStation = _pondIndexStationsTr[index].size();
+			for (index_station = 0; index_station < nbStation; index_station++)
+			{
+				ponderation = static_cast<float>(_ponderationTroncon2[index_troncon * nbStationTotal + _pondIndexStationsTr[index][index_station]]);
+				pStation = static_cast<STATION_METEO*>(stations_meteo[_pondIndexStationsTr[index][index_station]]);
+
+				altStation = static_cast<float>(pStation->PrendreCoordonnee().PrendreZ());
+				diff_alt = pTroncon->_altitude - altStation;
+
+				donnee_station = pStation->PrendreDonnees(date_courante, pas_de_temps);
+
+				tmin_station = donnee_station.PrendreTMin();
+				if (tmin_station > VALEUR_MANQUANTE)
+				{
+					if (tmin == VALEUR_MANQUANTE)
+						tmin = 0.0f;
+
+					tmin += (tmin_station + PrendreGradientTemperature(index_troncon) * diff_alt / 100.0f) * ponderation;
+				}
+
+				tmax_station = donnee_station.PrendreTMax();
+				if (tmax_station > VALEUR_MANQUANTE)
+				{
+					if (tmax == VALEUR_MANQUANTE)
+						tmax = 0.0f;
+
+					tmax += (tmax_station + PrendreGradientTemperature(index_troncon) * diff_alt / 100.0f) * ponderation;
+				}
+
+
+				temp_jour = pStation->PrendreTemperatureJournaliere(date_courante);
+
+				tmin_jour_station = temp_jour.first;
+				if (tmin_jour_station > VALEUR_MANQUANTE)
+				{
+					if (tmin_jour == VALEUR_MANQUANTE)
+						tmin_jour = 0.0f;
+
+					tmin_jour += (tmin_jour_station + PrendreGradientTemperature(index_troncon) * diff_alt / 100.0f) * ponderation;
+				}
+
+				tmax_jour_station = temp_jour.second;
+				if (tmax_jour_station > VALEUR_MANQUANTE)
+				{
+					if (tmax_jour == VALEUR_MANQUANTE)
+						tmax_jour = 0.0f;
+
+					tmax_jour += (tmax_jour_station + PrendreGradientTemperature(index_troncon) * diff_alt / 100.0f) * ponderation;
+				}
+			}
+
+			if ( tmin == VALEUR_MANQUANTE || tmax == VALEUR_MANQUANTE || tmin_jour == VALEUR_MANQUANTE || tmax_jour == VALEUR_MANQUANTE)
+			{
+				ostringstream oss;
+				oss.str("");
+				oss << "Erreur interpolation donnees meteo: aucune donnees disponible pour uhrh " << pTroncon->PrendreIdent() << ", " << date_courante.PrendreAnnee() << "/" << date_courante.PrendreMois() << "/" << date_courante.PrendreJour() << ".";
+				throw ERREUR(oss.str());
+			}
+
+			pTroncon->ChangeTemperature(tmin, tmax);
+			pTroncon->ChangeTemperatureJournaliere(tmin_jour, tmax_jour);
 		}
 	}
 
@@ -393,6 +509,12 @@ namespace HYDROTEL
 
 		for (ligne = 0; ligne < zones.PrendreNbZone(); ++ligne)
 		{
+			if(fichier.eof())
+			{
+				fichier.close();
+				return false;
+			}
+
 			fichier >> ident_zone;
 
 			if (zones.Recherche(ident_zone) == nullptr)
@@ -438,6 +560,121 @@ namespace HYDROTEL
 	{
 		return LecturePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation);
 	}
+
+
+	bool THIESSEN2::LecturePonderationTroncon(STATIONS& stations, TRONCONS& troncons, MATRICE<double>& ponderation)
+	{
+		STATION* station;
+		vector<size_t> indexStation;
+		double x, y, z;
+		size_t idxTroncon, index;
+		string ident;
+		bool bSimule;
+		int ident_troncon;
+
+		string nom_fichier = RemplaceExtension(stations.PrendreNomFichier(), "pth");
+		nom_fichier.insert(nom_fichier.length()-4, "-troncon");
+
+		if (!FichierExiste(nom_fichier))
+			return false;
+
+		ifstream fichier(nom_fichier);
+
+		if (!fichier)
+			throw ERREUR_LECTURE_FICHIER(nom_fichier);
+
+		size_t nb_station, ligne, colonne;
+		fichier >> nb_station;
+
+		fichier.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+		if (nb_station != stations.PrendreNbStation())
+		{
+			fichier.close();
+			return false;
+		}
+
+		for (index = 0; index < nb_station; ++index)
+		{
+			fichier >> ident >> x >> y >> z;
+
+			station = stations.Recherche(ident);
+			if (station == nullptr)
+			{
+				fichier.close();
+				return false;
+			}
+
+			if (!AlmostEqual(x, station->PrendreCoordonnee().PrendreX(), 0.0001) ||
+				!AlmostEqual(y, station->PrendreCoordonnee().PrendreY(), 0.0001) ||
+				!AlmostEqual(z, station->PrendreCoordonnee().PrendreZ(), 0.0001))
+			{
+				fichier.close();
+				return false;
+			}
+		}
+
+		MATRICE<double> pond(troncons.PrendreNbTroncon(), stations.PrendreNbStation(), 0.0);
+		vector<size_t> idxTronconSim = _pSim_hyd->PrendreTronconsSimules();
+
+		_pondIndexTroncon.clear();
+		_pondIndexStationsTr.clear();
+		_ponderationTroncon2 = new double[troncons.PrendreNbTroncon() * nb_station];
+
+		for (ligne = 0; ligne < troncons.PrendreNbTroncon(); ++ligne)
+		{
+			if(fichier.eof())
+			{
+				fichier.close();
+				return false;
+			}
+
+			fichier >> ident_troncon;
+
+			if (troncons.RechercheTroncon(ident_troncon) == nullptr)
+			{
+				fichier.close();
+				return false;
+			}
+
+			idxTroncon = troncons.IdentVersIndex(ident_troncon);
+
+			if (find(begin(idxTronconSim), end(idxTronconSim), idxTroncon) != end(idxTronconSim))
+			{
+				bSimule = true;
+				indexStation.clear();
+			}
+			else
+				bSimule = false;
+
+			for (colonne = 0; colonne < nb_station; ++colonne)
+			{
+				fichier >> pond(ligne, colonne);
+
+				_ponderationTroncon2[ligne * nb_station + colonne] = pond(ligne, colonne);
+
+				if (bSimule && pond(ligne, colonne) != 0.0)
+					indexStation.push_back(colonne);
+			}
+
+			if (bSimule)
+			{
+				_pondIndexTroncon.push_back(idxTroncon);
+				_pondIndexStationsTr.push_back(indexStation);
+			}
+		}
+
+		fichier.close();
+
+		ponderation = pond;
+		return true;
+	}
+
+
+	bool THIESSEN2::LecturePonderationTroncon()
+	{
+		return LecturePonderationTroncon(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreTroncons(), _ponderationTroncon);
+	}
 	
 	
 	void THIESSEN2::SauvegardePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation)
@@ -475,10 +712,55 @@ namespace HYDROTEL
 
 		fichier.close();
 	}
+
 	
 	void THIESSEN2::SauvegardePonderation()
 	{
 		SauvegardePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation);
+	}
+
+
+	void THIESSEN2::SauvegardePonderationTroncon(STATIONS& stations, TRONCONS& troncons, MATRICE<double>& ponderation)
+	{
+		string nom_fichier = RemplaceExtension(stations.PrendreNomFichier(), "pth");
+		nom_fichier.insert(nom_fichier.length()-4, "-troncon");
+
+		ofstream fichier(nom_fichier);
+		if (!fichier)
+			throw ERREUR_ECRITURE_FICHIER(nom_fichier);
+
+		const size_t nb_station = stations.PrendreNbStation();
+
+		fichier << nb_station << endl;
+
+		for (size_t index = 0; index < nb_station; ++index)
+		{
+			COORDONNEE coordonnee = stations[index]->PrendreCoordonnee();
+
+			fichier << fixed
+				<< stations[index]->PrendreIdent() << ' '
+				<< coordonnee.PrendreX() << ' '
+				<< coordonnee.PrendreY() << ' '
+				<< coordonnee.PrendreZ() << endl;
+		}
+
+		for (size_t index = 0; index < troncons.PrendreNbTroncon(); ++index)
+		{
+			fichier << troncons[index]->PrendreIdent() << ' ';
+
+			for (size_t n = 0; n < nb_station; ++n)
+				fichier << ponderation(index, n) << ' ';
+
+			fichier << endl;
+		}
+
+		fichier.close();
+	}
+
+
+	void THIESSEN2::SauvegardePonderationTroncon()
+	{
+		SauvegardePonderationTroncon(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreTroncons(), _ponderationTroncon);
 	}
 	
 	
@@ -527,13 +809,13 @@ namespace HYDROTEL
 		//nbPixelTotal = nb_ligne * nb_colonne;
 		//pixelEnCours = 0;
 
-		std::cout << endl << "Computing stations/rhhu weightings (thiessen) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
-		_listLog.push_back("Computing stations/rhhu weightings (thiessen) (" + sOrigin + ")...   " + GetCurrentTimeStr());
+		std::cout << endl << "Computing stations/RHHU weightings (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Computing stations/RHHU weightings (" + sOrigin + ")...   " + GetCurrentTimeStr());
 
 		//std::cout << endl << "pixel " << pixelEnCours << "/" << nbPixelTotal << '\r' << std::flush;
 		
 		if(_pSim_hyd->_bLogPerf)
-			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (thiessen)");
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/RHHU weightings (thiessen)");
 
 		for (ligne=0; ligne!=nb_ligne; ligne++)
 		{
@@ -592,9 +874,112 @@ namespace HYDROTEL
 			_pSim_hyd->_logPerformance.AddStep("Completed");
 	}
 
+
 	void THIESSEN2::CalculePonderation()
 	{
 		CalculePonderation(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreZones(), _ponderation, "THIESSEN2");
+	}
+
+
+	void THIESSEN2::CalculePonderationTroncon(STATIONS& stations, TRONCONS& troncons, MATRICE<double>& ponderationTroncon, std::string sOrigin)
+	{
+		vector<double> tronconPondValue;
+
+		size_t nbStation = stations.PrendreNbStation();
+		size_t nbTroncon = troncons.PrendreNbTroncon();
+
+		bool bSimule;
+		size_t t, idxNearestStation, i, j, k;
+		int x, y;
+		ZONES& zones = _sim_hyd.PrendreZones();
+		const RASTER<int>& grille = zones.PrendreGrille();
+
+		TRANSFORME_COORDONNEE trans_coord(stations.PrendreProjection(), grille.PrendreProjection());
+
+		COORDONNEE coordonnee;
+
+		vector<size_t> idxTronconSim = _pSim_hyd->PrendreTronconsSimules();
+		vector<size_t> indexStation;
+
+		_pondIndexTroncon.clear();
+		_pondIndexStationsTr.clear();
+
+		_ponderationTroncon2 = new double[troncons.PrendreNbTroncon() * nbStation];
+
+		if (nbStation < 1)
+			throw ERREUR("Error: THIESSEN: there must be at least 1 weather station available.");
+
+		// Coordonnées des stations
+		vector<COORDONNEE> coordStations(nbStation);
+		for ( i = 0; i < nbStation; i++)
+			coordStations[i] = trans_coord.TransformeXYZ(stations[i]->PrendreCoordonnee());
+
+		// Initialisation de la matrice de pondération
+		MATRICE<double> pond(nbTroncon, nbStation, 0.0);
+
+		std::cout << endl << "Computing stations/river reach weightings (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+
+		if(_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/river reach weightings (avg3s)");
+
+		tronconPondValue.resize(nbTroncon, 0.0);
+
+		// Pour chaque tronçon, trouver la station la plus proche
+		for ( t = 0; t < nbTroncon; t++)
+		{
+			tronconPondValue[t] = 1.0 / troncons[t]->_vCells.size();
+
+			for (i = 0; i < troncons[t]->_vCells.size(); ++i) 
+			{
+				x = static_cast<int>(troncons[t]->_vCells[i].first);
+				y = static_cast<int>(troncons[t]->_vCells[i].second);
+
+				coordonnee = grille.LigColVersCoordonnee(y, x);
+				idxNearestStation = GetIndexNearestCoord(coordStations, coordonnee);
+
+				pond(t, idxNearestStation)+= tronconPondValue[t];
+			}
+		}
+
+		// Résultat
+
+		for (k = 0; k != pond.PrendreNbLigne(); k++)
+		{
+			if (find(begin(idxTronconSim), end(idxTronconSim), k) != end(idxTronconSim))
+			{
+				bSimule = true;
+				indexStation.clear();
+			}
+			else
+				bSimule = false;
+
+			for (j = 0; j < pond.PrendreNbColonne(); j++)
+			{
+				//pond(k, j)/= zones[k].PrendreNbPixel();
+
+				_ponderationTroncon2[k * nbStation + j] = pond(k, j);
+
+				if (bSimule && pond(k, j) != 0.0)
+					indexStation.push_back(j);
+			}
+
+			if (bSimule)
+			{
+				_pondIndexTroncon.push_back(k);
+				_pondIndexStationsTr.push_back(indexStation);
+			}
+		}
+
+		ponderationTroncon = pond;
+
+		if (_pSim_hyd->_bLogPerf)
+			_pSim_hyd->_logPerformance.AddStep("Completed (troncon weighting)");
+	}
+
+
+	void THIESSEN2::CalculePonderationTroncon()
+	{
+		CalculePonderationTroncon(_sim_hyd.PrendreStationsMeteo(), _sim_hyd.PrendreTroncons(), _ponderationTroncon, "THIESSEN2");
 	}
 
 
@@ -721,7 +1106,7 @@ namespace HYDROTEL
 				else
 				{
 					if(vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide THIESSEN.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count THIESSEN.");
 
 					x = 0;
 
@@ -751,7 +1136,7 @@ namespace HYDROTEL
 					if(vValeur.size() != 4)
 					{
 						fichier.close();
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide THIESSEN.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count THIESSEN.");
 					}
 
 					fVal = static_cast<float>(x);

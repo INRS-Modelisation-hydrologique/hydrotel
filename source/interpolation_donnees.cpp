@@ -112,25 +112,28 @@ namespace HYDROTEL
 				}
 			}
 
-			if (output.SauvegardePluie())
+			if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
 			{
-				if (_sim_hyd._outputCDF)
-					_netCdf_pluie = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-				else
+				if (output.SauvegardePluie())
 				{
-					_fichier_pluie.open( Combine(_sim_hyd.PrendreRepertoireResultat(), "pluie.csv") );
-					_fichier_pluie << "Précipitation pluie (mm);" << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )"<< endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
+					if (_sim_hyd._outputCDF)
+						_netCdf_pluie = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+					else
+					{
+						_fichier_pluie.open( Combine(_sim_hyd.PrendreRepertoireResultat(), "pluie.csv") );
+						_fichier_pluie << "Précipitation pluie (mm);" << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )"<< endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
+					}
 				}
-			}
 
-			if (output.SauvegardeNeige())
-			{
-				if (_sim_hyd._outputCDF)
-					_netCdf_neige = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-				else
+				if (output.SauvegardeNeige())
 				{
-					_fichier_neige.open( Combine(_sim_hyd.PrendreRepertoireResultat(), "neige.csv") );
-					_fichier_neige << "Précipitation neige (EEN) (mm);" << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )"<< endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
+					if (_sim_hyd._outputCDF)
+						_netCdf_neige = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+					else
+					{
+						_fichier_neige.open( Combine(_sim_hyd.PrendreRepertoireResultat(), "neige.csv") );
+						_fichier_neige << "Précipitation neige (EEN) (mm);" << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )"<< endl << "date heure\\uhrh" << _sim_hyd.PrendreOutput().Separator();
+					}
 				}
 			}
 
@@ -163,11 +166,14 @@ namespace HYDROTEL
 							if (output.SauvegardeTMax())
 								oss2 << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
 
-							if (output.SauvegardePluie())
-								oss3 << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
+							if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
+							{
+								if (output.SauvegardePluie())
+									oss3 << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
 
-							if (output.SauvegardeNeige())
-								oss4 << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
+								if (output.SauvegardeNeige())
+									oss4 << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
+							}
 
 							if (output.SauvegardeTMinJour())
 								oss5 << zones[index].PrendreIdent() << _sim_hyd.PrendreOutput().Separator();
@@ -192,18 +198,21 @@ namespace HYDROTEL
 					_fichier_tmax << str << endl;
 				}
 
-				if (output.SauvegardePluie())
+				if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
 				{
-					str = oss3.str();
-					str = str.substr(0, str.length()-1); //enleve le dernier separateur
-					_fichier_pluie << str << endl;
-				}
+					if (output.SauvegardePluie())
+					{
+						str = oss3.str();
+						str = str.substr(0, str.length()-1); //enleve le dernier separateur
+						_fichier_pluie << str << endl;
+					}
 
-				if (output.SauvegardeNeige())
-				{
-					str = oss4.str();
-					str = str.substr(0, str.length()-1); //enleve le dernier separateur
-					_fichier_neige << str << endl;
+					if (output.SauvegardeNeige())
+					{
+						str = oss4.str();
+						str = str.substr(0, str.length()-1); //enleve le dernier separateur
+						_fichier_neige << str << endl;
+					}
 				}
 
 				if (output.SauvegardeTMinJour())
@@ -286,11 +295,14 @@ namespace HYDROTEL
 				if (output.SauvegardeTMax())
 					_fichier_tmax << date_courante << _sim_hyd.PrendreOutput().Separator();
 
-				if (output.SauvegardePluie())
-					_fichier_pluie << date_courante << _sim_hyd.PrendreOutput().Separator();
+				if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
+				{
+					if (output.SauvegardePluie())
+						_fichier_pluie << date_courante << _sim_hyd.PrendreOutput().Separator();
 
-				if (output.SauvegardeNeige())
-					_fichier_neige << date_courante << _sim_hyd.PrendreOutput().Separator();
+					if (output.SauvegardeNeige())
+						_fichier_neige << date_courante << _sim_hyd.PrendreOutput().Separator();
+				}
 
 				if (output.SauvegardeTMinJour())
 					_fichier_tmin_jour << date_courante << _sim_hyd.PrendreOutput().Separator();
@@ -331,29 +343,32 @@ namespace HYDROTEL
 						oss2 << oss.str() << _sim_hyd.PrendreOutput().Separator();
 					}
 	
-					if (output.SauvegardePluie())
+					if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
 					{
-						oss.str("");
-						oss << setprecision(_sim_hyd.PrendreOutput()._nbDigit_mm_interpolation) << setiosflags(ios::fixed) << zones[index].PrendrePluie();
-						oss3 << oss.str() << _sim_hyd.PrendreOutput().Separator();
-					}
-			
-					if (output.SauvegardeNeige())
-					{
-						//transforme la neige en equivalent en eau
-						if (pas_de_temps == 1)
-							densite = CalculDensiteNeige(zones[index].PrendreTMin()) / DENSITE_EAU;
-						else
+						if (output.SauvegardePluie())
 						{
-							tmoy = (zones[index].PrendreTMax() + zones[index].PrendreTMin()) / 2.0f;
-							densite = CalculDensiteNeige(tmoy) / DENSITE_EAU;
+							oss.str("");
+							oss << setprecision(_sim_hyd.PrendreOutput()._nbDigit_mm_interpolation) << setiosflags(ios::fixed) << zones[index].PrendrePluie();
+							oss3 << oss.str() << _sim_hyd.PrendreOutput().Separator();
 						}
+			
+						if (output.SauvegardeNeige())
+						{
+							//transforme la neige en equivalent en eau
+							if (pas_de_temps == 1)
+								densite = CalculDensiteNeige(zones[index].PrendreTMin()) / DENSITE_EAU;
+							else
+							{
+								tmoy = (zones[index].PrendreTMax() + zones[index].PrendreTMin()) / 2.0f;
+								densite = CalculDensiteNeige(tmoy) / DENSITE_EAU;
+							}
 
-						neige = zones[index].PrendreNeige() * densite;
+							neige = zones[index].PrendreNeige() * densite;
 
-						oss.str("");
-						oss << setprecision(_sim_hyd.PrendreOutput()._nbDigit_mm_interpolation) << setiosflags(ios::fixed) << neige;
-						oss4 << oss.str() << _sim_hyd.PrendreOutput().Separator();
+							oss.str("");
+							oss << setprecision(_sim_hyd.PrendreOutput()._nbDigit_mm_interpolation) << setiosflags(ios::fixed) << neige;
+							oss4 << oss.str() << _sim_hyd.PrendreOutput().Separator();
+						}
 					}
 
 					if (output.SauvegardeTMinJour())
@@ -385,18 +400,21 @@ namespace HYDROTEL
 					_fichier_tmax << str << endl;
 				}
 
-				if (output.SauvegardePluie())
+				if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
 				{
-					str = oss3.str();
-					str = str.substr(0, str.length()-1); //enleve le dernier separateur
-					_fichier_pluie << str << endl;
-				}
+					if (output.SauvegardePluie())
+					{
+						str = oss3.str();
+						str = str.substr(0, str.length()-1); //enleve le dernier separateur
+						_fichier_pluie << str << endl;
+					}
 
-				if (output.SauvegardeNeige())
-				{
-					str = oss4.str();
-					str = str.substr(0, str.length()-1); //enleve le dernier separateur
-					_fichier_neige << str << endl;
+					if (output.SauvegardeNeige())
+					{
+						str = oss4.str();
+						str = str.substr(0, str.length()-1); //enleve le dernier separateur
+						_fichier_neige << str << endl;
+					}
 				}
 
 				if (output.SauvegardeTMinJour())
@@ -459,38 +477,41 @@ namespace HYDROTEL
 					_fichier_tmax.close();
 			}
 
-			if (output.SauvegardePluie())
+			if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
 			{
-				if (_netCdf_pluie != NULL)
+				if (output.SauvegardePluie())
 				{
-					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-pluie.nc");
-					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "pluie.nc");
-					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-pluie", _netCdf_pluie, "mm", "Precipitation pluie");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "pluie", _netCdf_pluie, "mm", "Precipitation pluie");
-					if(str2 != "")
-						throw ERREUR(str2);
+					if (_netCdf_pluie != NULL)
+					{
+						//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-pluie.nc");
+						str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "pluie.nc");
+						//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-pluie", _netCdf_pluie, "mm", "Precipitation pluie");
+						str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "pluie", _netCdf_pluie, "mm", "Precipitation pluie");
+						if(str2 != "")
+							throw ERREUR(str2);
 
-					delete [] _netCdf_pluie;
+						delete [] _netCdf_pluie;
+					}
+					else
+						_fichier_pluie.close();
 				}
-				else
-					_fichier_pluie.close();
-			}
 
-			if (output.SauvegardeNeige())
-			{
-				if (_netCdf_neige != NULL)
+				if (output.SauvegardeNeige())
 				{
-					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-neige.nc");
-					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "neige.nc");
-					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-neige", _netCdf_neige, "mm", "Pecipitation neige (EEN)");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "neige", _netCdf_neige, "mm", "Pecipitation neige (EEN)");
-					if(str2 != "")
-						throw ERREUR(str2);
+					if (_netCdf_neige != NULL)
+					{
+						//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-neige.nc");
+						str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "neige.nc");
+						//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-neige", _netCdf_neige, "mm", "Pecipitation neige (EEN)");
+						str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "neige", _netCdf_neige, "mm", "Pecipitation neige (EEN)");
+						if(str2 != "")
+							throw ERREUR(str2);
 
-					delete [] _netCdf_neige;
+						delete [] _netCdf_neige;
+					}
+					else
+						_fichier_neige.close();
 				}
-				else
-					_fichier_neige.close();
 			}
 
 			if (output.SauvegardeTMinJour())
@@ -587,96 +608,99 @@ namespace HYDROTEL
 			}
 		}
 
-		// correction pluie
-		for(auto iter = begin(_corrections_pluie); iter != end(_corrections_pluie); ++iter)
+		if(!_sim_hyd._stations_meteo._bUseTempOnly)	//if _bUseTempOnly == true, rain have been fixed to 0 and is ignored
 		{
-			CORRECTION* correction = *iter;
-
-			if (correction->Applicable(date))
+			// correction pluie
+			for(auto iter = begin(_corrections_pluie); iter != end(_corrections_pluie); ++iter)
 			{
-				GROUPE_ZONE* groupe_zone = nullptr;
+				CORRECTION* correction = *iter;
 
-				switch (correction->PrendreTypeGroupe())
+				if (correction->Applicable(date))
 				{
-				case TYPE_GROUPE_ALL:
-					groupe_zone = _sim_hyd.PrendreToutBassin();
-					break;
+					GROUPE_ZONE* groupe_zone = nullptr;
 
-				case TYPE_GROUPE_HYDRO:
-					groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
-					break;
-
-				case TYPE_GROUPE_CORRECTION:
-					groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
-					break;
-				}
-
-				for (size_t index = 0; index < groupe_zone->PrendreNbZone(); ++index)
-				{
-					int ident = groupe_zone->PrendreIdent(index);
-
-					size_t index_zone = zones.IdentVersIndex(ident);
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
+					switch (correction->PrendreTypeGroupe())
 					{
-						ZONE* zone = zones.Recherche(ident);
+					case TYPE_GROUPE_ALL:
+						groupe_zone = _sim_hyd.PrendreToutBassin();
+						break;
 
-						float pluie = (zone->PrendrePluie() + correction->PrendreCoefficientAdditif()) * 
-							correction->PrendreCoefficientMultiplicatif();
-						zone->ChangePluie(max(0.0f, pluie));
+					case TYPE_GROUPE_HYDRO:
+						groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
+						break;
+
+					case TYPE_GROUPE_CORRECTION:
+						groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
+						break;
+					}
+
+					for (size_t index = 0; index < groupe_zone->PrendreNbZone(); ++index)
+					{
+						int ident = groupe_zone->PrendreIdent(index);
+
+						size_t index_zone = zones.IdentVersIndex(ident);
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
+						{
+							ZONE* zone = zones.Recherche(ident);
+
+							float pluie = (zone->PrendrePluie() + correction->PrendreCoefficientAdditif()) * 
+								correction->PrendreCoefficientMultiplicatif();
+							zone->ChangePluie(max(0.0f, pluie));
+						}
 					}
 				}
 			}
-		}
 
-		// correction neige
-		for(auto iter = begin(_corrections_neige); iter != end(_corrections_neige); ++iter)
-		{
-			CORRECTION* correction = *iter;
-
-			if (correction->Applicable(date))
+			// correction neige
+			for(auto iter = begin(_corrections_neige); iter != end(_corrections_neige); ++iter)
 			{
-				GROUPE_ZONE* groupe_zone = nullptr;
+				CORRECTION* correction = *iter;
 
-				switch (correction->PrendreTypeGroupe())
+				if (correction->Applicable(date))
 				{
-				case TYPE_GROUPE_ALL:
-					groupe_zone = _sim_hyd.PrendreToutBassin();
-					break;
+					GROUPE_ZONE* groupe_zone = nullptr;
 
-				case TYPE_GROUPE_HYDRO:
-					groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
-					break;
-
-				case TYPE_GROUPE_CORRECTION:
-					groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
-					break;
-				}
-
-				ZONE* zone;
-				float densite_neige, tmoy, neigeAdd, neige;
-				int ident;
-
-				for (size_t index = 0; index < groupe_zone->PrendreNbZone(); ++index)
-				{
-					ident = groupe_zone->PrendreIdent(index);
-
-					size_t index_zone = zones.IdentVersIndex(ident);
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
+					switch (correction->PrendreTypeGroupe())
 					{
-						zone = zones.Recherche(ident);
+					case TYPE_GROUPE_ALL:
+						groupe_zone = _sim_hyd.PrendreToutBassin();
+						break;
 
-						if (pas_de_temps == 1)
-							densite_neige = CalculDensiteNeige(zones[index].PrendreTMin()) / DENSITE_EAU;
-						else
+					case TYPE_GROUPE_HYDRO:
+						groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
+						break;
+
+					case TYPE_GROUPE_CORRECTION:
+						groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
+						break;
+					}
+
+					ZONE* zone;
+					float densite_neige, tmoy, neigeAdd, neige;
+					int ident;
+
+					for (size_t index = 0; index < groupe_zone->PrendreNbZone(); ++index)
+					{
+						ident = groupe_zone->PrendreIdent(index);
+
+						size_t index_zone = zones.IdentVersIndex(ident);
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							tmoy = (zone->PrendreTMax() + zone->PrendreTMin()) / 2.0f;
-							densite_neige = CalculDensiteNeige(tmoy) / DENSITE_EAU;
+							zone = zones.Recherche(ident);
+
+							if (pas_de_temps == 1)
+								densite_neige = CalculDensiteNeige(zones[index].PrendreTMin()) / DENSITE_EAU;
+							else
+							{
+								tmoy = (zone->PrendreTMax() + zone->PrendreTMin()) / 2.0f;
+								densite_neige = CalculDensiteNeige(tmoy) / DENSITE_EAU;
+							}
+
+							neigeAdd = correction->PrendreCoefficientAdditif() / densite_neige;	//equivalent en eau de la neige [mm] -> hauteur de precipitation en neige
+							neige = (zone->PrendreNeige() + neigeAdd) * correction->PrendreCoefficientMultiplicatif();
+
+							zone->ChangeNeige(max(0.0f, neige));
 						}
-
-						neigeAdd = correction->PrendreCoefficientAdditif() / densite_neige;	//equivalent en eau de la neige [mm] -> hauteur de precipitation en neige
-						neige = (zone->PrendreNeige() + neigeAdd) * correction->PrendreCoefficientMultiplicatif();
-
-						zone->ChangeNeige(max(0.0f, neige));
 					}
 				}
 			}

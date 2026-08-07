@@ -722,7 +722,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 19)
-						throw ERREUR_LECTURE_FICHIER( "FICHIER PARAMETRES GLOBAL; CEQUEAU; " + _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( "FICHIER PARAMETRES GLOBAL; CEQUEAU; " + _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

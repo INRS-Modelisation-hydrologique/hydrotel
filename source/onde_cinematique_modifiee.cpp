@@ -434,9 +434,9 @@ namespace HYDROTEL
 		for(i=0; i!=nbTroncon; i++)
 			_ocm.push_back(ocmVal);
 
-		//determination de l'ordre de calcul des troncons
-		
-		TrieTroncons();
+		//determination de l'ordre de calcul des troncons		
+		if(_sim_hyd._troncons_tries.empty())
+			_sim_hyd.TrieTroncons();
 
 		//vector<size_t> index_troncons = _sim_hyd.PrendreTronconsSimules();
 		//size_t index;
@@ -657,7 +657,7 @@ namespace HYDROTEL
 			}
 
 			//----------------------
-			for(auto iter=_troncons_tries.rbegin(); iter!=_troncons_tries.rend(); iter++)
+			for(auto iter=_sim_hyd._troncons_tries.rbegin(); iter!=_sim_hyd._troncons_tries.rend(); iter++)
 			{
 				i = *iter;
 				CalculeTroncon(i, t, dt);
@@ -1425,7 +1425,6 @@ namespace HYDROTEL
 	void ONDE_CINEMATIQUE_MODIFIEE::Termine()
 	{
 		_ocm.clear();
-		_troncons_tries.clear();
 
 		_milieu_humide_riverain.clear();
 		_ocm_mh.clear();
@@ -1595,55 +1594,6 @@ namespace HYDROTEL
 		}
 
 		return celerite;
-	}
-
-	size_t TronconToIndex(TRONCONS& troncons, TRONCON* troncon)
-	{
-		size_t index = 0;
-
-		while (troncon != troncons[index])
-			++index;
-
-		return index;
-	}
-
-	void ONDE_CINEMATIQUE_MODIFIEE::TrieTroncons()
-	{
-		TRONCONS& troncons = _sim_hyd.PrendreTroncons();
-
-		//NOTE: a modifier pour la gestion des sorties multiples
-
-		deque<TRONCON*> recherche;
-		recherche.push_back(troncons.PrendreTronconsExutoire()[0]);
-
-		vector<TRONCON*> troncons_tries;
-
-		while (!recherche.empty())
-		{
-			TRONCON* troncon = recherche.front();
-			troncons_tries.push_back(troncon);
-			recherche.pop_front();
-
-			auto troncons_amont = troncon->PrendreTronconsAmont();
-
-			for (auto iter = begin(troncons_amont); iter != end(troncons_amont); ++iter)
-				recherche.push_back(*iter);
-		}
-
-		const size_t nb_troncon = troncons.PrendreNbTroncon();
-		vector<size_t> index_troncons = _sim_hyd.PrendreTronconsSimules();
-
-		_troncons_tries.clear();
-
-		for (size_t i = 0; i < nb_troncon; ++i)
-		{
-			size_t index_troncon = TronconToIndex(troncons, troncons_tries[i]);
-		
-			if (find(begin(index_troncons), end(index_troncons), index_troncon) != end(index_troncons))
-				_troncons_tries.push_back( TronconToIndex(troncons, troncons_tries[i]) );
-		}
-
-		_troncons_tries.shrink_to_fit();
 	}
 
 
@@ -1901,7 +1851,7 @@ namespace HYDROTEL
 					}
 
 					if(vValeur.size() != 3)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide. ONDE CINEMATIQUE MODIFIEE.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count. ONDE CINEMATIQUE MODIFIEE.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

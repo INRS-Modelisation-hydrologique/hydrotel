@@ -333,7 +333,7 @@ namespace HYDROTEL
 					if(vValeur.size() != 2)
 					{
 						fichier.close();
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide ETP-MC-GUINESS.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count ETP-MC-GUINESS.");
 					}
 
 					fVal = static_cast<float>(x);

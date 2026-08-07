@@ -208,7 +208,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide. THORNTHWAITE.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count. THORNTHWAITE.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

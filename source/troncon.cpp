@@ -56,6 +56,20 @@ namespace HYDROTEL
 		_prRejetTotal = 0.0;
 		_prRejetEffluent = 0.0;
 		_prIndicePression = 0.0;
+
+		_tmin = VALEUR_MANQUANTE;
+		_tmax = VALEUR_MANQUANTE;
+		_tmin_jour = VALEUR_MANQUANTE;
+		_tmax_jour = VALEUR_MANQUANTE;
+
+		_altitude = VALEUR_MANQUANTE;
+
+		_rayonnement_solaire = VALEUR_MANQUANTE;
+
+		_coord_noeud_aval_x = VALEUR_MANQUANTE;
+		_coord_noeud_aval_y = VALEUR_MANQUANTE;
+
+		_tempEau = -999.0f;
 	}
 
 	TRONCON::~TRONCON()
@@ -118,6 +132,25 @@ namespace HYDROTEL
 	{
 		BOOST_ASSERT(!zones_amont.empty());
 		_zones_amont = zones_amont;
+	}
+
+	void TRONCON::ChangeAltitude(float altitude)
+	{
+		_altitude = altitude;
+	}
+
+	void TRONCON::ChangeTemperature(float tmin, float tmax)
+	{
+		BOOST_ASSERT(tmin <= tmax);
+		_tmin = tmin;
+		_tmax = tmax;
+	}
+
+	void TRONCON::ChangeTemperatureJournaliere(float tmin, float tmax)
+	{
+		BOOST_ASSERT(tmin <= tmax);
+		_tmin_jour = tmin;
+		_tmax_jour = tmax;
 	}
 
 	void TRONCON::ChangeTronconsAval(std::vector<TRONCON*>& troncon_aval)

@@ -65,8 +65,9 @@ namespace HYDROTEL
 		size_t x;
 		int val;
 
-		_vIDFichier.clear();
-		SplitString(vStr, ligne, ";", false, false);
+		_vIDFichier.clear();		
+		SplitString(vStr, ligne, ";", true, true);
+
 		for(x=1; x<vStr.size(); x++)
 		{
 			iss.clear();
@@ -100,7 +101,8 @@ namespace HYDROTEL
 
 		//validation //les uhrh simulé doivent etre présent dans le fichier
 		_vIDFichier.clear();
-		SplitString(vStr, ligne, ";", false, false);
+		SplitString(vStr, ligne, ";", true, true);
+
 		for(x=1; x<vStr.size(); x++)
 		{
 			iss.clear();
@@ -136,7 +138,8 @@ namespace HYDROTEL
 
 			//validation //les uhrh simulé doivent etre présent dans le fichier
 			_vIDFichier.clear();
-			SplitString(vStr, ligne, ";", false, false);
+			SplitString(vStr, ligne, ";", true, true);
+
 			for(x=1; x<vStr.size(); x++)
 			{
 				iss.clear();
@@ -170,7 +173,8 @@ namespace HYDROTEL
 
 			//validation //les uhrh simulé doivent etre présent dans le fichier
 			_vIDFichier.clear();
-			SplitString(vStr, ligne, ";", false, false);
+			SplitString(vStr, ligne, ";", true, true);
+
 			for(x=1; x<vStr.size(); x++)
 			{
 				iss.clear();
@@ -205,7 +209,8 @@ namespace HYDROTEL
 
 		//validation //les uhrh simulé doivent etre présent dans le fichier
 		_vIDFichier.clear();
-		SplitString(vStr, ligne, ";", false, false);
+		SplitString(vStr, ligne, ";", true, true);
+
 		for(x=1; x<vStr.size(); x++)
 		{
 			iss.clear();
@@ -239,7 +244,8 @@ namespace HYDROTEL
 
 		//validation //les uhrh simulé doivent etre présent dans le fichier
 		_vIDFichier.clear();
-		SplitString(vStr, ligne, ";", false, false);
+		SplitString(vStr, ligne, ";", true, true);
+
 		for(x=1; x<vStr.size(); x++)
 		{
 			iss.clear();
@@ -260,7 +266,6 @@ namespace HYDROTEL
 				throw ERREUR_LECTURE_FICHIER("INTERPOLATION_DONNEES; mode lecture; " + _nom_fichier_neige + "; l`uhrh " + ligne + " est simule mais absent du fichier.");
 			}
 		}
-
 
 		INTERPOLATION_DONNEES::Initialise();
 	}

@@ -396,7 +396,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(valeur, ";");
 
 					if(vValeur.size() != 3)
-						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Invalid column count.");
 
 					KT = vValeur[0];
 					CS = vValeur[1];
@@ -422,7 +422,7 @@ namespace HYDROTEL
 				auto vValeur = extrait_fvaleur(valeur, ";");
 
 				if(vValeur.size() != 3)
-					throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Nombre de colonne invalide.");
+					throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Invalid column count.");
 
 				_vfParamKT[0] = vValeur[0];
 				_vfParamCS[0] = vValeur[1];
@@ -466,7 +466,7 @@ namespace HYDROTEL
 				vValeur = extrait_fvaleur(ligne, ";");
 
 				if(vValeur.size() != 4)
-					throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide RANKINEN.");
+					throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count RANKINEN.");
 
 				_fIntervalleProfil = vValeur[0];
 				_fTempIniProfondeur = vValeur[1];
@@ -486,7 +486,7 @@ namespace HYDROTEL
 						vValeur = extrait_fvaleur(ligne, ";");
 
 						if(vValeur.size() != 4)
-							throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "RANKINEN; Nombre de colonne invalide.");
+							throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "RANKINEN; Invalid column count.");
 
 						fVal = static_cast<float>(index);
 						if(fVal != vValeur[0])
@@ -504,7 +504,7 @@ namespace HYDROTEL
 					vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "RANKINEN; Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "RANKINEN; Invalid column count.");
 
 					_vfParamKT[0] = vValeur[1];
 					_vfParamCS[0] = vValeur[2];

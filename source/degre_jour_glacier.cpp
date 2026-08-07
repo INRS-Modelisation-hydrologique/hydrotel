@@ -131,13 +131,13 @@ namespace HYDROTEL
 		ly = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreY() * 1000.0);
 
 		if(lx != lxZone || ly != lyZone)
-			throw ERREUR("DEGRE_JOUR_GLACIER error: the extent of the elevation matrix do not match with the extent of the rhhu matrix.");
+			throw ERREUR("DEGRE_JOUR_GLACIER error: the extent of the elevation matrix do not match with the extent of the RHHU matrix.");
 
 		lx = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreX() * 1000.0);
 		ly = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreY() * 1000.0);
 
 		if(lx != lxZone || ly != lyZone)
-			throw ERREUR("DEGRE_JOUR_GLACIER error: the extent of the land cover matrix do not match with the extent of the rhhu matrix.");
+			throw ERREUR("DEGRE_JOUR_GLACIER error: the extent of the land cover matrix do not match with the extent of the RHHU matrix.");
 
 		nbColZone = grilleZone.PrendreNbColonne();
 		nbRowZone = grilleZone.PrendreNbLigne();
@@ -987,7 +987,7 @@ namespace HYDROTEL
 					vValeur = extrait_dvaleur(ligne, ";");
 
 					if(vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide. DEGRE JOUR GLACIER");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count. DEGRE JOUR GLACIER");
 
 					dVal = static_cast<double>(x);
 					if(dVal != vValeur[0])

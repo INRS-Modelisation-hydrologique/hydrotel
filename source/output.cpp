@@ -82,6 +82,7 @@ namespace HYDROTEL
 		, _qRecharge(false)
 		, _profondeurgel(false)
 		, _weighted_avg(false)
+		, _temperature_eau(false)
 		, _iIDTronconExutoire(1)
 	{
 		_sim_hyd = NULL;
@@ -321,6 +322,10 @@ namespace HYDROTEL
 					_profondeurgel =  (valeur == "1") ? true : false;
 				else if (cle == "PROFONDEUR_GEL")
 					_profondeurgel =  (valeur == "1") ? true : false;
+				else if (cle == "TEMPERATURE EAU")
+					_temperature_eau = (valeur == "1") ? true : false;
+				else if (cle == "TEMPERATURE_EAU")
+					_temperature_eau = (valeur == "1") ? true : false;
 				else if (cle == "FICHIERS ETATS SEPARATEUR")
 					_sFichiersEtatsSeparator = valeur;
 				else if (cle == "FICHIERS_ETATS_SEPARATEUR")
@@ -349,7 +354,7 @@ namespace HYDROTEL
 		if(_sFichiersEtatsSeparator.length() > 1)
 			throw ERREUR_LECTURE_FICHIER("FICHIER OUTPUT: " + nom_fichier + ": invalid FICHIERS_ETATS_SEPARATEUR value");
 
-		if(_debit_aval || _debit_amont || _apport_lateral)
+		if(_debit_aval || _debit_amont || _apport_lateral || _temperature_eau)
 			_bOutputTronconVar = true;
 
 		if(_apport || _etp || _neige || _pluie || _production_base || _production_hypo || _production_surf || _q12 || _q23 || _theta1 || _theta2
@@ -418,6 +423,7 @@ namespace HYDROTEL
 		fichier << "DEBITS_AMONT;"					<< (_debit_amont ? 1 : 0) << endl;
 		fichier << "DEBITS_AVAL;"					<< (_debit_aval ? 1 : 0) << endl;
 		fichier << "HAUTEUR_AVAL;"					<< (_hauteur_aval ? 1 : 0) << endl;
+		fichier << "TEMPERATURE_EAU;"				<< (_temperature_eau ? 1 : 0) << endl;
 
 		fichier << "DEBITS_AVAL_MOY7J_MIN;"			<< (_debit_aval_moy7j_min ? 1 : 0) << endl;
 		
@@ -572,6 +578,11 @@ namespace HYDROTEL
 	bool OUTPUT::SauvegardeProfondeurGel() const
 	{
 		return _profondeurgel;
+	}
+
+	bool OUTPUT::SauvegardeTemperatureEau() const
+	{
+		return _temperature_eau;
 	}
 
 

@@ -25,6 +25,7 @@
 #include "date_heure.hpp"
 #include "projection.hpp"
 #include "raster.hpp"
+#include "station.hpp"
 
 #include <map>
 #include <string>
@@ -39,7 +40,15 @@ namespace HYDROTEL
 
 	extern std::vector<std::string>		_listLog;
 	
-	void Log(std::string sLog);
+	void	Log(std::string sLog);
+
+	std::string	ReadParameterFile(std::string sPathFile, std::map<std::string, std::string>& mapParam);
+
+	//NetCDF
+	std::string LectureFormatNetCDFTypeGrid(DATE_HEURE* pDateDebutSim, DATE_HEURE* pDateFinSim, size_t simulationTimestep, std::string sPathFile, 
+											std::string sTimeVar, std::string sLonVar, std::string sLatVar, std::vector<std::string> vValVar, 
+											std::vector<double*> pVal, std::vector<std::vector<std::shared_ptr<STATION>>>& stationsInterpol, 
+											double dExtentLimitNorth, double dExtentLimitSouth, double dExtentLimitEast, double dExtentLimitWest);
 
 
 	//Retourne en decimal degree (sString; coordonnee provenant des fichiers de donnees)

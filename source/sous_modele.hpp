@@ -54,9 +54,6 @@ namespace HYDROTEL
 
 		std::string PrendreNomFichierParametres() const;
 
-		///
-		//virtual int PrendreDonneesMeteoNecessaire() const = 0;
-
 	protected:
 		SIM_HYD& _sim_hyd;
 

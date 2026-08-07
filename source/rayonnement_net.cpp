@@ -191,7 +191,7 @@ namespace HYDROTEL
 				if(vValeur.size() != 10)
 				{
 					fichier.close();
-					throw ERREUR_LECTURE_FICHIER( _nom_fichier_parametres, no_ligne, "Nombre de colonne invalide.");
+					throw ERREUR_LECTURE_FICHIER( _nom_fichier_parametres, no_ligne, "Invalid column count.");
 				}
 
 				iIdent = static_cast<int>(vValeur[0]);

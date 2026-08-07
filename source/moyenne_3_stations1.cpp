@@ -205,7 +205,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide MOYENNE 3 STATIONS.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count MOYENNE 3 STATIONS.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])
@@ -422,11 +422,11 @@ namespace HYDROTEL
 
 		iNoData = grille.PrendreNoData();
 
-		std::cout << endl << "Computing stations/rhhu weightings (avg3s) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
-		_listLog.push_back("Computing stations/rhhu weightings (avg3s) (" + sOrigin + ")...   " + GetCurrentTimeStr());
+		std::cout << endl << "Computing stations/RHHU weightings (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Computing stations/RHHU weightings (" + sOrigin + ")...   " + GetCurrentTimeStr());
 
 		if(_pSim_hyd->_bLogPerf)
-			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (avg3s)");
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/RHHU weightings (avg3s)");
 
 		for (ligne=0; ligne<nb_ligne; ligne++)
 		{

@@ -250,7 +250,7 @@ namespace HYDROTEL
 				if(vValeur.size() != 3 && vValeur.size() != 4)
 				{
 					fichier.close();
-					throw ERREUR_LECTURE_FICHIER("FICHIER PARAMETRES grillemeteo.csv; nombre de colonne invalide.");
+					throw ERREUR_LECTURE_FICHIER("FICHIER PARAMETRES grillemeteo.csv; Invalid column count.");
 				}
 
 				iIdent = static_cast<int>(vValeur[0]);
@@ -647,7 +647,7 @@ namespace HYDROTEL
 				if(sList.size() != 2)
 				{
 					fichier.close();
-					throw ERREUR("INTERPOLATION DONNEES; GRILLE; LectureAltitude; erreur lecture fichier des altitudes .grAlt; nombre de colonne invalide.");
+					throw ERREUR("INTERPOLATION DONNEES; GRILLE; LectureAltitude; erreur lecture fichier des altitudes .grAlt; Invalid column count.");
 				}
 
 				iss.clear();
@@ -857,7 +857,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 3 && vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide GRILLE");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count GRILLE");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

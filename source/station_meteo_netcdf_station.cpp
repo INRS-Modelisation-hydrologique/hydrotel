@@ -137,6 +137,7 @@ namespace HYDROTEL
 		//	}
 		//}
 
+
 		DONNEE_METEO donnee_meteo;
 
 		if ( (_pStations->_netCdf_dataStationTMin[idx] > VALEUR_MANQUANTE && (_pStations->_netCdf_dataStationTMin[idx] < -100.0f || _pStations->_netCdf_dataStationTMin[idx] > 70.0f)) || 
@@ -189,7 +190,11 @@ namespace HYDROTEL
 		else
 			donnee_meteo.ChangeTemperature(_pStations->_netCdf_dataStationTMin[idx], _pStations->_netCdf_dataStationTMax[idx]);
 
-		donnee_meteo.ChangePluie(_pStations->_netCdf_dataStationPrecip[idx]);
+		if(_pStations->_bUseTempOnly)			//use tmin & tmax only (for running water temp model when external data are enabled (_bSkipBilanVertical == true)
+			donnee_meteo.ChangePluie(0.0f);		//precip value is ignored; set to 0 to prevent missing data interpolation
+		else
+			donnee_meteo.ChangePluie(_pStations->_netCdf_dataStationPrecip[idx]);
+
 		donnee_meteo.ChangeNeige(0.0f);
 
 		return donnee_meteo;

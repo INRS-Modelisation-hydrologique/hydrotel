@@ -55,6 +55,8 @@ namespace HYDROTEL
 	{
 		_pSimHyd = nullptr;
 
+		_bUseTempOnly = false;
+
 		_netCdf_iType = -1;
 
 		_netCdf_lPasTemps = 0;
@@ -1264,6 +1266,7 @@ namespace HYDROTEL
 						longitudes[j] <= _dExtentLimitEast && longitudes[j] >= _dExtentLimitWest) )
 				{
 					shared_ptr<STATION> st = make_shared<STATION_METEO_NETCDF_STATION>(_nom_fichier, this, i, j);
+
 					if(_pSimHyd->PrendreNomInterpolationDonnees() == "THIESSEN1" || _pSimHyd->PrendreNomInterpolationDonnees() == "MOYENNE 3 STATIONS1")
 						st.get()->_iVersionThiessenMoy3Station = 1;
 
@@ -1497,7 +1500,8 @@ namespace HYDROTEL
 					ligne.append(".met");
 					ligne = Combine(PrendreRepertoire(_nom_fichier), ligne);
 
-					stations[n] = make_shared<STATION_METEO_GIBSI>(ligne, _bAutoInverseTMinTMax);
+					stations[n] = make_shared<STATION_METEO_GIBSI>(ligne, _bAutoInverseTMinTMax, _bUseTempOnly);
+
 					if(_pSimHyd->_interpolation_donnees == nullptr || //_pSimHyd->_interpolation_donnees is null when program option -update
 						(_pSimHyd->PrendreNomInterpolationDonnees() == "THIESSEN1" || _pSimHyd->PrendreNomInterpolationDonnees() == "MOYENNE 3 STATIONS1"))
 					{

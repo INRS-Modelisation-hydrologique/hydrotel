@@ -478,11 +478,11 @@ namespace HYDROTEL
 		const int nb_ligne = static_cast<int>(grille.PrendreNbLigne());
 		const int nb_colonne = static_cast<int>(grille.PrendreNbColonne());
 
-		std::cout << endl << "Computing stations/rhhu weightings (thiessen) (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
-		_listLog.push_back("Computing stations/rhhu weightings (thiessen) (" + sOrigin + ")...   " + GetCurrentTimeStr());
+		std::cout << endl << "Computing stations/RHHU weightings (" << sOrigin << ")...   " << GetCurrentTimeStr() << flush;
+		_listLog.push_back("Computing stations/RHHU weightings (" + sOrigin + ")...   " + GetCurrentTimeStr());
 		
 		if(_pSim_hyd->_bLogPerf)
-			_pSim_hyd->_logPerformance.AddStep("Computing stations/rhhu weightings (thiessen)");
+			_pSim_hyd->_logPerformance.AddStep("Computing stations/RHHU weightings (thiessen)");
 
 		for (ligne = 0; ligne < nb_ligne; ++ligne)
 		{
@@ -635,7 +635,7 @@ namespace HYDROTEL
 					if(vValeur.size() != 4)
 					{
 						fichier.close();
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide THIESSEN.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count THIESSEN.");
 					}
 
 					fVal = static_cast<float>(x);

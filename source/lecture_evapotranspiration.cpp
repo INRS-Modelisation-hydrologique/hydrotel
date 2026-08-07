@@ -62,7 +62,7 @@ namespace HYDROTEL
 		int val;
 
 		_vIDFichier.clear();
-		SplitString(vStr, ligne, ";", false, false);
+		SplitString(vStr, ligne, ";", true, true);
 		for(x=1; x<vStr.size(); x++)
 		{
 			iss.clear();

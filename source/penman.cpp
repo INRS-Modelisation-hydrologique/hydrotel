@@ -209,7 +209,7 @@ namespace HYDROTEL
 			if(vValeur.size() != 6)
 			{
 				fichier.close();
-				throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "PENMAN; Nombre de colonne invalide.");
+				throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "PENMAN; Invalid column count.");
 			}
 
 			iIdent = static_cast<int>(vValeur[0]);
@@ -268,7 +268,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 6)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide. PENMAN.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count. PENMAN.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

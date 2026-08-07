@@ -418,7 +418,7 @@ namespace HYDROTEL
 
 			ZONE* zone = zones.Recherche(id_zone);
 			if (zone == nullptr)
-				throw ERREUR("rhhu id not found");
+				throw ERREUR("RHHU id not found");
 
 			zone->ChangeTronconAval(troncon);
 			zones_amont[index] = zone;
@@ -788,6 +788,28 @@ namespace HYDROTEL
 		}
 
 		return sErr;
+	}
+
+
+	void TRONCONS::CalculeAltitudeTroncons()
+	{
+		size_t i, j, nbTroncon;
+		float alt;
+
+		RASTER<float> grilleDem;
+
+		nbTroncon = PrendreNbTroncon();
+		grilleDem = LectureRaster_float(_pSimHyd->PrendreZones().PrendreNomFichierAltitude());
+
+		for(i=0; i!=nbTroncon; i++)
+		{
+			alt = 0.0f;
+			for(j=0; j!=_troncons[i]->_vCells.size(); j++)
+				alt+= grilleDem(_troncons[i]->_vCells[j].second, _troncons[i]->_vCells[j].first);
+
+			alt/= static_cast<float>(_troncons[i]->_vCells.size());
+			_troncons[i]->ChangeAltitude(alt);
+		}
 	}
 
 

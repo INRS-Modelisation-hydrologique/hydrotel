@@ -47,13 +47,15 @@ namespace HYDROTEL
 
 		virtual std::pair<float, float> PrendreTemperatureJournaliere(const DATE_HEURE& date_heure);
 
+		//
+		size_t			_lIndexStation;		//pour  type STATION (0)
+
+		size_t			_lIndexLat;			//pour  type GRID (1)
+		size_t			_lIndexLon;			//
+
 	private:
 		STATIONS_METEO* _pStations;
 
-		size_t			_lIndexStation;		//pour  type STATION (0)
-		
-		size_t			_lIndexLat;			//pour  type GRID (1)
-		size_t			_lIndexLon;			//
 	};
 
 }

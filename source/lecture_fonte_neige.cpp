@@ -83,7 +83,7 @@ namespace HYDROTEL
 		int val;
 
 		_vIDFichier.clear();
-		SplitString(vStr, ligne, ";", false, false);
+		SplitString(vStr, ligne, ";", true, true);
 		for(x=1; x<vStr.size(); x++)
 		{
 			iss.clear();
@@ -120,7 +120,7 @@ namespace HYDROTEL
 
 			//validation //les uhrh simulé doivent etre présent dans le fichier
 			_vIDFichier.clear();
-			SplitString(vStr, ligne, ";", false, false);
+			SplitString(vStr, ligne, ";", true, true);
 			for(x=1; x<vStr.size(); x++)
 			{
 				iss.clear();
@@ -158,7 +158,7 @@ namespace HYDROTEL
 
 			//validation //les uhrh simulé doivent etre présent dans le fichier
 			_vIDFichier.clear();
-			SplitString(vStr, ligne, ";", false, false);
+			SplitString(vStr, ligne, ";", true, true);
 			for(x=1; x<vStr.size(); x++)
 			{
 				iss.clear();
@@ -196,7 +196,7 @@ namespace HYDROTEL
 
 			//validation //les uhrh simulé doivent etre présent dans le fichier
 			_vIDFichier.clear();
-			SplitString(vStr, ligne, ";", false, false);
+			SplitString(vStr, ligne, ";", true, true);
 			for(x=1; x<vStr.size(); x++)
 			{
 				iss.clear();

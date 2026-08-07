@@ -2,13 +2,40 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.4.0 - 2026-08-07
+
+- Ajout d'un option permettant l'utilisation et le routage de données externe (external data routing). Il est 
+  possible de fournir directement, à l'aide de fichier NetCDF, les variables internes de simulation (productions et 
+  débits latéraux) (bilan vertical et ruissellement de surface). L'option est activé en spécifiant dans le 
+  fichier de simulation le chemin du fichier de configuration à utiliser (ligne EXTERNAL DATA ROUTING). 
+
+- Ajout du modèle de calcul de température de l'eau (TEMP EAU CEQUEAU). Le modèle est activé dans le fichier de 
+  simulation (ligne TEMPERATURE EAU;TEMP EAU CEQUEAU). 
+
+- Lorsque le chemin du fichier spécifié avec la commande -log ne contient pas de dossier, celui-ci est sauvegardé 
+  dans le dossier de résultat des simulations (ou dans le dossier de destination du projet pour les commandes 
+  -update et -new). 
+
+- Correction de la validation des dates présentes dans le fichier de simulation. 
+
+- Correction affichage console et sauvegarde fichier log pour les commandes de mise-à-jour et de création de 
+  projet. 
+  
+- Correction de la lecture des fichiers de données du mode lecture (il y avait erreur si un point-virgule (;) 
+  était présent à la fin de la ligne). 
+  
+- Correction de plusieurs messages d'erreur. 
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.3.7 - 2026-06-26
 
 - Correction des unités de temps dans les fichiers de sortie au format NetCDF lorsque la période de simulation est 
-  antérieure au 13/12/1902 ou postérieure au 18/01/2038. 
-
-
-
+  antérieure au 13/12/1902 ou postérieure au 18/01/2038.
+ 
+ 
+ 
 -------------------------------------------------------------------------------------------------------------------
 4.3.6 - 2025-11-24
 

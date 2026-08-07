@@ -260,418 +260,421 @@ namespace HYDROTEL
 
 	void BV3C1::Initialise()
 	{
-		_corrections_reserve_sol = _sim_hyd.PrendreCorrections().PrendreCorrectionsReserveSol();
-		_corrections_saturation_sol = _sim_hyd.PrendreCorrections().PrendreCorrectionsSaturationReserveSol();
-
-		ZONES& zones = _sim_hyd.PrendreZones();
-
-		const size_t nb_zone = zones.PrendreNbZone();
-
-		auto& occupation_sol = _sim_hyd.PrendreOccupationSol();
-		auto& propriete_hydroliques = _sim_hyd.PrendreProprieteHydrotliques();
-
-		const size_t nb_propriete_hydrolique = propriete_hydroliques.PrendreNb();
-
-		vector<size_t> index_autres;
-		for (size_t index = 0; index < occupation_sol.PrendreNbClasse(); ++index)
+		if(!_sim_hyd._bSkipBilanVertical)
 		{
-			if (find(begin(_index_eaux), end(_index_eaux), index) == end(_index_eaux) &&
-				find(begin(_index_impermeables), end(_index_impermeables), index) == end(_index_impermeables))
+			_corrections_reserve_sol = _sim_hyd.PrendreCorrections().PrendreCorrectionsReserveSol();
+			_corrections_saturation_sol = _sim_hyd.PrendreCorrections().PrendreCorrectionsSaturationReserveSol();
+
+			ZONES& zones = _sim_hyd.PrendreZones();
+
+			const size_t nb_zone = zones.PrendreNbZone();
+
+			auto& occupation_sol = _sim_hyd.PrendreOccupationSol();
+			auto& propriete_hydroliques = _sim_hyd.PrendreProprieteHydrotliques();
+
+			const size_t nb_propriete_hydrolique = propriete_hydroliques.PrendreNb();
+
+			vector<size_t> index_autres;
+			for (size_t index = 0; index < occupation_sol.PrendreNbClasse(); ++index)
 			{
-				index_autres.push_back(index);
-			}
-		}
-
-		index_autres.shrink_to_fit();
-		_index_autres.swap(index_autres);
-
-		// calcul pourcentage des classes integrees
-
-		_pourcentage_eau.resize(nb_zone, 0);
-		for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-		{
-			float pourcentage = 0;
-
-			for (auto index = begin(_index_eaux); index != end(_index_eaux); ++index)
-				pourcentage += occupation_sol.PrendrePourcentage(index_zone, *index);
-
-			_pourcentage_eau[index_zone] = pourcentage;
-		}
-
-		_pourcentage_impermeable.resize(nb_zone, 0);
-		for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-		{
-			float pourcentage = 0;
-
-			for (auto index = begin(_index_impermeables); index != end(_index_impermeables); ++index)
-				pourcentage += occupation_sol.PrendrePourcentage(index_zone, *index);
-
-			_pourcentage_impermeable[index_zone] = pourcentage;
-		}
-
-		_pourcentage_autre.resize(nb_zone, 0);
-		for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-			_pourcentage_autre[index_zone] = max(1.0f - (_pourcentage_impermeable[index_zone] + _pourcentage_eau[index_zone]), 0.0f);
-
-		_q12.resize(nb_zone);
-		_q23.resize(nb_zone);
-
-		if(!propriete_hydroliques._bDisponible)
-			throw ERREUR("BV3C: error: hydraulic properties not available (proprietehydrolique.sol)");
-
-		vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
-
-		for (size_t index = 0; index < index_zones.size(); ++index)
-		{
-			size_t index_zone = index_zones[index];
-
-			zones[index_zone]._theta1 = _theta1_initial[index_zone] * propriete_hydroliques.PrendreProprieteHydroliqueCouche1(index_zone).PrendreThetas();
-			zones[index_zone]._theta2 = _theta2_initial[index_zone] * propriete_hydroliques.PrendreProprieteHydroliqueCouche2(index_zone).PrendreThetas();
-			zones[index_zone]._theta3 = _theta3_initial[index_zone] * propriete_hydroliques.PrendreProprieteHydroliqueCouche3(index_zone).PrendreThetas();
-		}
-
-		//initialisation milieux humides isoles
-		if(_milieu_humide_isole.size() != 0)
-		{
-			// initialise le volume des milieux humides isoles au volume normal
-			for (size_t idx = 0; idx < index_zones.size(); ++idx)
-			{
-				size_t index_zone = index_zones[idx];
-				if (_milieu_humide_isole[index_zone])
+				if (find(begin(_index_eaux), end(_index_eaux), index) == end(_index_eaux) &&
+					find(begin(_index_impermeables), end(_index_impermeables), index) == end(_index_impermeables))
 				{
-					_milieu_humide_isole[index_zone]->SetWetvol(_milieu_humide_isole[index_zone]->GetWetnvol());
-
-					if(_milieu_humide_isole[index_zone]->GetSauvegarde())
-					{
-						SMilieuHumideResult* pRes = new SMilieuHumideResult;
-						int id = zones[index_zone].PrendreIdent();					
-						_milieu_humide_result[id] = pRes;
-					}
+					index_autres.push_back(index);
 				}
 			}
 
-			//fichier output
-			string path = Combine(_sim_hyd.PrendreRepertoireResultat(), "wetland_isole.csv");
-			m_wetfichier.open(path.c_str());
-		}
+			index_autres.shrink_to_fit();
+			_index_autres.swap(index_autres);
 
-		_b.resize(nb_propriete_hydrolique);
-		_omegpi.resize(nb_propriete_hydrolique);
-		_mm.resize(nb_propriete_hydrolique);
-		_nn.resize(nb_propriete_hydrolique);
+			// calcul pourcentage des classes integrees
 
-		for (size_t index = 0; index < nb_propriete_hydrolique; ++index)
-		{
-			auto& propriete = propriete_hydroliques.Prendre(index);
-
-			_b[index] = 1.0f / propriete.PrendreLambda();
-			_omegpi[index] = ((1.0f + 2.0f * _b[index]) / (2.0f + 2.0f * _b[index]));
-
-			float res_pow = pow(_omegpi[index], -_b[index]);
-			float psipi = propriete.PrendrePsis() * res_pow;
-
-			res_pow = pow(1.0f - _omegpi[index], 2.0f);
-
-			_mm[index] = psipi / res_pow - (psipi * _b[index] / _omegpi[index] / (1.0f - _omegpi[index]));
-			_nn[index] = 2.0f * _omegpi[index] - psipi * _b[index] / _mm[index] / _omegpi[index] - 1.0f;
-		}
-
-		OUTPUT& output = _sim_hyd.PrendreOutput();
-
-		if (output.SauvegardeTheta1())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_theta1 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			_pourcentage_eau.resize(nb_zone, 0);
+			for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
 			{
-				string nom_fichier_theta1( Combine(_sim_hyd.PrendreRepertoireResultat(), "theta1.csv") );
-				_fichier_theta1.open(nom_fichier_theta1);
-				_fichier_theta1 << "theta 1" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+				float pourcentage = 0;
 
-				string str;
-				ostringstream oss;
-				oss.str("");
+				for (auto index = begin(_index_eaux); index != end(_index_eaux); ++index)
+					pourcentage += occupation_sol.PrendrePourcentage(index_zone, *index);
 
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				_pourcentage_eau[index_zone] = pourcentage;
+			}
+
+			_pourcentage_impermeable.resize(nb_zone, 0);
+			for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
+			{
+				float pourcentage = 0;
+
+				for (auto index = begin(_index_impermeables); index != end(_index_impermeables); ++index)
+					pourcentage += occupation_sol.PrendrePourcentage(index_zone, *index);
+
+				_pourcentage_impermeable[index_zone] = pourcentage;
+			}
+
+			_pourcentage_autre.resize(nb_zone, 0);
+			for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
+				_pourcentage_autre[index_zone] = max(1.0f - (_pourcentage_impermeable[index_zone] + _pourcentage_eau[index_zone]), 0.0f);
+
+			_q12.resize(nb_zone);
+			_q23.resize(nb_zone);
+
+			if(!propriete_hydroliques._bDisponible)
+				throw ERREUR("BV3C: error: hydraulic properties not available (proprietehydrolique.sol)");
+
+			vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
+
+			for (size_t index = 0; index < index_zones.size(); ++index)
+			{
+				size_t index_zone = index_zones[index];
+
+				zones[index_zone]._theta1 = _theta1_initial[index_zone] * propriete_hydroliques.PrendreProprieteHydroliqueCouche1(index_zone).PrendreThetas();
+				zones[index_zone]._theta2 = _theta2_initial[index_zone] * propriete_hydroliques.PrendreProprieteHydroliqueCouche2(index_zone).PrendreThetas();
+				zones[index_zone]._theta3 = _theta3_initial[index_zone] * propriete_hydroliques.PrendreProprieteHydroliqueCouche3(index_zone).PrendreThetas();
+			}
+
+			//initialisation milieux humides isoles
+			if(_milieu_humide_isole.size() != 0)
+			{
+				// initialise le volume des milieux humides isoles au volume normal
+				for (size_t idx = 0; idx < index_zones.size(); ++idx)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					size_t index_zone = index_zones[idx];
+					if (_milieu_humide_isole[index_zone])
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						_milieu_humide_isole[index_zone]->SetWetvol(_milieu_humide_isole[index_zone]->GetWetnvol());
+
+						if(_milieu_humide_isole[index_zone]->GetSauvegarde())
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							SMilieuHumideResult* pRes = new SMilieuHumideResult;
+							int id = zones[index_zone].PrendreIdent();					
+							_milieu_humide_result[id] = pRes;
 						}
 					}
 				}
 
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_theta1 << str << endl;
+				//fichier output
+				string path = Combine(_sim_hyd.PrendreRepertoireResultat(), "wetland_isole.csv");
+				m_wetfichier.open(path.c_str());
 			}
-		}
 
-		if (output.SauvegardeTheta2())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_theta2 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			_b.resize(nb_propriete_hydrolique);
+			_omegpi.resize(nb_propriete_hydrolique);
+			_mm.resize(nb_propriete_hydrolique);
+			_nn.resize(nb_propriete_hydrolique);
+
+			for (size_t index = 0; index < nb_propriete_hydrolique; ++index)
 			{
-				string nom_fichier_theta2( Combine(_sim_hyd.PrendreRepertoireResultat(), "theta2.csv") );
-				_fichier_theta2.open(nom_fichier_theta2);
-				_fichier_theta2 << "theta 2" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+				auto& propriete = propriete_hydroliques.Prendre(index);
 
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				_b[index] = 1.0f / propriete.PrendreLambda();
+				_omegpi[index] = ((1.0f + 2.0f * _b[index]) / (2.0f + 2.0f * _b[index]));
+
+				float res_pow = pow(_omegpi[index], -_b[index]);
+				float psipi = propriete.PrendrePsis() * res_pow;
+
+				res_pow = pow(1.0f - _omegpi[index], 2.0f);
+
+				_mm[index] = psipi / res_pow - (psipi * _b[index] / _omegpi[index] / (1.0f - _omegpi[index]));
+				_nn[index] = 2.0f * _omegpi[index] - psipi * _b[index] / _mm[index] / _omegpi[index] - 1.0f;
+			}
+
+			OUTPUT& output = _sim_hyd.PrendreOutput();
+
+			if (output.SauvegardeTheta1())
+			{
+				if (_sim_hyd._outputCDF)
+					_netCdf_theta1 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_theta1( Combine(_sim_hyd.PrendreRepertoireResultat(), "theta1.csv") );
+					_fichier_theta1.open(nom_fichier_theta1);
+					_fichier_theta1 << "theta 1" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_theta1 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_theta2 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeTheta3())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_theta3 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeTheta2())
 			{
-				string nom_fichier_theta3( Combine(_sim_hyd.PrendreRepertoireResultat(), "theta3.csv") );
-				_fichier_theta3.open(nom_fichier_theta3);
-				_fichier_theta3 << "theta 3" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_theta2 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_theta2( Combine(_sim_hyd.PrendreRepertoireResultat(), "theta2.csv") );
+					_fichier_theta2.open(nom_fichier_theta2);
+					_fichier_theta2 << "theta 2" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_theta2 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_theta3 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtr1())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_etr1 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeTheta3())
 			{
-				string nom_fichier_etr1( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr1.csv") );
-				_fichier_etr1.open(nom_fichier_etr1);
-				_fichier_etr1 << "etr 1" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_theta3 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_theta3( Combine(_sim_hyd.PrendreRepertoireResultat(), "theta3.csv") );
+					_fichier_theta3.open(nom_fichier_theta3);
+					_fichier_theta3 << "theta 3" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_theta3 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr1 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtr2())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_etr2 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeEtr1())
 			{
-				string nom_fichier_etr2( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr2.csv") );
-				_fichier_etr2.open(nom_fichier_etr2);
-				_fichier_etr2 << "etr 2" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_etr1 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_etr1( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr1.csv") );
+					_fichier_etr1.open(nom_fichier_etr1);
+					_fichier_etr1 << "etr 1" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr1 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr2 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtr3())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_etr3 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeEtr2())
 			{
-				string nom_fichier_etr3( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr3.csv") );
-				_fichier_etr3.open(nom_fichier_etr3);
-				_fichier_etr3 << "etr 3" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_etr2 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_etr2( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr2.csv") );
+					_fichier_etr2.open(nom_fichier_etr2);
+					_fichier_etr2 << "etr 2" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr2 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr3 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtrTotal())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_etr_total = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeEtr3())
 			{
-				string nom_fichier_etr_total( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr_total.csv") );
-				_fichier_etr_total.open(nom_fichier_etr_total);
-				_fichier_etr_total << "etr total" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_etr3 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_etr3( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr3.csv") );
+					_fichier_etr3.open(nom_fichier_etr3);
+					_fichier_etr3 << "etr 3" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr3 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr_total << str << endl;
 			}
-		}
 
-		if (output.SauvegardeQ12())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_q12 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeEtrTotal())
 			{
-				string nom_fichier( Combine(_sim_hyd.PrendreRepertoireResultat(), "q12.csv") );
-				_fichier_q12.open(nom_fichier);
-				_fichier_q12 << "q12 (mm/pdt)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_etr_total = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier_etr_total( Combine(_sim_hyd.PrendreRepertoireResultat(), "etr_total.csv") );
+					_fichier_etr_total.open(nom_fichier_etr_total);
+					_fichier_etr_total << "etr total" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr_total << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_q12 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeQ23())
-		{
-			if (_sim_hyd._outputCDF)
-				_netCdf_q23 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
-			else
+			if (output.SauvegardeQ12())
 			{
-				string nom_fichier( Combine(_sim_hyd.PrendreRepertoireResultat(), "q23.csv") );
-				_fichier_q23.open(nom_fichier);
-				_fichier_q23 << "q23 (mm/pdt)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-				string str;
-				ostringstream oss;
-				oss.str("");
-			
-				for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+				if (_sim_hyd._outputCDF)
+					_netCdf_q12 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					string nom_fichier( Combine(_sim_hyd.PrendreRepertoireResultat(), "q12.csv") );
+					_fichier_q12.open(nom_fichier);
+					_fichier_q12 << "q12 (mm/pdt)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[index].PrendreIdent() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
 						}
 					}
-				}
 			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_q23 << str << endl;
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_q12 << str << endl;
+				}
 			}
+
+			if (output.SauvegardeQ23())
+			{
+				if (_sim_hyd._outputCDF)
+					_netCdf_q23 = new float[_sim_hyd._lNbPasTempsSim*_sim_hyd.PrendreOutput()._uhrhOutputNb];
+				else
+				{
+					string nom_fichier( Combine(_sim_hyd.PrendreRepertoireResultat(), "q23.csv") );
+					_fichier_q23.open(nom_fichier);
+					_fichier_q23 << "q23 (mm/pdt)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+					string str;
+					ostringstream oss;
+					oss.str("");
+			
+					for (size_t index = 0; index < zones.PrendreNbZone(); ++index)
+					{
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+						{
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[index].PrendreIdent() << output.Separator();
+							}
+						}
+					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_q23 << str << endl;
+				}
+			}
+
+			if (!_nom_fichier_lecture_etat.empty())
+				LectureEtat( _sim_hyd.PrendreDateDebut() );
+
+			//determination du pas de temps interne minimum possible
+			float fPDT = static_cast<float>(_sim_hyd.PrendrePasDeTemps());
+			_fDTCMin = fPDT / (24.0f * 60.0f * 60.0f * 1000.0f);
 		}
-
-		if (!_nom_fichier_lecture_etat.empty())
-			LectureEtat( _sim_hyd.PrendreDateDebut() );
-
-		//determination du pas de temps interne minimum possible
-		float fPDT = static_cast<float>(_sim_hyd.PrendrePasDeTemps());
-		_fDTCMin = fPDT / (24.0f * 60.0f * 60.0f * 1000.0f);
 
 		BILAN_VERTICAL::Initialise();
 	}
@@ -777,7 +780,7 @@ namespace HYDROTEL
 			// calcul fraction drainee milieu humide
 			float wet_fr = pMilieuHumide->GetWetdrafr(); 
 
-			apport = apport * superficie;
+			// apport = apport * superficie; Modifie par Stéphane Savary 18-03-2026 (les apports sont en mm et n'ont pas a être multiplié par la fraction de l'UHRH occupée par les Milieux humides isolés)
 
 			float hru_ha = static_cast<float>(zone.PrendreSuperficie()) * 100.0f; //km2 -> ha
 			int ident;
@@ -786,7 +789,7 @@ namespace HYDROTEL
 
 			CalculMilieuHumideIsole(pMilieuHumide, ident, hru_ha, wet_fr, evp, apport, prod, pas_de_temps);
 
-			zone.ChangeApport(apport);
+			// zone.ChangeApport(apport); Modifie par Stéphane Savary 18-03-2026 (les apports de surface aux UHRH n'ont pas à être modifiés)
 					
 			if(prodOld != 0.0)
 			{
@@ -812,495 +815,498 @@ namespace HYDROTEL
 	//------------------------------------------------------------------------------------------------
 	void BV3C1::Calcule()
 	{
-		DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
-
-		OCCUPATION_SOL& occupation_sol = _sim_hyd.PrendreOccupationSol();
-		
-		occupation_sol.LectureIndicesFolieres(date_courante.PrendreAnnee());
-		occupation_sol.LectureProfondeursRacinaires(date_courante.PrendreAnnee());
-
-		CalculeEtr();
-
-		ZONES& zones = _sim_hyd.PrendreZones();
-
-		unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
-
-		size_t szindex;
-		int index;
-
-		vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
-		int nb_zone_simule = static_cast<int>(index_zones.size());
-
-		// correction de la reserve sol
-		for(auto iter = begin(_corrections_reserve_sol); iter != end(_corrections_reserve_sol); ++iter)
+		if(!_sim_hyd._bSkipBilanVertical)
 		{
-			CORRECTION* correction = *iter;
+			DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
 
-			if (correction->Applicable(date_courante))
+			OCCUPATION_SOL& occupation_sol = _sim_hyd.PrendreOccupationSol();
+		
+			occupation_sol.LectureIndicesFolieres(date_courante.PrendreAnnee());
+			occupation_sol.LectureProfondeursRacinaires(date_courante.PrendreAnnee());
+
+			CalculeEtr();
+
+			ZONES& zones = _sim_hyd.PrendreZones();
+
+			unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
+
+			size_t szindex;
+			int index;
+
+			vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
+			int nb_zone_simule = static_cast<int>(index_zones.size());
+
+			// correction de la reserve sol
+			for(auto iter = begin(_corrections_reserve_sol); iter != end(_corrections_reserve_sol); ++iter)
 			{
-				GROUPE_ZONE* groupe_zone = nullptr;
+				CORRECTION* correction = *iter;
 
-				switch (correction->PrendreTypeGroupe())
+				if (correction->Applicable(date_courante))
 				{
-				case TYPE_GROUPE_ALL:
-					groupe_zone = _sim_hyd.PrendreToutBassin();
-					break;
+					GROUPE_ZONE* groupe_zone = nullptr;
 
-				case TYPE_GROUPE_HYDRO:
-					groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
-					break;
-
-				case TYPE_GROUPE_CORRECTION:
-					groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
-					break;
-				}
-
-				auto& typesol = _sim_hyd.PrendreProprieteHydrotliques();
-
-				for (szindex = 0; szindex < groupe_zone->PrendreNbZone(); ++szindex)
-				{
-					int ident = groupe_zone->PrendreIdent(szindex);
-					size_t index_zone = zones.IdentVersIndex(ident);
-
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
+					switch (correction->PrendreTypeGroupe())
 					{
-						//si la zone est simulé on applique la correction
-						auto& typeSolCouche1 = typesol.PrendreProprieteHydroliqueCouche1(index_zone);
-						auto& typeSolCouche2 = typesol.PrendreProprieteHydroliqueCouche2(index_zone);
-						auto& typeSolCouche3 = typesol.PrendreProprieteHydroliqueCouche3(index_zone);
+					case TYPE_GROUPE_ALL:
+						groupe_zone = _sim_hyd.PrendreToutBassin();
+						break;
 
-						float saturationCouche1 = typeSolCouche1.PrendreThetas();
-						float saturationCouche2 = typeSolCouche2.PrendreThetas();
-						float saturationCouche3 = typeSolCouche3.PrendreThetas();
+					case TYPE_GROUPE_HYDRO:
+						groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
+						break;
 
-						zones[index_zone]._theta3 = (correction->PrendreCoefficientMultiplicatif() * 
-							(zones[index_zone].PrendreZ11() * zones[index_zone]._theta1 + zones[index_zone].PrendreZ22() * zones[index_zone]._theta2 + zones[index_zone].PrendreZ33() * zones[index_zone]._theta3) - 
-							(zones[index_zone].PrendreZ11() * zones[index_zone]._theta1 + zones[index_zone].PrendreZ22() * zones[index_zone]._theta2)) / zones[index_zone].PrendreZ33();
+					case TYPE_GROUPE_CORRECTION:
+						groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
+						break;
+					}
 
-						if (zones[index_zone]._theta3 > saturationCouche3)
+					auto& typesol = _sim_hyd.PrendreProprieteHydrotliques();
+
+					for (szindex = 0; szindex < groupe_zone->PrendreNbZone(); ++szindex)
+					{
+						int ident = groupe_zone->PrendreIdent(szindex);
+						size_t index_zone = zones.IdentVersIndex(ident);
+
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							zones[index_zone]._theta2 += (zones[index_zone]._theta3 - saturationCouche3) * zones[index_zone].PrendreZ33() / zones[index_zone].PrendreZ22();
-							zones[index_zone]._theta3 = saturationCouche3;
-						
-							if (zones[index_zone]._theta2 > saturationCouche2)
+							//si la zone est simulé on applique la correction
+							auto& typeSolCouche1 = typesol.PrendreProprieteHydroliqueCouche1(index_zone);
+							auto& typeSolCouche2 = typesol.PrendreProprieteHydroliqueCouche2(index_zone);
+							auto& typeSolCouche3 = typesol.PrendreProprieteHydroliqueCouche3(index_zone);
+
+							float saturationCouche1 = typeSolCouche1.PrendreThetas();
+							float saturationCouche2 = typeSolCouche2.PrendreThetas();
+							float saturationCouche3 = typeSolCouche3.PrendreThetas();
+
+							zones[index_zone]._theta3 = (correction->PrendreCoefficientMultiplicatif() * 
+								(zones[index_zone].PrendreZ11() * zones[index_zone]._theta1 + zones[index_zone].PrendreZ22() * zones[index_zone]._theta2 + zones[index_zone].PrendreZ33() * zones[index_zone]._theta3) - 
+								(zones[index_zone].PrendreZ11() * zones[index_zone]._theta1 + zones[index_zone].PrendreZ22() * zones[index_zone]._theta2)) / zones[index_zone].PrendreZ33();
+
+							if (zones[index_zone]._theta3 > saturationCouche3)
 							{
-								zones[index_zone]._theta1 += (zones[index_zone]._theta2 - saturationCouche2) * zones[index_zone].PrendreZ22() / zones[index_zone].PrendreZ11();
-								zones[index_zone]._theta2 = saturationCouche2;
+								zones[index_zone]._theta2 += (zones[index_zone]._theta3 - saturationCouche3) * zones[index_zone].PrendreZ33() / zones[index_zone].PrendreZ22();
+								zones[index_zone]._theta3 = saturationCouche3;
+						
+								if (zones[index_zone]._theta2 > saturationCouche2)
+								{
+									zones[index_zone]._theta1 += (zones[index_zone]._theta2 - saturationCouche2) * zones[index_zone].PrendreZ22() / zones[index_zone].PrendreZ11();
+									zones[index_zone]._theta2 = saturationCouche2;
 							
-								if (zones[index_zone]._theta1 > saturationCouche1)
-									zones[index_zone]._theta1 = saturationCouche1;
+									if (zones[index_zone]._theta1 > saturationCouche1)
+										zones[index_zone]._theta1 = saturationCouche1;
+								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		// correction pour la saturation de la reserve en eau des 3 couches de sol
-		for(auto iter = begin(_corrections_saturation_sol); iter != end(_corrections_saturation_sol); ++iter)
-		{
-			CORRECTION* correction = *iter;
-
-			if (correction->Applicable(date_courante))
+			// correction pour la saturation de la reserve en eau des 3 couches de sol
+			for(auto iter = begin(_corrections_saturation_sol); iter != end(_corrections_saturation_sol); ++iter)
 			{
-				GROUPE_ZONE* groupe_zone = nullptr;
+				CORRECTION* correction = *iter;
 
-				switch (correction->PrendreTypeGroupe())
+				if (correction->Applicable(date_courante))
 				{
-				case TYPE_GROUPE_ALL:
-					groupe_zone = _sim_hyd.PrendreToutBassin();
-					break;
+					GROUPE_ZONE* groupe_zone = nullptr;
 
-				case TYPE_GROUPE_HYDRO:
-					groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
-					break;
-
-				case TYPE_GROUPE_CORRECTION:
-					groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
-					break;
-				}
-
-				auto& typesol = _sim_hyd.PrendreProprieteHydrotliques();
-
-				for (szindex = 0; szindex < groupe_zone->PrendreNbZone(); ++szindex)
-				{
-					int ident = groupe_zone->PrendreIdent(szindex);
-					size_t index_zone = zones.IdentVersIndex(ident);
-
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
+					switch (correction->PrendreTypeGroupe())
 					{
-						auto& typeSolCouche1 = typesol.PrendreProprieteHydroliqueCouche1(index_zone);
-						auto& typeSolCouche2 = typesol.PrendreProprieteHydroliqueCouche2(index_zone);
-						auto& typeSolCouche3 = typesol.PrendreProprieteHydroliqueCouche3(index_zone);
+					case TYPE_GROUPE_ALL:
+						groupe_zone = _sim_hyd.PrendreToutBassin();
+						break;
 
-						float saturationCouche1 = typeSolCouche1.PrendreThetas();
-						float saturationCouche2 = typeSolCouche2.PrendreThetas();
-						float saturationCouche3 = typeSolCouche3.PrendreThetas();
+					case TYPE_GROUPE_HYDRO:
+						groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
+						break;
 
-						zones[index_zone]._theta1 = correction->PrendreCoeffSaturationCouche1() * saturationCouche1;
-						zones[index_zone]._theta2 = correction->PrendreCoeffSaturationCouche2() * saturationCouche2;
-						zones[index_zone]._theta3 = correction->PrendreCoeffSaturationCouche3() * saturationCouche3;
+					case TYPE_GROUPE_CORRECTION:
+						groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
+						break;
 					}
-				}
-			}
-		}
 
-		//calcule
+					auto& typesol = _sim_hyd.PrendreProprieteHydrotliques();
 
-		int iIndexZone;
-		for (index = 0; index < nb_zone_simule; ++index)
-		{
-			iIndexZone = static_cast<int>(index_zones[index]);
-			CalculeUHRH(iIndexZone);
-		}
-
-		//sauvegarde des variables intermediaires
-
-		OUTPUT& output = _sim_hyd.PrendreOutput();
-
-		//milieu humide
-
-		if (_milieu_humide_isole.size() > 0)
-		{
-			int jj, mm, aa, hh;
-
-			aa = date_courante.PrendreAnnee();
-			mm = date_courante.PrendreMois();
-			jj = date_courante.PrendreJour();
-			hh = date_courante.PrendreHeure();
-
-			for (auto iter = _milieu_humide_result.begin(); iter != _milieu_humide_result.end(); iter++)
-			{
-				m_wetfichier 
-					<< iter->first << output.Separator()
-					<< aa << output.Separator()
-					<< mm << output.Separator()
-					<< jj << output.Separator()
-					<< hh << output.Separator()
-					<< iter->second->apport << output.Separator()	// mm
-					<< iter->second->evp << output.Separator()		// mm
-					<< iter->second->wetsep << output.Separator()	// m^3
-					<< _milieu_humide_isole[zones.IdentVersIndex(iter->first)]->GetWetvol() << output.Separator()	// m^3
-					<< iter->second->wetflwi << output.Separator()	// m^3
-					<< iter->second->wetflwo << output.Separator()	// m^3
-					<< iter->second->wetprod << std::endl;			// mm
-			}
-		}
-
-		//
-
-		size_t i, idx;
-		string str;
-
-		if (output.SauvegardeTheta1())
-		{
-			if (_netCdf_theta1 != NULL)
-			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_theta1[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._theta1;
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
-				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					for (szindex = 0; szindex < groupe_zone->PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						int ident = groupe_zone->PrendreIdent(szindex);
+						size_t index_zone = zones.IdentVersIndex(ident);
+
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index_zone) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex]._theta1 << output.Separator();
+							auto& typeSolCouche1 = typesol.PrendreProprieteHydroliqueCouche1(index_zone);
+							auto& typeSolCouche2 = typesol.PrendreProprieteHydroliqueCouche2(index_zone);
+							auto& typeSolCouche3 = typesol.PrendreProprieteHydroliqueCouche3(index_zone);
+
+							float saturationCouche1 = typeSolCouche1.PrendreThetas();
+							float saturationCouche2 = typeSolCouche2.PrendreThetas();
+							float saturationCouche3 = typeSolCouche3.PrendreThetas();
+
+							zones[index_zone]._theta1 = correction->PrendreCoeffSaturationCouche1() * saturationCouche1;
+							zones[index_zone]._theta2 = correction->PrendreCoeffSaturationCouche2() * saturationCouche2;
+							zones[index_zone]._theta3 = correction->PrendreCoeffSaturationCouche3() * saturationCouche3;
 						}
 					}
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_theta1 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeTheta2())
-		{
-			if (_netCdf_theta2 != NULL)
+			//calcule
+
+			int iIndexZone;
+			for (index = 0; index < nb_zone_simule; ++index)
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_theta2[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._theta2;
+				iIndexZone = static_cast<int>(index_zones[index]);
+				CalculeUHRH(iIndexZone);
 			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
 
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+			//sauvegarde des variables intermediaires
+
+			OUTPUT& output = _sim_hyd.PrendreOutput();
+
+			//milieu humide
+
+			if (_milieu_humide_isole.size() > 0)
+			{
+				int jj, mm, aa, hh;
+
+				aa = date_courante.PrendreAnnee();
+				mm = date_courante.PrendreMois();
+				jj = date_courante.PrendreJour();
+				hh = date_courante.PrendreHeure();
+
+				for (auto iter = _milieu_humide_result.begin(); iter != _milieu_humide_result.end(); iter++)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					m_wetfichier 
+						<< iter->first << output.Separator()
+						<< aa << output.Separator()
+						<< mm << output.Separator()
+						<< jj << output.Separator()
+						<< hh << output.Separator()
+						<< iter->second->apport << output.Separator()	// mm
+						<< iter->second->evp << output.Separator()		// mm
+						<< iter->second->wetsep << output.Separator()	// m^3
+						<< _milieu_humide_isole[zones.IdentVersIndex(iter->first)]->GetWetvol() << output.Separator()	// m^3
+						<< iter->second->wetflwi << output.Separator()	// m^3
+						<< iter->second->wetflwo << output.Separator()	// m^3
+						<< iter->second->wetprod << std::endl;			// mm
+				}
+			}
+
+			//
+
+			size_t i, idx;
+			string str;
+
+			if (output.SauvegardeTheta1())
+			{
+				if (_netCdf_theta1 != NULL)
+				{
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_theta1[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._theta1;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex]._theta2 << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex]._theta1 << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_theta1 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_theta2 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeTheta3())
-		{
-			if (_netCdf_theta3 != NULL)
+			if (output.SauvegardeTheta2())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_theta3[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._theta3;
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_theta2 != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_theta2[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._theta2;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex]._theta3 << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex]._theta2 << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_theta2 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_theta3 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtr1())
-		{
-			if (_netCdf_etr1 != NULL)
+			if (output.SauvegardeTheta3())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_etr1[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtr1();
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_theta3 != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_theta3[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]]._theta3;
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex].PrendreEtr1() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex]._theta3 << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_theta3 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr1 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtr2())
-		{
-			if (_netCdf_etr2 != NULL)
+			if (output.SauvegardeEtr1())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_etr2[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtr2();
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_etr1 != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_etr1[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtr1();
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex].PrendreEtr2() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex].PrendreEtr1() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr1 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr2 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtr3())
-		{
-			if (_netCdf_etr3 != NULL)
+			if (output.SauvegardeEtr2())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_etr3[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtr3();
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_etr2 != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_etr2[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtr2();
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex].PrendreEtr3() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex].PrendreEtr2() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr2 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr3 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeEtrTotal())
-		{
-			if (_netCdf_etr_total != NULL)
+			if (output.SauvegardeEtr3())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_etr_total[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtrTotal();
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_etr3 != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_etr3[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtr3();
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << zones[szindex].PrendreEtrTotal() << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex].PrendreEtr3() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr3 << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_etr_total << str << endl;
 			}
-		}
 
-		if (output.SauvegardeQ12())
-		{
-			if (_netCdf_q12 != NULL)
+			if (output.SauvegardeEtrTotal())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_q12[idx+i] = _q12[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]];
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_etr_total != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_etr_total[idx+i] = zones[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]].PrendreEtrTotal();
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << _q12[szindex] << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << zones[szindex].PrendreEtrTotal() << output.Separator();
+							}
 						}
 					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_etr_total << str << endl;
 				}
-			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_q12 << str << endl;
 			}
-		}
 
-		if (output.SauvegardeQ23())
-		{
-			if (_netCdf_q23 != NULL)
+			if (output.SauvegardeQ12())
 			{
-				idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
-
-				for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
-					_netCdf_q23[idx+i] = _q23[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]];
-			}
-			else
-			{
-				ostringstream oss;
-				oss.str("");
-			
-				oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-				for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+				if (_netCdf_q12 != NULL)
 				{
-					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_q12[idx+i] = _q12[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]];
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
 					{
-						if (output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
 						{
-							oss << _q23[szindex] << output.Separator();
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << _q12[szindex] << output.Separator();
+							}
 						}
 					}
-				}
 			
-				str = oss.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_q23 << str << endl;
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_q12 << str << endl;
+				}
 			}
-		}
 
-		//variable d'etat
-		if (_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat - pas_de_temps == date_courante))
-			SauvegardeEtat(date_courante);
+			if (output.SauvegardeQ23())
+			{
+				if (_netCdf_q23 != NULL)
+				{
+					idx = _sim_hyd._lPasTempsCourantIndex * _sim_hyd.PrendreOutput()._uhrhOutputNb;
+
+					for (i=0; i<_sim_hyd.PrendreOutput()._uhrhOutputNb; i++)
+						_netCdf_q23[idx+i] = _q23[_sim_hyd.PrendreOutput()._uhrhOutputIndex[i]];
+				}
+				else
+				{
+					ostringstream oss;
+					oss.str("");
+			
+					oss << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+					for (szindex = 0; szindex < zones.PrendreNbZone(); ++szindex)
+					{
+						if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), szindex) != end(_sim_hyd.PrendreZonesSimules()))
+						{
+							if (output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[szindex].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss << _q23[szindex] << output.Separator();
+							}
+						}
+					}
+			
+					str = oss.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_q23 << str << endl;
+				}
+			}
+
+			//variable d'etat
+			if (_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat - pas_de_temps == date_courante))
+				SauvegardeEtat(date_courante);
+		}
 
 		BILAN_VERTICAL::Calcule();
 	}
@@ -1380,184 +1386,186 @@ namespace HYDROTEL
 
 	void BV3C1::Termine()
 	{
-		string str1, str2;
-
-		_pourcentage_eau.clear();
-		_pourcentage_impermeable.clear();
-		_pourcentage_autre.clear();
-
-		_q12.clear();
-		_q23.clear();
-
-		_b.clear();
-		_omegpi.clear();
-		_mm.clear();
-		_nn.clear();
-
-		_milieu_humide_isole.clear();
-
-		for (auto iter = _milieu_humide_result.begin(); iter != _milieu_humide_result.end(); iter++)
-			delete iter->second;
-		_milieu_humide_result.clear();
-
-		OUTPUT& output = _sim_hyd.PrendreOutput();
-
-		if (output.SauvegardeTheta1())
+		if(!_sim_hyd._bSkipBilanVertical)
 		{
-			if (_netCdf_theta1 != NULL)
+			string str1, str2;
+
+			_pourcentage_eau.clear();
+			_pourcentage_impermeable.clear();
+			_pourcentage_autre.clear();
+
+			_q12.clear();
+			_q23.clear();
+
+			_b.clear();
+			_omegpi.clear();
+			_mm.clear();
+			_nn.clear();
+
+			_milieu_humide_isole.clear();
+
+			for (auto iter = _milieu_humide_result.begin(); iter != _milieu_humide_result.end(); iter++)
+				delete iter->second;
+			_milieu_humide_result.clear();
+
+			OUTPUT& output = _sim_hyd.PrendreOutput();
+
+			if (output.SauvegardeTheta1())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta1.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta1.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta1", _netCdf_theta1, "[0-1]", "Teneur en eau de la couche 1");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta1", _netCdf_theta1, "[0-1]", "Teneur en eau de la couche 1");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_theta1 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta1.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta1.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta1", _netCdf_theta1, "[0-1]", "Teneur en eau de la couche 1");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta1", _netCdf_theta1, "[0-1]", "Teneur en eau de la couche 1");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_theta1;
+					delete [] _netCdf_theta1;
+				}
+				else
+					_fichier_theta1.close();
 			}
-			else
-				_fichier_theta1.close();
-		}
 
-		if (output.SauvegardeTheta2())
-		{
-			if (_netCdf_theta2 != NULL)
+			if (output.SauvegardeTheta2())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta2.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta2.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta2", _netCdf_theta2, "[0-1]", "Teneur en eau de la couche 2");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta2", _netCdf_theta2, "[0-1]", "Teneur en eau de la couche 2");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_theta2 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta2.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta2.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta2", _netCdf_theta2, "[0-1]", "Teneur en eau de la couche 2");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta2", _netCdf_theta2, "[0-1]", "Teneur en eau de la couche 2");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_theta2;
+					delete [] _netCdf_theta2;
+				}
+				else
+					_fichier_theta2.close();
 			}
-			else
-				_fichier_theta2.close();
-		}
 
-		if (output.SauvegardeTheta3())
-		{
-			if (_netCdf_theta3 != NULL)
+			if (output.SauvegardeTheta3())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta3.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta3.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta3", _netCdf_theta3, "[0-1]", "Teneur en eau de la couche 3");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta3", _netCdf_theta3, "[0-1]", "Teneur en eau de la couche 3");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_theta3 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta3.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta3.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta3", _netCdf_theta3, "[0-1]", "Teneur en eau de la couche 3");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta3", _netCdf_theta3, "[0-1]", "Teneur en eau de la couche 3");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_theta3;
+					delete [] _netCdf_theta3;
+				}
+				else
+					_fichier_theta3.close();
 			}
-			else
-				_fichier_theta3.close();
-		}
 
-		if (output.SauvegardeEtr1())
-		{
-			if (_netCdf_etr1 != NULL)
+			if (output.SauvegardeEtr1())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr1.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr1.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr1", _netCdf_etr1, "mm", "Evapotranspiration reelle de la couche 1");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr1", _netCdf_etr1, "mm", "Evapotranspiration reelle de la couche 1");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_etr1 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr1.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr1.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr1", _netCdf_etr1, "mm", "Evapotranspiration reelle de la couche 1");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr1", _netCdf_etr1, "mm", "Evapotranspiration reelle de la couche 1");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_etr1;
+					delete [] _netCdf_etr1;
+				}
+				else
+					_fichier_etr1.close();
 			}
-			else
-				_fichier_etr1.close();
-		}
 
-		if (output.SauvegardeEtr2())
-		{
-			if (_netCdf_etr2 != NULL)
+			if (output.SauvegardeEtr2())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr2.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr2.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr2", _netCdf_etr2, "mm", "Evapotranspiration reelle de la couche 2");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr2", _netCdf_etr2, "mm", "Evapotranspiration reelle de la couche 2");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_etr2 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr2.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr2.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr2", _netCdf_etr2, "mm", "Evapotranspiration reelle de la couche 2");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr2", _netCdf_etr2, "mm", "Evapotranspiration reelle de la couche 2");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_etr2;
+					delete [] _netCdf_etr2;
+				}
+				else
+					_fichier_etr2.close();
 			}
-			else
-				_fichier_etr2.close();
-		}
 
-		if (output.SauvegardeEtr3())
-		{
-			if (_netCdf_etr3 != NULL)
+			if (output.SauvegardeEtr3())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr3.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr3.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr3", _netCdf_etr3, "mm", "Evapotranspiration reelle de la couche 3");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr3", _netCdf_etr3, "mm", "Evapotranspiration reelle de la couche 3");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_etr3 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr3.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr3.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr3", _netCdf_etr3, "mm", "Evapotranspiration reelle de la couche 3");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr3", _netCdf_etr3, "mm", "Evapotranspiration reelle de la couche 3");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_etr3;
+					delete [] _netCdf_etr3;
+				}
+				else
+					_fichier_etr3.close();
 			}
-			else
-				_fichier_etr3.close();
-		}
 
-		if (output.SauvegardeEtrTotal())
-		{
-			if (_netCdf_etr_total != NULL)
+			if (output.SauvegardeEtrTotal())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr_total.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr_total.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr_total", _netCdf_etr_total, "mm", "Evapotranspiration reelle totale");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr_total", _netCdf_etr_total, "mm", "Evapotranspiration reelle totale");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_etr_total != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr_total.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr_total.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr_total", _netCdf_etr_total, "mm", "Evapotranspiration reelle totale");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr_total", _netCdf_etr_total, "mm", "Evapotranspiration reelle totale");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_etr_total;
+					delete [] _netCdf_etr_total;
+				}
+				else
+					_fichier_etr_total.close();
 			}
-			else
-				_fichier_etr_total.close();
-		}
 
-		if (output.SauvegardeQ12())
-		{
-			if (_netCdf_q12 != NULL)
+			if (output.SauvegardeQ12())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-q12.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "q12.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-q12", _netCdf_q12, "mm/pdt", "Ecoulement vertical de la couche 1 a 2");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "q12", _netCdf_q12, "mm/pdt", "Ecoulement vertical de la couche 1 a 2");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_q12 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-q12.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "q12.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-q12", _netCdf_q12, "mm/pdt", "Ecoulement vertical de la couche 1 a 2");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "q12", _netCdf_q12, "mm/pdt", "Ecoulement vertical de la couche 1 a 2");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_q12;
+					delete [] _netCdf_q12;
+				}
+				else
+					_fichier_q12.close();
 			}
-			else
-				_fichier_q12.close();
-		}
 
-		if (output.SauvegardeQ23())
-		{
-			if (_netCdf_q23 != NULL)
+			if (output.SauvegardeQ23())
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-q23.nc");
-				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "q23.nc");
-				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-q23", _netCdf_q23, "mm/pdt", "Ecoulement vertical de la couche 2 a 3");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "q23", _netCdf_q23, "mm/pdt", "Ecoulement vertical de la couche 2 a 3");
-				if(str2 != "")
-					throw ERREUR(str2);
+				if (_netCdf_q23 != NULL)
+				{
+					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-q23.nc");
+					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "q23.nc");
+					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-q23", _netCdf_q23, "mm/pdt", "Ecoulement vertical de la couche 2 a 3");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "q23", _netCdf_q23, "mm/pdt", "Ecoulement vertical de la couche 2 a 3");
+					if(str2 != "")
+						throw ERREUR(str2);
 
-				delete [] _netCdf_q23;
+					delete [] _netCdf_q23;
+				}
+				else
+					_fichier_q23.close();
 			}
-			else
-				_fichier_q23.close();
+
+			if(m_wetfichier.is_open())
+				m_wetfichier.close();
 		}
-
-		if(m_wetfichier.is_open())
-			m_wetfichier.close();
-
 
 		BILAN_VERTICAL::Termine();
 	}
@@ -2258,7 +2266,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 11)
-						throw ERREUR_LECTURE_FICHIER( "FICHIER PARAMETRES GLOBAL; BV3C; " + _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( "FICHIER PARAMETRES GLOBAL; BV3C; " + _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

@@ -105,7 +105,6 @@ namespace HYDROTEL
 		//std::map<int, std::vector<size_t>>		mapShreveTroncon;	//NoOrdreShreve 1-X, index des troncons
 		//int										iShreveMax;			//no ordre max
 
-		void TrieTroncons();
 
 		void TransfertRiviere(size_t idxTroncon, int pdts, float lng, float lrg, float pte, float man, float qa, float ql,  float qb, float qc, float qm, float& hauteur, float& section, float& qd);
 		void TransfertLac(int dt, float aire, float c, float k, float qa, float ql, float qb, float qc, float qm, float& haut, float& qd);
@@ -140,7 +139,6 @@ namespace HYDROTEL
 		// variables de simulations
 
 		std::vector<OCM> _ocm;
-		std::vector<size_t> _troncons_tries;
 
         // milieux humides riverain
 		std::vector<MILIEUHUMIDE_RIVERAIN*> _milieu_humide_riverain;

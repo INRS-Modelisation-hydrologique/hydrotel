@@ -63,6 +63,8 @@ namespace HYDROTEL
 
 		std::string CalculeLongueurTroncons();
 
+		void		CalculeAltitudeTroncons();
+
 		/// retourne le troncon a l'index
 		TRONCON* operator[] (size_t index);
 

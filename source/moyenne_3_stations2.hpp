@@ -50,9 +50,15 @@ namespace HYDROTEL
 
 		bool LecturePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation);
 
+		bool LecturePonderationTroncon(STATIONS& stations, TRONCONS& troncons, MATRICE<double>& ponderation);
+
 		void CalculePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation, std::string sOrigin);
 
+		void CalculePonderationTroncon(STATIONS& stations, TRONCONS& troncon, MATRICE<double>& ponderation, std::string sOrigin);
+
 		void SauvegardePonderation(STATIONS& stations, ZONES& zones, MATRICE<double>& ponderation);
+
+		void SauvegardePonderationTroncon(STATIONS& stations, TRONCONS& troncons, MATRICE<double>& ponderation);
 
 		/// retourne le gradient de precipitation (mm/100m)
 		float PrendreGradientPrecipitation(size_t index) const;
@@ -88,9 +94,16 @@ namespace HYDROTEL
 		void RepartieDonnees();
 		void PassagePluieNeige();
 
+		bool LecturePonderationTroncon();
+		void CalculePonderationTroncon();
+	    void SauvegardePonderationTroncon();
+		
+		void RepartieDonneesTroncon();
+
 		SIM_HYD*		_pSim_hyd;
 		
 		MATRICE<double> _ponderation;
+		MATRICE<double> _ponderationTroncon;
 	};
 
 }

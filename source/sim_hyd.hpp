@@ -37,6 +37,7 @@
 #include "raster_double2.hpp"
 #include "prelevements.hpp"
 #include "log-performance.hpp"
+#include "modelecture.hpp"
 
 
 namespace HYDROTEL
@@ -51,6 +52,8 @@ namespace HYDROTEL
 	class BILAN_VERTICAL;
 	class RUISSELEMENT_SURFACE;
 	class ACHEMINEMENT_RIVIERE;
+	class TEMP_EAU;
+
 	class PRELEVEMENTS;
 
 	class THIESSEN1;
@@ -125,6 +128,12 @@ namespace HYDROTEL
 		{
 			ACHEMINEMENT_LECTURE,
 			ACHEMINEMENT_ONDE_CINEMATIQUE_MODIFIEE,
+		};
+
+		enum TYPE_TEMPEAU
+		{
+			TEMPEAU_LECTURE,
+			TEMPEAU_CEQUEAU,
 		};
 
 		//enum TYPE_DONNEE
@@ -232,6 +241,9 @@ namespace HYDROTEL
 		// change le sous modele d'acheminement riviere
 		void ChangeAcheminementRiviere(const std::string& nom_sous_modele);
 
+		// change le sous modele de temperature de l'eau
+		void ChangeTempEau(const std::string& nom_sous_modele);
+
 		void ChangeIdentTronconExutoire(int ident);
 
 		// retourne le nom du sous modele d'interpolation
@@ -258,9 +270,12 @@ namespace HYDROTEL
 		// retourne le nom du sous modele d'acheminement
 		std::string PrendreNomAcheminement() const;
 
+		// retourne le nom du sous modele de temperature de l'eau
+		std::string PrendreNomTempEau() const;
+
 		int PrendreIdentTronconExutoire() const;
 
-		// retourne la liste des troncons simules
+		// retourne la liste des index des troncons simules
 		std::vector<size_t>& PrendreTronconsSimules();
 		std::vector<int>& PrendreTronconsSimulesIdent();
 
@@ -299,6 +314,9 @@ namespace HYDROTEL
 
 		std::string CreateTronconsTxt();	//create physitel file troncons.txt using informations from .trl file	//those files are needed for manually create physitel project (from hydrotel project data)
 		std::string CreateUhrhTxt();		//create physitel file uhrh.txt from _zones object						//
+
+		void	TrieTroncons();
+		size_t	TronconToIndex(TRONCONS& troncons, TRONCON* troncon);
 
 
 	public:
@@ -375,8 +393,11 @@ namespace HYDROTEL
 		BILAN_VERTICAL*			_bilan_vertical;
 		RUISSELEMENT_SURFACE*	_ruisselement_surface;
 		ACHEMINEMENT_RIVIERE*   _acheminement_riviere;
+		TEMP_EAU*				_temp_eau;
 
 		bool					_bRayonnementNet;
+
+		bool					_bInterpolationMeteoTroncon;	//indicates if weather interpolation must be done at river reach level (ex: for water temperature model)
 
 		//mode lecture
 		bool					_bLectInterpolation;
@@ -388,6 +409,18 @@ namespace HYDROTEL
 		bool					_bLectRuissellement;
 		bool					_bLectAcheminement;
 
+		//bool					bSkipInter, bSkipFonte, bSkipFonteGlacier, bSkipTempsol, bSkipEvp, bSkipBilan;
+		bool					_bSkipFonteNeige;
+		bool					_bSkipBilanVertical;
+		bool					_bSkipRuissellement;
+
+		//
+		std::string				_nom_fichier_modelecture;
+
+		//ModeLecture*			_pModeLecture;
+		std::unique_ptr<ModeLecture> _pModeLecture;
+
+		//
 		size_t					_outputNbZone;
 		size_t*					_vOutputIndexZone;
 
@@ -411,10 +444,13 @@ namespace HYDROTEL
 		std::vector<std::unique_ptr<BILAN_VERTICAL>>		_vbilan_vertical;
 		std::vector<std::unique_ptr<RUISSELEMENT_SURFACE>>	_vruisselement;
 		std::vector<std::unique_ptr<ACHEMINEMENT_RIVIERE>>	_vacheminement;
+		std::vector<std::unique_ptr<TEMP_EAU>>				_vtempeau;
 
 		LOG_PERFORMANCE										_logPerformance;
 
 		size_t												_tempVal;
+
+		std::vector<size_t>									_troncons_tries;
 
 
 	private:
@@ -440,6 +476,7 @@ namespace HYDROTEL
 		void LectureBilanVertical();
 		void LectureRuisselement();
 		void LectureAcheminementRiviere();
+		void LectureTempEau();
 
 		void ChangeNbParams();
 
@@ -453,7 +490,8 @@ namespace HYDROTEL
 		void SauvegardeEtp();
 		void SauvegardeBilanVertical();
 		void SauvegardeRuisselement();
-		void SauvegradeAcheminementRiviere();
+		void SauvegardeAcheminementRiviere();
+		void SauvegardeTempEau();
 
 		void InitListeTronconsZonesSimules();
 
@@ -479,12 +517,11 @@ namespace HYDROTEL
 		// simulation en cours
 		DATE_HEURE _date_courante;
 
-		// index des troncons et des zones a simules
-		std::vector<size_t> _troncons_simules;
-		std::vector<int>	_troncons_simules_ident;
+		std::vector<size_t> _troncons_simules;			//index des troncons simulés
+		std::vector<int>	_troncons_simules_ident;	//identifiants des troncons simulés
 		
-		std::vector<size_t> _zones_simules;
-		std::vector<int>	_zones_simules_ident;	//l'identifiant est negatif pour les lacs
+		std::vector<size_t> _zones_simules;				//index des uhrh simulés
+		std::vector<int>	_zones_simules_ident;		//identifiants des uhrh simulés (l'identifiant est negatif pour les lacs)
 
 		//
 		std::vector<size_t>					_wavg_idtroncon;

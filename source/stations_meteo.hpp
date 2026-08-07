@@ -49,6 +49,7 @@ namespace HYDROTEL
 		
 		bool			_bAutoInverseTMinTMax;
 		bool			_bStationInterpolation;
+		bool			_bUseTempOnly;		//use tmin & tmax only (for running water temp model when external data are enabled (_bSkipBilanVertical == true)
 
 		SIM_HYD*		_pSimHyd;
 

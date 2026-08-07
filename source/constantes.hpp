@@ -62,7 +62,7 @@ namespace HYDROTEL
 	const float		C1_ES									= 0.622f * LE / RD;		// constante d'estimation de ES
 
 	const float		GAMMA									= 0.6638f;				// constante psychometrique en mb/K
-	const float		SIGMA									= 0.004903f;			// constante de Stephen Boltzman	//J/m*m*K(-4)*j		//J/JOUR/M²/K4
+	const float		SIGMA									= 0.004903f;			// constante de Stephen Boltzman	//J/m*m*K(-4)*j		//J/JOUR/M2/K4
 
 	const float		A0										= 6984.505294f;
 	const float		A1										= -188.903931f;

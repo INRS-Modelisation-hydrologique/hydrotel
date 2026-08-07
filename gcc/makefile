@@ -53,14 +53,17 @@ $(SRCDIR)/lecture_fonte_glacier.cpp \
 $(SRCDIR)/lecture_fonte_neige.cpp \
 $(SRCDIR)/lecture_interpolation_donnees.cpp \
 $(SRCDIR)/lecture_ruisselement_surface.cpp \
+$(SRCDIR)/lecture_temp_eau.cpp \
 $(SRCDIR)/lecture_tempsol.cpp \
 $(SRCDIR)/linacre.cpp \
 $(SRCDIR)/log-performance.cpp \
 $(SRCDIR)/milieu_humide_isole.cpp \
 $(SRCDIR)/milieu_humide_riverain.cpp \
 $(SRCDIR)/mise_a_jour.cpp \
+$(SRCDIR)/modelecture.cpp \
 $(SRCDIR)/moyenne_3_stations1.cpp \
 $(SRCDIR)/moyenne_3_stations2.cpp \
+$(SRCDIR)/netcdf_file.cpp \
 $(SRCDIR)/noeud.cpp \
 $(SRCDIR)/noeuds.cpp \
 $(SRCDIR)/occupation_sol.cpp \
@@ -100,6 +103,8 @@ $(SRCDIR)/station_meteo_netcdf_station.cpp \
 $(SRCDIR)/station_neige.cpp \
 $(SRCDIR)/station_neige_mef.cpp \
 $(SRCDIR)/statistiques.cpp \
+$(SRCDIR)/temp_eau.cpp \
+$(SRCDIR)/temp_eau_cequeau.cpp \
 $(SRCDIR)/tempsol.cpp \
 $(SRCDIR)/thiessen1.cpp \
 $(SRCDIR)/thiessen2.cpp \
@@ -150,6 +155,7 @@ $(SRCDIR)/lecture_fonte_glacier.hpp \
 $(SRCDIR)/lecture_fonte_neige.hpp \
 $(SRCDIR)/lecture_interpolation_donnees.hpp \
 $(SRCDIR)/lecture_ruisselement_surface.hpp \
+$(SRCDIR)/lecture_temp_eau.hpp \
 $(SRCDIR)/lecture_tempsol.hpp \
 $(SRCDIR)/linacre.hpp \
 $(SRCDIR)/log-performance.hpp \
@@ -157,8 +163,10 @@ $(SRCDIR)/matrice.hpp \
 $(SRCDIR)/milieu_humide_isole.hpp \
 $(SRCDIR)/milieu_humide_riverain.hpp \
 $(SRCDIR)/mise_a_jour.hpp \
+$(SRCDIR)/modelecture.hpp \
 $(SRCDIR)/moyenne_3_stations1.hpp \
 $(SRCDIR)/moyenne_3_stations2.hpp \
+$(SRCDIR)/netcdf_file.hpp \
 $(SRCDIR)/noeud.hpp \
 $(SRCDIR)/noeuds.hpp \
 $(SRCDIR)/occupation_sol.hpp \
@@ -201,6 +209,8 @@ $(SRCDIR)/station_meteo_netcdf_station.hpp \
 $(SRCDIR)/station_neige.hpp \
 $(SRCDIR)/station_neige_mef.hpp \
 $(SRCDIR)/statistiques.hpp \
+$(SRCDIR)/temp_eau.hpp \
+$(SRCDIR)/temp_eau_cequeau.hpp \
 $(SRCDIR)/tempsol.hpp \
 $(SRCDIR)/thiessen1.hpp \
 $(SRCDIR)/thiessen2.hpp \

@@ -86,6 +86,15 @@ namespace HYDROTEL
 
 		void ChangeZonesAmont(std::vector<ZONE*>& zones_amont);
 
+		/// change l'altitude moyenne de la zone (m)
+		void ChangeAltitude(float altitude);
+
+		/// change les temperatures min/max pour le pas courant (C)
+		void ChangeTemperature(float tmin, float tmax);
+
+		/// change les temperatures min/max pour le jour courant (C)
+		void ChangeTemperatureJournaliere(float tmin, float tmax);
+
 		void ChangeTronconsAval(std::vector<TRONCON*>& troncon_aval);
 
 		void ChangeTronconsAmont(std::vector<TRONCON*>& troncons_amont);
@@ -101,18 +110,22 @@ namespace HYDROTEL
 		void ChangeDebitAmont(float debit);
 		void ChangeDebitAmontMoyen(float debitMoyen);
 
+
+
 		double	_hauteurAvalMoy;			//hauteur d'eau en aval du troncon (moyenne des pas de temps interne)	//m
 
 		float	_surf;
 		float	_hypo;
 		float	_base;
 
-		//prelevement
-		double	_prPrelevementTotal;	//prelevement gpe + pr + elevage				//m3/s		//pour le pas de temps courant
-		double	_prPrelevementCulture;	//prelevement cultures							//m3/s		//
+		float	_tempEau;				// temperature de l'eau (C)
 
-		double	_prRejetTotal;			//rejets totaux excluant les rejets effluents	//m3/s		//
-		double	_prRejetEffluent;		//rejets effluents								//m3/s		//
+		//prelevement
+		double	_prPrelevementTotal;		//prelevement gpe + pr + elevage				//m3/s		//pour le pas de temps courant
+		double	_prPrelevementCulture;		//prelevement cultures							//m3/s		//
+
+		double	_prRejetTotal;				//rejets totaux excluant les rejets effluents	//m3/s		//
+		double	_prRejetEffluent;			//rejets effluents								//m3/s		//
 
 		double  _prIndicePression;														//0-1		//
 
@@ -127,6 +140,9 @@ namespace HYDROTEL
 
 		std::vector<NOEUD*>		_noeuds_aval;
 		std::vector<NOEUD*>		_noeuds_amont;
+
+		double					_coord_noeud_aval_x;	//coordonnées du noeud aval (long/lat wgs84)
+		double					_coord_noeud_aval_y;	//
 
 		std::vector<ZONE*>		_zones_amont;
 
@@ -145,9 +161,16 @@ namespace HYDROTEL
 		float					_debit_amont_moyen;	// m3/s		//pas de temps externe
 		float					_debit_aval_moyen;	// m3/s		//pas de temps externe
 
-		//shreve method of stream ordering
-		int						_iSchreve;	//[1 - x]
+		int						_iSchreve;	//[1 - x]	//shreve method of stream ordering
 
+		float					_tmin;					//C
+		float					_tmax;					//C
+		float					_tmin_jour;				//C
+		float					_tmax_jour;				//C
+
+		float					_altitude;				//altitude moyenne (m)
+
+		float					_rayonnement_solaire;
 	};
 
 }

@@ -99,6 +99,8 @@ namespace HYDROTEL
 
 		void SauvegardeResumer(const std::string& nom_fichier);
 
+		std::vector<int>		_listIdUhrh;
+
 		std::vector<size_t>		_vIdentVersIndex;
 		std::string				_nom_fichier_zoneTemp;
 		std::string				_nom_fichier_zone;

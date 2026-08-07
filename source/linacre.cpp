@@ -224,7 +224,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 5)
-						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "LINACRE; Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "LINACRE; Invalid column count.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

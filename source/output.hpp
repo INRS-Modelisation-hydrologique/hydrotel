@@ -100,6 +100,8 @@ namespace HYDROTEL
 
 		bool SauvegardeProfondeurGel() const;
 
+		bool SauvegardeTemperatureEau() const;
+
 		std::string SauvegardeOutputNetCDF(std::string sPathFile, bool bUHRH, 
 											std::string sOutputVariableName, float* pData, std::string sUnits, std::string sDescription);
 
@@ -151,6 +153,7 @@ namespace HYDROTEL
 		bool				_qRecharge;
 		bool				_profondeurgel;
 		bool				_weighted_avg;
+		bool                _temperature_eau;
 		int					_iIDTronconExutoire;
 
 		//nb digits

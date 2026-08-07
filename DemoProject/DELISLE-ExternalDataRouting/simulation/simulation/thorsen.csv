@@ -1,0 +1,29 @@
+PARAMETRES HYDROTEL VERSION;4.3.1.0000
+
+SOUS MODELE;THORSEN
+
+PROFONDEUR INITIALE DU GEL DANS LE SOL (m);0.00
+PARAMETRE EMPIRIQUE 1 (m-1);8.00
+TEMPERATURE DU GEL DE L'EAU DANS LE SOL (dC);0.00
+TENEUR EN EAU DISPONIBLE (INITIAL/PAR DEFAUT) (0:1);0.40
+
+TEXTURE SOL; CONDUCTIVITE THERMIQUE D'UN SOL GELE (KT) (W/m/s)
+sand;0.8000
+loamy_sand;0.8000
+sandy_loam;0.8000
+loam;0.8000
+silt_loam;0.8000
+silt;0.8000
+sandy_clay_loam;0.8000
+clay_loam;0.8000
+silty_clay_loam;0.8000
+sandy_clay;0.8000
+silty_clay;0.8000
+clay;0.8000
+water;0.8000
+rocks;0.8000
+organic;0.8000
+ice;0.8000
+peat_(Fibric);0.8000
+peat_(Hemic);0.8000
+peat_(Sapric);0.8000

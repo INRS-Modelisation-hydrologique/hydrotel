@@ -52,6 +52,8 @@
 #include "onde_cinematique.hpp"
 #include "lecture_acheminement_riviere.hpp"
 #include "onde_cinematique_modifiee.hpp"
+#include "lecture_temp_eau.hpp"
+#include "temp_eau_cequeau.hpp"
 #include "util.hpp"
 #include "erreur.hpp"
 #include "version.hpp"
@@ -62,6 +64,7 @@
 #include <regex>
 
 #include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 
 using namespace std;
@@ -87,6 +90,7 @@ namespace HYDROTEL
 		_bilan_vertical = nullptr;
 		_ruisselement_surface = nullptr;
 		_acheminement_riviere = nullptr;
+		_temp_eau = nullptr;
 
 		_smThiessen1 = new THIESSEN1(*this);
 		_smThiessen2 = new THIESSEN2(*this);
@@ -142,6 +146,10 @@ namespace HYDROTEL
 		_vacheminement[ACHEMINEMENT_LECTURE] = unique_ptr<ACHEMINEMENT_RIVIERE>(new LECTURE_ACHEMINEMENT_RIVIERE(*this));
 		_vacheminement[ACHEMINEMENT_ONDE_CINEMATIQUE_MODIFIEE] = unique_ptr<ACHEMINEMENT_RIVIERE>(new ONDE_CINEMATIQUE_MODIFIEE(*this));
 
+		_vtempeau.resize(2);
+		_vtempeau[TEMPEAU_LECTURE] = unique_ptr<TEMP_EAU>(new LECTURE_TEMP_EAU(*this));
+		_vtempeau[TEMPEAU_CEQUEAU] = unique_ptr<TEMP_EAU>(new TEMP_EAU_CEQUEAU(*this));
+
 		_versionTHIESSEN = 2;		//models versions to use (initialized with latest available version)
 		_versionMOY3STATION = 2;	//
 		_versionBV3C = 2;			//
@@ -152,6 +160,8 @@ namespace HYDROTEL
 		_bSimulePrevision = false;
 		_bSimuleMHRiverain = false;
 		_bSimuleMHIsole = false;
+
+		_bInterpolationMeteoTroncon = false;
 
 		_bActiveTronconDeconnecte = false;
 
@@ -174,6 +184,8 @@ namespace HYDROTEL
 		_sFolderNamePrelevements = "prelevements";
 		_sFolderNamePrelevementsSrc = "SitesPrelevements";
 		_pr = new PRELEVEMENTS(*this);
+
+		_pModeLecture = nullptr;
 	}
 
 
@@ -272,6 +284,10 @@ namespace HYDROTEL
 		size_t i;
 
 		_troncons._pSimHyd = this;
+
+		_bSkipFonteNeige = false;
+		_bSkipBilanVertical = false;
+		_bSkipRuissellement = false;
 
 		string ext = PrendreExtension(_nom_fichier);		
 
@@ -513,7 +529,50 @@ namespace HYDROTEL
 				}
 			}
 
-			LectureDonneesMeteorologiques();
+			_output._iIDTronconExutoire = _ident_troncon_exutoire;
+			_output.Lecture( PrendreRepertoireSimulation() );
+
+			InitListeTronconsZonesSimules();
+
+			if(_nom_fichier_modelecture != "" && _bSimul) //external data routing
+			{
+				//_pModeLecture = new ModeLecture(*this);
+				_pModeLecture = std::make_unique<ModeLecture>(*this);
+				_pModeLecture->_sPathProjet = PrendreRepertoireProjet();
+				_pModeLecture->_simTimeStep = _pas_de_temps;
+				_pModeLecture->_dtDebutSim = _date_debut;
+				_pModeLecture->_dtFinSim = _date_fin;
+				
+				if(!_pModeLecture->LectureParametres(_nom_fichier_modelecture))
+					throw ERREUR(_pModeLecture->_sError);
+
+				//
+				_bSkipFonteNeige = true;
+
+				if(_pModeLecture->_iVarMode == 5)
+					_stations_meteo._bUseTempOnly = true;	//tmin & tmax are needed for evapotranspiration model, precip is ignored (fixed to 0 to prevent missing data interpolation)
+				else
+				{
+					_bSkipBilanVertical = true;
+
+					if(_pModeLecture->_iVarMode == 3 || _pModeLecture->_iVarMode == 4)
+						_bSkipRuissellement = true;
+
+					if(_temp_eau != nullptr)
+						_stations_meteo._bUseTempOnly = true;	//tmin & tmax are needed for water temperature model, precip is ignored (fixed to 0 to prevent missing data interpolation)
+				}
+			}
+
+			if(!_bSkipBilanVertical || _temp_eau != nullptr)
+				LectureDonneesMeteorologiques();
+
+			if(_output._iOutputCDF == 1)
+				_outputCDF = true;
+			else
+			{
+				if(_output._iOutputCDF == 0) //remis à false dans le cas où _outputCDF aurait été mis à true a cause lecture meteo NetCDF (stations_meteo.cpp 141)
+					_outputCDF = false;
+			}
 
 			LectureDonneesHydrologiques();
 
@@ -528,33 +587,37 @@ namespace HYDROTEL
 
 			ChangeNbParams();
 
-			LectureInterpolationDonnees();
-			LectureFonteNeige();
-			
-			if(_fonte_glacier)
-				LectureFonteGlacier();
+			if(!_bSkipBilanVertical || _temp_eau != nullptr)
+				LectureInterpolationDonnees();	//l'interpolation des donnees meteo est tout de meme effectué si bSkipFonteNeige == true
+												//dans ce cas seul les températures sont utilisé/interpolé (celle-ci sont nécessaire pour le modele d'évapotranspiration)
+			if(!_bSkipFonteNeige)
+			{
+				LectureFonteNeige();
 
-			if(_tempsol)
-				LectureTempSol();
+				if(_fonte_glacier)				//le modele FonteNeige doit etre executé pour pouvoir utiliser les modèles fonte glacier et tempsol car ces modèles ont besoin du couvert nival
+					LectureFonteGlacier();
 
-			_rayonnementNet.LectureParametres();
+				if(_tempsol)
+					LectureTempSol();
+			}
 
-			LectureEtp();
-			LectureBilanVertical();
-			LectureRuisselement();
+			if(!_bSkipBilanVertical)
+			{
+				_rayonnementNet.LectureParametres();
+
+				LectureEtp();
+				LectureBilanVertical();
+			}
+
+			if(!_bSkipRuissellement)
+				LectureRuisselement();
+
 			LectureAcheminementRiviere();
 
-			LectureGroupeZoneCorrection();
+			if(_temp_eau)
+				LectureTempEau();
 
-			_output._iIDTronconExutoire = _ident_troncon_exutoire;
-			_output.Lecture( PrendreRepertoireSimulation() );
-			if(_output._iOutputCDF == 1)
-				_outputCDF = true;
-			else
-			{
-				if(_output._iOutputCDF == 0)
-					_outputCDF = false;
-			}
+			LectureGroupeZoneCorrection();
 		}
 		else
 		{
@@ -704,6 +767,9 @@ namespace HYDROTEL
 			iter->get()->ChangeNbParams(_zones);
 
 		for (auto iter = begin(_vacheminement); iter != end(_vacheminement); ++iter)
+			iter->get()->ChangeNbParams(_zones);
+
+		for (auto iter = begin(_vtempeau); iter != end(_vtempeau); ++iter)
 			iter->get()->ChangeNbParams(_zones);
 	}
 
@@ -1251,6 +1317,16 @@ namespace HYDROTEL
 		return _acheminement_riviere->PrendreNomSousModele();
 	}
 
+	string SIM_HYD::PrendreNomTempEau() const
+	{
+		string nom;
+
+		if(_temp_eau)
+			nom = _temp_eau->PrendreNomSousModele();
+
+		return nom;
+	}
+
 	int SIM_HYD::PrendreIdentTronconExutoire() const
 	{
 		return _ident_troncon_exutoire;
@@ -1284,7 +1360,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vinterpolation_donnees))
-				throw ERREUR("nom sous modele interpolation introuvable");
+				throw ERREUR("INTERPOLATION DONNEES: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1310,7 +1386,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vfonte_neige))
-				throw ERREUR("nom sous modele fonte neige introuvable");
+				throw ERREUR("FONTE NEIGE: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1336,7 +1412,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vfonte_glacier))
-				throw ERREUR("nom sous modele fonte glacier introuvable");
+				throw ERREUR("FONTE GLACIER: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1362,7 +1438,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vtempsol))
-				throw ERREUR("nom du sous modele de temperature du sol introuvable");
+				throw ERREUR("TEMPERATURE DU SOL: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1388,7 +1464,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vevapotranspiration))
-				throw ERREUR("nom sous modele evapotranspiration introuvable");
+				throw ERREUR("EVAPOTRANSPIRATION: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1414,7 +1490,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vbilan_vertical))
-				throw ERREUR("nom sous modele bilan vertical introuvable");
+				throw ERREUR("BILAN VERTICAL: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1440,7 +1516,7 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vruisselement))
-				throw ERREUR("nom sous modele ruisselement surface introuvable");
+				throw ERREUR("RUISSELEMENT: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1466,7 +1542,33 @@ namespace HYDROTEL
 			}
 
 			if (iter == end(_vacheminement))
-				throw ERREUR("nom sous modele acheminement riviere introuvable");
+				throw ERREUR("ACHEMINEMENT RIVIERE: invalid sub-model name: " + nom_sous_modele);
+		}
+	}
+
+	void SIM_HYD::ChangeTempEau(const string& nom_sous_modele)
+	{
+		if (nom_sous_modele.empty())
+		{
+			_temp_eau = nullptr;
+		}
+		else
+		{
+			auto iter = begin(_vtempeau);
+
+			while (iter != end(_vtempeau))
+			{
+				if (nom_sous_modele == iter->get()->PrendreNomSousModele())
+				{
+					_temp_eau = iter->get();
+					break;
+				}
+
+				++iter;
+			}
+
+			if (iter == end(_vtempeau))
+				throw ERREUR("TEMPERATURE EAU: invalid sub-model name: " + nom_sous_modele);
 		}
 	}
 
@@ -1502,7 +1604,7 @@ namespace HYDROTEL
 		string pas_de_temps;
 
 		istringstream iss;
-		vector<std::string> sList;
+		vector<string> sList;
 		size_t x, index;
 		int id, iTemp, iCompteur;
 
@@ -1515,6 +1617,7 @@ namespace HYDROTEL
 		auto cequeau = static_cast<CEQUEAU*>(_vbilan_vertical[BILAN_VERTICAL_CEQUEAU].get());
 		auto onde_cinematique = static_cast<ONDE_CINEMATIQUE*>(_vruisselement[RUISSELEMENT_ONDE_CINEMATIQUE].get());
 		auto onde_cinematique_modifiee = static_cast<ONDE_CINEMATIQUE_MODIFIEE*>(_vacheminement[ACHEMINEMENT_ONDE_CINEMATIQUE_MODIFIEE].get());
+		auto temp_eau_cequeau = static_cast<TEMP_EAU_CEQUEAU*>(_vtempeau[TEMPEAU_CEQUEAU].get());
 
 		iCompteur = 3;
 
@@ -1629,26 +1732,53 @@ namespace HYDROTEL
 				}
 				else if (cle == "DATE DEBUT PREVISION")
 				{
-					try{ _grille_prevision._date_debut_prevision = DATE_HEURE::Convertie(nom_fichier); }
-					catch(const exception& ex)
+					boost::trim(nom_fichier);
+					if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+														(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+														(nom_fichier[10] == ' ') && 
+														(nom_fichier[13] == ':') ))
 					{
-						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+					}
+
+					try{ _grille_prevision._date_debut_prevision = DATE_HEURE::Convertie(nom_fichier); }
+					catch(...)
+					{
+						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 					}
 				}
 				else if (cle == "DATE DEBUT")
 				{
-					try{ dtDebutSim = DATE_HEURE::Convertie(nom_fichier); }
-					catch(const exception& ex)
+					boost::trim(nom_fichier);
+					if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+														(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+														(nom_fichier[10] == ' ') && 
+														(nom_fichier[13] == ':') ))
 					{
-						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+					}
+
+					try{ dtDebutSim = DATE_HEURE::Convertie(nom_fichier); }
+					catch(...)
+					{
+						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 					}
 				}
 				else if (cle == "DATE FIN")
 				{
-					try{ dtFinSim = DATE_HEURE::Convertie(nom_fichier); }
-					catch(const exception& ex)
+					boost::trim(nom_fichier);
+					if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+														(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+														(nom_fichier[10] == ' ') && 
+														(nom_fichier[13] == ':') ))
 					{
-						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+					}
+
+					try{ dtFinSim = DATE_HEURE::Convertie(nom_fichier); }
+					catch(...)
+					{
+						throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 					}
 				}
 				else if (cle == "PAS DE TEMPS")
@@ -1714,6 +1844,12 @@ namespace HYDROTEL
 						_corrections.ChangeNomFichier(nom_fichier);
 					}
 				}
+				else if (cle == "EXTERNAL DATA ROUTING")
+				{
+					if(!Racine(nom_fichier))
+						nom_fichier = Combine(repertoire, nom_fichier);
+					_nom_fichier_modelecture = nom_fichier;
+				}
 
 				// fichiers d'etats (lecture)
 				else if (cle == "LECTURE ETAT FONTE NEIGE")
@@ -1764,10 +1900,19 @@ namespace HYDROTEL
 						}
 						else
 						{
-							try{ degre_jour->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
-							catch(const exception& ex)
+							boost::trim(nom_fichier);
+							if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+																(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+																(nom_fichier[10] == ' ') && 
+																(nom_fichier[13] == ':') ))
 							{
-								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+							}
+
+							try{ degre_jour->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
+							catch(...)
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 							}
 
 							degre_jour_bande->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier));
@@ -1793,10 +1938,19 @@ namespace HYDROTEL
 						}
 						else
 						{
-							try{ rankinen->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
-							catch(const exception& ex)
+							boost::trim(nom_fichier);
+							if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+																(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+																(nom_fichier[10] == ' ') && 
+																(nom_fichier[13] == ':') ))
 							{
-								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+							}
+
+							try{ rankinen->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
+							catch(...)
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 							}
 
 							thorsen->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier));
@@ -1823,10 +1977,19 @@ namespace HYDROTEL
 						}
 						else
 						{
-							try{ bv3c1->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
-							catch(const exception& ex)
+							boost::trim(nom_fichier);
+							if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+																(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+																(nom_fichier[10] == ' ') && 
+																(nom_fichier[13] == ':') ))
 							{
-								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+							}
+
+							try{ bv3c1->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
+							catch(...)
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 							}
 
 							bv3c2->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier));
@@ -1852,10 +2015,19 @@ namespace HYDROTEL
 							onde_cinematique->ChangeDateHeureSauvegardeEtat(true, dtFinSim);
 						else
 						{
-							try{ onde_cinematique->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
-							catch(const exception& ex)
+							boost::trim(nom_fichier);
+							if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+																(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+																(nom_fichier[10] == ' ') && 
+																(nom_fichier[13] == ':') ))
 							{
-								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+							}
+
+							try{ onde_cinematique->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
+							catch(...)
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 							}
 						}
 					}
@@ -1874,10 +2046,19 @@ namespace HYDROTEL
 							onde_cinematique_modifiee->ChangeDateHeureSauvegardeEtat(true, dtFinSim);
 						else
 						{
-							try{ onde_cinematique_modifiee->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
-							catch(const exception& ex)
+							boost::trim(nom_fichier);
+							if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+																(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+																(nom_fichier[10] == ' ') && 
+																(nom_fichier[13] == ':') ))
 							{
-								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": " + ex.what());
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+							}
+
+							try{ onde_cinematique_modifiee->ChangeDateHeureSauvegardeEtat(true, DATE_HEURE::Convertie(nom_fichier)); }
+							catch(...)
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
 							}
 						}
 					}
@@ -1887,6 +2068,9 @@ namespace HYDROTEL
 						onde_cinematique_modifiee->ChangeDateHeureSauvegardeEtat(false, DATE_HEURE());
 					}
 				}
+
+				//else if (cle == "ECRITURE ETAT TEMP EAU")		//TODO
+
 				else if (cle == "REPERTOIRE ECRITURE ETAT FONTE NEIGE")
 				{
 					if (!Racine(nom_fichier))
@@ -1982,6 +2166,11 @@ namespace HYDROTEL
 				{
 					ChangeAcheminementRiviere(nom_fichier);
 				}
+				else if (cle == "TEMPERATURE EAU")
+				{
+					ChangeTempEau(nom_fichier);
+				}
+
 				else if (cle == "FICHIER DE PARAMETRE GLOBAL")
 				{
 					iss.clear();
@@ -2191,7 +2380,12 @@ namespace HYDROTEL
 		{
 			fichier.close();
 			throw elf;
-		}		
+		}
+		catch(const ERREUR& err)
+		{
+			fichier.close();
+			throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + err.what());
+		}
 		catch(...)
 		{
 			if(!fichier.eof())
@@ -2217,6 +2411,9 @@ namespace HYDROTEL
 
 		nom_fichier = Combine(repertoire_simulation, "degre-jour-bande.csv");
 		_vfonte_neige[FONTE_NEIGE_DEGRE_JOUR_BANDE]->ChangeNomFichierParametres(nom_fichier);
+
+		temp_eau_cequeau->_nom_fichier_parametres_troncons = Combine(repertoire_simulation, "temp_eau_cequeau_troncons.csv");
+		temp_eau_cequeau->_nom_fichier_parametres_zones = Combine(repertoire_simulation, "temp_eau_cequeau_zones.csv");
 
 		//repertoire par defaut pour ecriture fichiers etats (repertoire du projet)
 		if(degre_jour->PrendreRepertoireEcritureEtat() == "")
@@ -2774,8 +2971,6 @@ namespace HYDROTEL
 			CreeRepertoire(PrendreRepertoireResultat());
 
 		//
-		InitListeTronconsZonesSimules();
-
 		_date_courante = _date_debut;
 		_lPasTempsCourantIndex = 0;
 
@@ -2898,7 +3093,7 @@ namespace HYDROTEL
 			}
 		}
 
-		//Mode lecture
+		//mode lecture
 
 		_bLectInterpolation = _bLectNeige = _bLectTempsol = _bLectEvap = _bLectBilan = _bLectRuissellement = _bLectAcheminement = false;
 
@@ -2923,10 +3118,19 @@ namespace HYDROTEL
 		if (_interpolation_donnees && _interpolation_donnees->PrendreNomSousModele() == "LECTURE INTERPOLATION DONNEES")
 			_bLectInterpolation = true;
 
+		//TODO
+		//if (_temp_eau && _temp_eau->PrendreNomSousModele() == "LECTURE TEMP EAU")
+		//	_bLectTempEau = true;	
+		//TODO
+
 		if(_evapotranspiration && !_bLectEvap && (PrendreNomEvapotranspiration() == "PENMAN" || PrendreNomEvapotranspiration() == "PENMAN-MONTEITH" || PrendreNomEvapotranspiration() == "PRIESTLAY-TAYLOR"))
 			_bRayonnementNet = true;
 		else
 			_bRayonnementNet = false;
+
+		//if(_temp_eau && !_bLectTempEau)
+		if(_temp_eau)
+			_bInterpolationMeteoTroncon = true;
 
 		//initialization for NetCDF output
 		if (_outputCDF)
@@ -2994,7 +3198,11 @@ namespace HYDROTEL
 			_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());	//initialise
 		
 		//sub model initialisation
-		if (_interpolation_donnees)
+
+		if(_pModeLecture) //external data routing
+			_pModeLecture->Initialise();
+
+		if(_interpolation_donnees && (!_bSkipBilanVertical || _temp_eau != nullptr))
 		{
 			if(_bSimulePrevision && !_bLectInterpolation)
 			{
@@ -3037,7 +3245,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_fonte_neige)
+		if(_fonte_neige && !_bSkipBilanVertical)	//meme si _bSkipFonteNeige == true, la classe FONTE_NEIGE est tout de meme appelé pour générer les outputs
 		{
 			if(_bLogPerf) 
 				idx = _logPerformance.AddStep("Initialization " + _fonte_neige->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
@@ -3048,7 +3256,7 @@ namespace HYDROTEL
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
-		if (_fonte_glacier)
+		if(_fonte_glacier && !_bSkipFonteNeige)		//le modele FonteNeige doit etre executé pour pouvoir utiliser les modèles fonte glacier et tempsol car ces modèles ont besoin du couvert nival
 		{
 			if(_bLogPerf)
 				idx = _logPerformance.AddStep("Initialization " + _fonte_glacier->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
@@ -3059,7 +3267,7 @@ namespace HYDROTEL
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
-		if (_tempsol)
+		if(_tempsol && !_bSkipFonteNeige)			//
 		{
 			if(_bLogPerf)
 				idx = _logPerformance.AddStep("Initialization " + _tempsol->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
@@ -3070,7 +3278,7 @@ namespace HYDROTEL
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
-		if (_evapotranspiration)
+		if(_evapotranspiration && !_bSkipBilanVertical)
 		{
 			if(_bLogPerf)
 				idx = _logPerformance.AddStep("Initialization " + _evapotranspiration->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
@@ -3081,7 +3289,7 @@ namespace HYDROTEL
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
-		if (_bilan_vertical)
+		if(_bilan_vertical && !_bSkipRuissellement)		//meme si _bSkipBilanVertical == true, la classe BILAN_VERTICAL est tout de meme appelé pour générer les outputs
 		{
 			if(_bLogPerf)
 				idx = _logPerformance.AddStep("Initialization " + _bilan_vertical->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
@@ -3092,7 +3300,7 @@ namespace HYDROTEL
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
-		if (_ruisselement_surface)
+		if(_ruisselement_surface)	//meme si _bSkipRuissellement == true, la classe RUISSELLEMENT_SURFACE est tout de meme appelé pour générer les outputs
 		{
 			if(_bLogPerf)
 				idx = _logPerformance.AddStep("Initialization " + _ruisselement_surface->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
@@ -3103,12 +3311,23 @@ namespace HYDROTEL
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
 		}
 
-		if (_acheminement_riviere)
+		if(_acheminement_riviere)
 		{
 			if(_bLogPerf)
 				idx = _logPerformance.AddStep("Initialization " + _acheminement_riviere->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
 
 			_acheminement_riviere->Initialise();
+
+			if(_bLogPerf)
+				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
+		}
+
+		if (_temp_eau)
+		{
+			if(_bLogPerf)
+				idx = _logPerformance.AddStep("Initialization " + _temp_eau->PrendreNomSousModele(), boost::chrono::high_resolution_clock::now());
+
+			_temp_eau->Initialise();
 
 			if(_bLogPerf)
 				_logPerformance.EndStep(idx, boost::chrono::high_resolution_clock::now());
@@ -3138,7 +3357,26 @@ namespace HYDROTEL
 		}
 
 		//
-		if (_interpolation_donnees)
+		if(_pModeLecture) //external data routing
+		{
+			switch(_pModeLecture->_iDimMode)
+			{
+			case 1:
+			case 2:
+				_pModeLecture->InterpolationDonnees();	//GRID ou STATION	//interpolation et attribution
+				break;
+
+			case 3:
+				_pModeLecture->AttributionDonneesUhrh(); //RHHU		//attribution seulement
+				break;
+
+			case 4:
+				_pModeLecture->AttributionDonneesTroncon(); //REACH	//attribution seulement
+			}
+		}
+
+		//
+		if (_interpolation_donnees && (!_bSkipBilanVertical || _temp_eau != nullptr))
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3159,7 +3397,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_fonte_neige)
+		if (_fonte_neige && !_bSkipBilanVertical)	//meme si _bSkipFonteNeige == true, la classe FONTE_NEIGE est tout de meme appelé pour générer les outputs
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3174,7 +3412,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_fonte_glacier)
+		if (_fonte_glacier && !_bSkipFonteNeige)	//le modele FonteNeige doit etre executé pour pouvoir utiliser les modèles fonte glacier et tempsol car ces modèles ont besoin du couvert nival
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3189,7 +3427,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_tempsol)
+		if (_tempsol && !_bSkipFonteNeige)			//
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3204,7 +3442,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_evapotranspiration)
+		if (_evapotranspiration && !_bSkipBilanVertical)
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3219,7 +3457,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_bilan_vertical)
+		if (_bilan_vertical && !_bSkipRuissellement) //meme si _bSkipBilanVertical == true, la classe BILAN_VERTICAL est tout de meme appelé pour générer les outputs
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3234,7 +3472,7 @@ namespace HYDROTEL
 			}
 		}
 
-		if (_ruisselement_surface)
+		if (_ruisselement_surface)	//meme si _bSkipRuissellement == true, la classe RUISSELLEMENT_SURFACE est tout de meme appelé pour générer les outputs
 		{
 			if(_bLogPerf)
 				t1 = boost::chrono::high_resolution_clock::now();
@@ -3261,6 +3499,21 @@ namespace HYDROTEL
 				t2 = boost::chrono::high_resolution_clock::now();
 				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
 				_logPerformance._nbSecAcheminement+= (ms_double.count() / 1000.0);
+			}
+		}
+
+		if (_temp_eau)
+		{
+			if(_bLogPerf)
+				t1 = boost::chrono::high_resolution_clock::now();
+
+			_temp_eau->Calcule();
+
+			if(_bLogPerf)
+			{
+				t2 = boost::chrono::high_resolution_clock::now();
+				boost::chrono::duration<double, boost::milli> ms_double = t2 - t1;
+				_logPerformance._nbSecTempEau+= (ms_double.count() / 1000.0);
 			}
 		}
 
@@ -3367,29 +3620,32 @@ namespace HYDROTEL
 				_wavg_fichier[i].close();
 		}
 
-		if (_interpolation_donnees)
+		if(_interpolation_donnees && (!_bSkipBilanVertical || _temp_eau != nullptr))
 			_interpolation_donnees->Termine();
 
-		if (_fonte_neige)
+		if(_fonte_neige && !_bSkipBilanVertical)
 			_fonte_neige->Termine();
 
-		if (_fonte_glacier)
+		if(_fonte_glacier && !_bSkipFonteNeige)
 			_fonte_glacier->Termine();
 
-		if (_tempsol)
+		if(_tempsol && !_bSkipFonteNeige)
 			_tempsol->Termine();
 
-		if (_evapotranspiration)
+		if(_evapotranspiration && !_bSkipBilanVertical)
 			_evapotranspiration->Termine();
 
-		if (_bilan_vertical)
+		if(_bilan_vertical && !_bSkipRuissellement)
 			_bilan_vertical->Termine();
 
-		if (_ruisselement_surface)
+		if(_ruisselement_surface)
 			_ruisselement_surface->Termine();
 
-		if (_acheminement_riviere)
+		if(_acheminement_riviere)
 			_acheminement_riviere->Termine();
+
+		if (_temp_eau)
+			_temp_eau->Termine();
 	}
 
 
@@ -3604,6 +3860,12 @@ namespace HYDROTEL
 		if(_acheminement_riviere == nullptr)
 			ChangeAcheminementRiviere("ONDE CINEMATIQUE MODIFIEE");
 		fichier << "ACHEMINEMENT RIVIERE;" << PrendreNomAcheminement() << endl;
+
+		if(_temp_eau)
+			fichier << "TEMPERATURE EAU;" << PrendreNomTempEau() << endl;
+		else
+			fichier << "TEMPERATURE EAU;" << endl;
+
 		fichier << endl;
 
 		if(_bSimuleMHIsole)
@@ -3755,9 +4017,15 @@ namespace HYDROTEL
 			(*iter)->SauvegardeParametres();
 	}
 
-	void SIM_HYD::SauvegradeAcheminementRiviere()
+	void SIM_HYD::SauvegardeAcheminementRiviere()
 	{
 		for (auto iter = begin(_vacheminement); iter != end(_vacheminement); ++iter)
+			(*iter)->SauvegardeParametres();
+	}
+
+	void SIM_HYD::SauvegardeTempEau()
+	{
+		for (auto iter = begin(_vtempeau); iter != end(_vtempeau); ++iter)
 			(*iter)->SauvegardeParametres();
 	}
 
@@ -3864,6 +4132,10 @@ namespace HYDROTEL
 		_vacheminement[ACHEMINEMENT_LECTURE]->ChangeNomFichierParametres( Combine(repertoire_simulation, "lecture_acheminement.csv") );
 		_vacheminement[ACHEMINEMENT_ONDE_CINEMATIQUE_MODIFIEE]->ChangeNomFichierParametres( Combine(repertoire_simulation, "onde_cinematique_modifiee.csv") );
 
+		_vtempeau[TEMPEAU_LECTURE]->ChangeNomFichierParametres( Combine(repertoire_simulation, "lecture_tempeau.csv") );
+		((TEMP_EAU_CEQUEAU*)_vtempeau[TEMPEAU_CEQUEAU].get())->_nom_fichier_parametres_troncons	= Combine(repertoire_simulation, "temp_eau_cequeau_troncons.csv");
+		((TEMP_EAU_CEQUEAU*)_vtempeau[TEMPEAU_CEQUEAU].get())->_nom_fichier_parametres_zones	= Combine(repertoire_simulation, "temp_eau_cequeau_zones.csv");
+
 		Sauvegarde();
 	}
 
@@ -3881,7 +4153,8 @@ namespace HYDROTEL
 		SauvegardeEtp();
 		SauvegardeBilanVertical();
 		SauvegardeRuisselement();
-		SauvegradeAcheminementRiviere();
+		SauvegardeAcheminementRiviere();
+		SauvegardeTempEau();
 
 		SauvegardeFichierSimulation();
 	}
@@ -3961,6 +4234,15 @@ namespace HYDROTEL
 		for (auto iter = begin(_vacheminement); iter != end(_vacheminement); ++iter)
 		{
 			if(PrendreNomAcheminement() == (*iter)->PrendreNomSousModele())
+				(*iter)->LectureParametres();
+		}
+	}
+
+	void SIM_HYD::LectureTempEau()
+	{
+		for (auto iter = begin(_vtempeau); iter != end(_vtempeau); ++iter)
+		{
+			if(PrendreNomTempEau() == (*iter)->PrendreNomSousModele())
 				(*iter)->LectureParametres();
 		}
 	}
@@ -4047,7 +4329,9 @@ namespace HYDROTEL
 		}
 
 		_outputNbZone = indexOutput.size();
-		_vOutputIndexZone = new size_t[_outputNbZone];
+
+		if(_outputNbZone != 0)
+			_vOutputIndexZone = new size_t[_outputNbZone];
 
 		for(i=0; i<indexOutput.size(); i++)
 			_vOutputIndexZone[i] = indexOutput[i];
@@ -4384,33 +4668,96 @@ namespace HYDROTEL
 		Log(oss.str());
 		Log("");
 
-		Log("Weather data interpolation                       " + PrendreNomInterpolationDonnees());
+		if(_pModeLecture)
+		{
+			oss.str("");
+			oss << "External data routing enabled: " << _nom_fichier_modelecture;
+			Log(oss.str());
+			Log("");
+		}
 
-		Log("Snow cover evolution                             " + PrendreNomFonteNeige());
-
-		if(PrendreNomFonteGlacier() != "")
-			Log("Glacier melt                                     " + PrendreNomFonteGlacier());
+		if(_bSkipBilanVertical)
+		{
+			if(_temp_eau == nullptr)
+				Log("Weather data interpolation                       " + PrendreNomInterpolationDonnees() + " (disabled)");
+			else
+				Log("Weather data interpolation                       " + PrendreNomInterpolationDonnees() + " (temp. only)");
+		}
 		else
-			Log("Glacier melt                                     (non-simulated)");
+		{
+			if(_bSkipFonteNeige)
+				Log("Weather data interpolation                       " + PrendreNomInterpolationDonnees() + " (temp. only)");
+			else
+				Log("Weather data interpolation                       " + PrendreNomInterpolationDonnees());
+		}
 
-		if(PrendreNomTempSol() != "")
-			Log("Soil temperature / Frost depth                   " + PrendreNomTempSol());
+		if(_bSkipFonteNeige)
+		{
+			Log("Snow cover evolution                             " + PrendreNomFonteNeige() + " (disabled)");
+			
+			if(PrendreNomFonteGlacier() != "")
+				Log("Glacier melt                                     " + PrendreNomFonteGlacier() + " (disabled)");
+			else
+				Log("Glacier melt                                     (non-simulated)");
+
+			if(PrendreNomTempSol() != "")
+				Log("Soil temperature / Frost depth                   " + PrendreNomTempSol() + " (disabled)");
+			else
+				Log("Soil temperature / Frost depth                   (non-simulated)");
+
+			if(_bSkipBilanVertical)
+			{
+				Log("Potential evapotranspiration                     " + PrendreNomEvapotranspiration() + " (disabled)");
+				Log("Vertical water balance                           " + PrendreNomBilanVertical() + " (disabled)");
+			}
+			else
+			{
+				Log("Potential evapotranspiration                     " + PrendreNomEvapotranspiration());
+				Log("Vertical water balance                           " + PrendreNomBilanVertical());
+			}
+		}
 		else
-			Log("Soil temperature / Frost depth                   (non-simulated)");
+		{
+			Log("Snow cover evolution                             " + PrendreNomFonteNeige());
 
-		Log("Potential evapotranspiration                     " + PrendreNomEvapotranspiration());
+			if(PrendreNomFonteGlacier() != "")
+				Log("Glacier melt                                     " + PrendreNomFonteGlacier());
+			else
+				Log("Glacier melt                                     (non-simulated)");
 
-		Log("Vertical water balance                           " + PrendreNomBilanVertical());
+			if(PrendreNomTempSol() != "")
+				Log("Soil temperature / Frost depth                   " + PrendreNomTempSol());
+			else
+				Log("Soil temperature / Frost depth                   (non-simulated)");
 
-		if(_ruisselement_surface)
-			Log("Flow towards the hydrographic network            " + PrendreNomRuisselement());
+			Log("Potential evapotranspiration                     " + PrendreNomEvapotranspiration());
+			Log("Vertical water balance                           " + PrendreNomBilanVertical());
+		}
+
+		if(_bSkipRuissellement)
+		{
+			if(_ruisselement_surface)
+				Log("Flow towards the hydrographic network            " + PrendreNomRuisselement() + " (disabled)");
+			else
+				Log("Flow towards the hydrographic network            (non-simulated)");
+		}
 		else
-			Log("Flow towards the hydrographic network            (non-simulated)");
+		{
+			if(_ruisselement_surface)
+				Log("Flow towards the hydrographic network            " + PrendreNomRuisselement());
+			else
+				Log("Flow towards the hydrographic network            (non-simulated)");
+		}
 
 		if(_acheminement_riviere)
 			Log("Flow into the hydrographic network               " + PrendreNomAcheminement());
 		else
 			Log("Flow into the hydrographic network               (non-simulated)");
+
+		if(_temp_eau != nullptr)
+			Log("Water temperature                                " + PrendreNomTempEau());
+		else
+			Log("Water temperature                                (non-simulated)");
 
 		Log("");
 
@@ -5074,9 +5421,9 @@ namespace HYDROTEL
 											break;
 										}
 
-										oss << pTroncon->PrendreZonesAmont().size();	//upstream rhhu count
+										oss << pTroncon->PrendreZonesAmont().size();	//upstream RHHU count
 										for(i=0; i!=pTroncon->PrendreZonesAmont().size(); i++)
-											oss << " " << pTroncon->PrendreZonesAmont()[i]->PrendreIdent();	//upstream rhhu id
+											oss << " " << pTroncon->PrendreZonesAmont()[i]->PrendreIdent();	//upstream RHHU id
 
 										if(bOrdreShrevePresent)
 											oss << " " << pTroncon->_iSchreve;
@@ -5133,6 +5480,57 @@ namespace HYDROTEL
 		}
 
 		return ret;
+	}
+
+
+	size_t SIM_HYD::TronconToIndex(TRONCONS& troncons, TRONCON* troncon)
+	{
+		size_t index = 0;
+
+		while (troncon != troncons[index])
+			++index;
+
+		return index;
+	}
+
+	
+	void SIM_HYD::TrieTroncons()
+	{
+		TRONCONS& troncons = PrendreTroncons();
+
+		//NOTE: a modifier pour la gestion des sorties multiples
+
+		deque<TRONCON*> recherche;
+		recherche.push_back(troncons.PrendreTronconsExutoire()[0]);
+
+		vector<TRONCON*> troncons_tries;
+
+		while (!recherche.empty())
+		{
+			TRONCON* troncon = recherche.front();
+			troncons_tries.push_back(troncon);
+			recherche.pop_front();
+
+			auto troncons_amont = troncon->PrendreTronconsAmont();
+
+			for (auto iter = begin(troncons_amont); iter != end(troncons_amont); ++iter)
+				recherche.push_back(*iter);
+		}
+
+		const size_t nb_troncon = troncons.PrendreNbTroncon();
+		vector<size_t> index_troncons = PrendreTronconsSimules();
+
+		_troncons_tries.clear();
+
+		for (size_t i = 0; i < nb_troncon; ++i)
+		{
+			size_t index_troncon = TronconToIndex(troncons, troncons_tries[i]);
+		
+			if (find(begin(index_troncons), end(index_troncons), index_troncon) != end(index_troncons))
+				_troncons_tries.push_back( TronconToIndex(troncons, troncons_tries[i]) );
+		}
+
+		_troncons_tries.shrink_to_fit();
 	}
 
 

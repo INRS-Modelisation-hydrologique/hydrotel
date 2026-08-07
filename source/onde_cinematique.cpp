@@ -589,190 +589,192 @@ namespace HYDROTEL
 
 	void ONDE_CINEMATIQUE::Initialise()
 	{
-		auto& occupation_sol = _sim_hyd.PrendreOccupationSol();
-		const size_t nb_zone = _sim_hyd.PrendreZones().PrendreNbZone();
-
-		vector<size_t> index_autres;
-		for (size_t index = 0; index < occupation_sol.PrendreNbClasse(); ++index)
+		if(!_sim_hyd._bSkipRuissellement)
 		{
-			if (find(begin(_index_eaux), end(_index_eaux), index) == end(_index_eaux) &&
-				find(begin(_index_forets), end(_index_forets), index) == end(_index_forets))
-				index_autres.push_back(index);
-		}
-		index_autres.shrink_to_fit();
-		_index_autres.swap(index_autres);
+			auto& occupation_sol = _sim_hyd.PrendreOccupationSol();
+			const size_t nb_zone = _sim_hyd.PrendreZones().PrendreNbZone();
 
-		// calcul pourcentage des classes integrees
-
-		_pourcentage_eaux.resize(nb_zone, 0);
-		for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-		{
-			double pourcentage = 0.0;
-
-			for (auto index = begin(_index_eaux); index != end(_index_eaux); ++index)
-				pourcentage += occupation_sol.PrendrePourcentage_double(index_zone, *index);
-
-			_pourcentage_eaux[index_zone] = pourcentage;
-		}
-
-		_pourcentage_forets.resize(nb_zone, 0);
-		for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-		{
-			double pourcentage = 0.0;
-
-			for (auto index = begin(_index_forets); index != end(_index_forets); ++index)
-				pourcentage += occupation_sol.PrendrePourcentage_double(index_zone, *index);
-
-			_pourcentage_forets[index_zone] = pourcentage;
-		}
-
-		_pourcentage_autres.resize(nb_zone, 0);
-		for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-			_pourcentage_autres[index_zone] = max(1.0 - (_pourcentage_forets[index_zone] + _pourcentage_eaux[index_zone]), 0.0);
-
-		//obtient la liste des fichiers hgm disponible
-		vector<string> listHGM;
-		string srcDir, str, sHGMini;
-		bool ok;
-
-		size_t x = _nom_fichier_hgm.find_last_of('/');
-		if(x != string::npos && x < _nom_fichier_hgm.size()-1)
-			srcDir = _nom_fichier_hgm.substr(0, x);
-
-		if(srcDir != "")
-		{
-			boost::filesystem::path source(srcDir);
-			if(boost::filesystem::exists(source))
+			vector<size_t> index_autres;
+			for (size_t index = 0; index < occupation_sol.PrendreNbClasse(); ++index)
 			{
-				for(boost::filesystem::directory_iterator file(source); file != boost::filesystem::directory_iterator(); ++file)
+				if (find(begin(_index_eaux), end(_index_eaux), index) == end(_index_eaux) && find(begin(_index_forets), end(_index_forets), index) == end(_index_forets))
+					index_autres.push_back(index);
+			}
+			index_autres.shrink_to_fit();
+			_index_autres.swap(index_autres);
+
+			// calcul pourcentage des classes integrees
+
+			_pourcentage_eaux.resize(nb_zone, 0);
+			for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
+			{
+				double pourcentage = 0.0;
+
+				for (auto index = begin(_index_eaux); index != end(_index_eaux); ++index)
+					pourcentage += occupation_sol.PrendrePourcentage_double(index_zone, *index);
+
+				_pourcentage_eaux[index_zone] = pourcentage;
+			}
+
+			_pourcentage_forets.resize(nb_zone, 0);
+			for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
+			{
+				double pourcentage = 0.0;
+
+				for (auto index = begin(_index_forets); index != end(_index_forets); ++index)
+					pourcentage += occupation_sol.PrendrePourcentage_double(index_zone, *index);
+
+				_pourcentage_forets[index_zone] = pourcentage;
+			}
+
+			_pourcentage_autres.resize(nb_zone, 0);
+			for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
+				_pourcentage_autres[index_zone] = max(1.0 - (_pourcentage_forets[index_zone] + _pourcentage_eaux[index_zone]), 0.0);
+
+			//obtient la liste des fichiers hgm disponible
+			vector<string> listHGM;
+			string srcDir, str, sHGMini;
+			bool ok;
+
+			size_t x = _nom_fichier_hgm.find_last_of('/');
+			if(x != string::npos && x < _nom_fichier_hgm.size()-1)
+				srcDir = _nom_fichier_hgm.substr(0, x);
+
+			if(srcDir != "")
+			{
+				boost::filesystem::path source(srcDir);
+				if(boost::filesystem::exists(source))
 				{
-					try
+					for(boost::filesystem::directory_iterator file(source); file != boost::filesystem::directory_iterator(); ++file)
 					{
-						boost::filesystem::path current(file->path());
-						if(!boost::filesystem::is_directory(current))
+						try
 						{
-							boost::filesystem::path fp = current.extension();
-							str = fp.string();
-							boost::algorithm::to_lower(str);
-						
-							if(str == ".hgm")
+							boost::filesystem::path current(file->path());
+							if(!boost::filesystem::is_directory(current))
 							{
-								str = current.string();
-								std::replace(str.begin(), str.end(), '\\', '/');
-								listHGM.push_back(str);
-							}
-						}					
+								boost::filesystem::path fp = current.extension();
+								str = fp.string();
+								boost::algorithm::to_lower(str);
+						
+								if(str == ".hgm")
+								{
+									str = current.string();
+									std::replace(str.begin(), str.end(), '\\', '/');
+									listHGM.push_back(str);
+								}
+							}					
+						}
+						catch(const boost::filesystem::filesystem_error& e)
+						{
+							e.what();
+							break;
+						}
 					}
-					catch(const boost::filesystem::filesystem_error& e)
+				}
+				else
+					throw ERREUR("The folder specified for the HGM file is invalid.");
+			}
+
+			vector<string> listHGM2(listHGM);
+			ok = false;
+
+			try{
+			LectureHgm();
+			ok = true;
+			}
+			catch(ERREUR&)
+			{
+				auto it = find(begin(listHGM), end(listHGM), _nom_fichier_hgm);
+				if(it != end(listHGM))
+					listHGM.erase(it);
+
+				sHGMini = _nom_fichier_hgm;
+				while(!ok && listHGM.size() > 0)
+				{
+					_nom_fichier_hgm = listHGM[listHGM.size()-1];
+					listHGM.pop_back();
+
+					try{
+					LectureHgm();
+					ok = true;
+					}
+					catch(const ERREUR& err)
 					{
-						e.what();
-						break;
+						Log("");
+						Log(err.what());
 					}
 				}
 			}
-			else
-				throw ERREUR("The folder specified for the HGM file is invalid.");
-		}
-
-		vector<string> listHGM2(listHGM);
-		ok = false;
-
-		try{
-		LectureHgm();
-		ok = true;
-		}
-		catch(ERREUR&)
-		{
-			auto it = find(begin(listHGM), end(listHGM), _nom_fichier_hgm);
-			if(it != end(listHGM))
-				listHGM.erase(it);
-
-			sHGMini = _nom_fichier_hgm;
-			while(!ok && listHGM.size() > 0)
-			{
-				_nom_fichier_hgm = listHGM[listHGM.size()-1];
-				listHGM.pop_back();
-
-				try{
-				LectureHgm();
-				ok = true;
-				}
-				catch(const ERREUR& err)
-				{
-					Log("");
-					Log(err.what());
-				}
-			}
-		}
 		
-		if(!ok)
-		{
-			time_t debut, fin;
-			std::time(&debut);
+			if(!ok)
+			{
+				time_t debut, fin;
+				std::time(&debut);
 
-			//std::cout << endl;
-			//std::cout << "calcul de l'hydrogramme geomorphologique...     " << flush;
+				//std::cout << endl;
+				//std::cout << "calcul de l'hydrogramme geomorphologique...     " << flush;
 
-			_nom_fichier_hgm = sHGMini;
-			auto it = find(begin(listHGM2), end(listHGM2), _nom_fichier_hgm);
+				_nom_fichier_hgm = sHGMini;
+				auto it = find(begin(listHGM2), end(listHGM2), _nom_fichier_hgm);
 			
-			ostringstream oss;	
+				ostringstream oss;	
 
-			int i=2;
-			x = sHGMini.find_last_of('/');
-			while(it != end(listHGM2))
-			{
-				_nom_fichier_hgm = sHGMini.substr(0, x+1);
-				_nom_fichier_hgm += "hydrogramme";
-
-				oss.str("");
-				oss << i;
-				_nom_fichier_hgm+= oss.str() + ".hgm";
-
-				it = find(begin(listHGM2), end(listHGM2), _nom_fichier_hgm);
-				++i;
-			}
-
-			CalculeHgm();
-			SauvegardeHgm();
-
-			std::time(&fin);
-			oss.str("");
-
-			if((fin - debut)/60.0/60.0 < 1.0)
-			{
-				if((fin - debut)/60.0 < 1.0)
-					oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (fin - debut) << " sec";
-				else
-					oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 << " min";
-			}
-			else
-				oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 / 60.0 << " h";
-
-			std::cout << oss.str() << flush;
-
-			_listLog[_listLog.size()-1]+= oss.str();
-
-			_sim_hyd._bHGMCalculer = true;
-		}
-		else
-		{
-			if(_nom_fichier_hgm != sHGMini)
-			{
-				if(_sim_hyd._fichierParametreGlobal)
+				int i=2;
+				x = sHGMini.find_last_of('/');
+				while(it != end(listHGM2))
 				{
-					//TODO maj du fichier parametre global
+					_nom_fichier_hgm = sHGMini.substr(0, x+1);
+					_nom_fichier_hgm += "hydrogramme";
+
+					oss.str("");
+					oss << i;
+					_nom_fichier_hgm+= oss.str() + ".hgm";
+
+					it = find(begin(listHGM2), end(listHGM2), _nom_fichier_hgm);
+					++i;
+				}
+
+				CalculeHgm();
+				SauvegardeHgm();
+
+				std::time(&fin);
+				oss.str("");
+
+				if((fin - debut)/60.0/60.0 < 1.0)
+				{
+					if((fin - debut)/60.0 < 1.0)
+						oss << "   completed in " << setprecision(0) << setiosflags(ios::fixed) << (fin - debut) << " sec";
+					else
+						oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 << " min";
 				}
 				else
-					SauvegardeParametres();
+					oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (fin - debut) / 60.0 / 60.0 << " h";
+
+				std::cout << oss.str() << flush;
+
+				_listLog[_listLog.size()-1]+= oss.str();
+
+				_sim_hyd._bHGMCalculer = true;
 			}
+			else
+			{
+				if(_nom_fichier_hgm != sHGMini)
+				{
+					if(_sim_hyd._fichierParametreGlobal)
+					{
+						//TODO maj du fichier parametre global
+					}
+					else
+						SauvegardeParametres();
+				}
+			}
+
+			if(_nb_debit == 0)
+				throw ERREUR("Error: hgm file is invalid (flows number equal 0): " + _nom_fichier_hgm);
+
+			if(!_nom_fichier_lecture_etat.empty())
+				LectureEtat( _sim_hyd.PrendreDateDebut() );
 		}
-
-		if(_nb_debit == 0)
-			throw ERREUR("Error: hgm file is invalid (flows number equal 0): " + _nom_fichier_hgm);
-
-		if(!_nom_fichier_lecture_etat.empty())
-			LectureEtat( _sim_hyd.PrendreDateDebut() );
 
 		RUISSELEMENT_SURFACE::Initialise();
 	}
@@ -780,114 +782,117 @@ namespace HYDROTEL
 
 	void ONDE_CINEMATIQUE::Calcule()
 	{
-		unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
-		ZONES& zones = _sim_hyd.PrendreZones();
-		vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
-
-		DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
-
-		TRONCON* troncon;
-		size_t nb_pixel, index_zone, index, j;
-		double dPdts, m2_sec, resolution, production, prod_surf, prod_hypo, prod_base, tmp1, tmp2;
-		float apport;
-		int pdts;
-
-		pdts = _sim_hyd.PrendrePasDeTemps() * 60 * 60;
-		dPdts = static_cast<double>(pdts);
-
-		resolution = static_cast<double>(zones.PrendreResolution());
-
-		for(index = 0; index < index_zones.size(); index++)
+		if(!_sim_hyd._bSkipRuissellement)
 		{
-			index_zone = index_zones[index];
+			unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
+			ZONES& zones = _sim_hyd.PrendreZones();
+			vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
 
-			ZONE& zone = zones[index_zone];
+			DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
 
-			production = static_cast<double>(zone.PrendreProductionTotal()) / 1000.0; // mm ====> m
+			TRONCON* troncon;
+			size_t nb_pixel, index_zone, index, j;
+			double dPdts, m2_sec, resolution, production, prod_surf, prod_hypo, prod_base, tmp1, tmp2;
+			float apport;
+			int pdts;
 
-			prod_surf = static_cast<double>(zone.PrendreProdSurf()) / 1000.0;	//mm -> m
-			prod_hypo = static_cast<double>(zone.PrendreProdHypo()) / 1000.0;	//mm -> m
-			prod_base = static_cast<double>(zone.PrendreProdBase()) / 1000.0;	//mm -> m
+			pdts = _sim_hyd.PrendrePasDeTemps() * 60 * 60;
+			dPdts = static_cast<double>(pdts);
 
-			switch (zone.PrendreTypeZone())
+			resolution = static_cast<double>(zones.PrendreResolution());
+
+			for(index = 0; index < index_zones.size(); index++)
 			{
-			case ZONE::SOUS_BASSIN:
+				index_zone = index_zones[index];
 
-				for(j=0; j<_nb_debit; j++)
-				{						
-					tmp1 = _oc_zone[index_zone].debits[j];
-					tmp2 = _oc_zone[index_zone].distri[j];
-					tmp1 = tmp1 + tmp2 * production / _lame;
-					_oc_zone[index_zone].debits[j] = tmp1;
+				ZONE& zone = zones[index_zone];
 
-					tmp1 = _oc_surf[index_zone].debits[j];
-					tmp2 = _oc_surf[index_zone].distri[j];
-					tmp1 = tmp1 + tmp2 * prod_surf / _lame;
-					_oc_surf[index_zone].debits[j] = tmp1;
+				production = static_cast<double>(zone.PrendreProductionTotal()) / 1000.0; // mm ====> m
 
-					tmp1 = _oc_hypo[index_zone].debits[j];
-					tmp2 = _oc_hypo[index_zone].distri[j];
-					tmp1 = tmp1 + tmp2 * prod_hypo / _lame;
-					_oc_hypo[index_zone].debits[j] = tmp1;
+				prod_surf = static_cast<double>(zone.PrendreProdSurf()) / 1000.0;	//mm -> m
+				prod_hypo = static_cast<double>(zone.PrendreProdHypo()) / 1000.0;	//mm -> m
+				prod_base = static_cast<double>(zone.PrendreProdBase()) / 1000.0;	//mm -> m
 
-					tmp1 = _oc_base[index_zone].debits[j];
-					tmp2 = _oc_base[index_zone].distri[j];
-					tmp1 = tmp1 + tmp2 * prod_base / _lame;
-					_oc_base[index_zone].debits[j] = tmp1;
+				switch (zone.PrendreTypeZone())
+				{
+				case ZONE::SOUS_BASSIN:
+
+					for(j=0; j<_nb_debit; j++)
+					{						
+						tmp1 = _oc_zone[index_zone].debits[j];
+						tmp2 = _oc_zone[index_zone].distri[j];
+						tmp1 = tmp1 + tmp2 * production / _lame;
+						_oc_zone[index_zone].debits[j] = tmp1;
+
+						tmp1 = _oc_surf[index_zone].debits[j];
+						tmp2 = _oc_surf[index_zone].distri[j];
+						tmp1 = tmp1 + tmp2 * prod_surf / _lame;
+						_oc_surf[index_zone].debits[j] = tmp1;
+
+						tmp1 = _oc_hypo[index_zone].debits[j];
+						tmp2 = _oc_hypo[index_zone].distri[j];
+						tmp1 = tmp1 + tmp2 * prod_hypo / _lame;
+						_oc_hypo[index_zone].debits[j] = tmp1;
+
+						tmp1 = _oc_base[index_zone].debits[j];
+						tmp2 = _oc_base[index_zone].distri[j];
+						tmp1 = tmp1 + tmp2 * prod_base / _lame;
+						_oc_base[index_zone].debits[j] = tmp1;
+					}
+					break;
+
+				case ZONE::LAC:
+
+					nb_pixel = zone.PrendreNbPixel();
+
+					m2_sec = static_cast<double>(nb_pixel) * resolution * resolution / dPdts;
+
+					_oc_zone[index_zone].debits[0] = m2_sec * production;
+
+					_oc_surf[index_zone].debits[0] = _oc_zone[index_zone].debits[0];
+					_oc_hypo[index_zone].debits[0] = 0.0;
+					_oc_base[index_zone].debits[0] = 0.0;
+					break;
+
+				default:
+					throw ERREUR("invalid RHHU type");
 				}
-				break;
 
-			case ZONE::LAC:
+				zone._apport_lateral_uhrh = static_cast<float>(_oc_zone[index_zone].debits[0]);
 
-				nb_pixel = zone.PrendreNbPixel();
+				zone._ecoulementSurf = static_cast<float>(_oc_surf[index_zone].debits[0]);
+				zone._ecoulementHypo = static_cast<float>(_oc_hypo[index_zone].debits[0]);
+				zone._ecoulementBase = static_cast<float>(_oc_base[index_zone].debits[0]);
 
-				m2_sec = static_cast<double>(nb_pixel) * resolution * resolution / dPdts;
+				troncon = zone.PrendreTronconAval();
 
-				_oc_zone[index_zone].debits[0] = m2_sec * production;
+				apport = troncon->PrendreApportLateral() + zone._apport_lateral_uhrh;
+				troncon->ChangeApportLateral(max(0.0f, apport));
 
-				_oc_surf[index_zone].debits[0] = _oc_zone[index_zone].debits[0];
-				_oc_hypo[index_zone].debits[0] = 0.0;
-				_oc_base[index_zone].debits[0] = 0.0;
-				break;
+				troncon->_surf = max(0.0f, troncon->_surf + zone._ecoulementSurf);
+				troncon->_hypo = max(0.0f, troncon->_hypo + zone._ecoulementHypo);
+				troncon->_base = max(0.0f, troncon->_base + zone._ecoulementBase);
 
-			default:
-				throw ERREUR("invalid rhhu type");
-			}
+				// decale les debits
+				for(j=0; j<_nb_debit-1; j++)
+				{
+					_oc_zone[index_zone].debits[j] = _oc_zone[index_zone].debits[j + 1];
 
-			troncon = zone.PrendreTronconAval();
-
-			zone._apport_lateral_uhrh = static_cast<float>(_oc_zone[index_zone].debits[0]);
-
-			apport = troncon->PrendreApportLateral() + zone._apport_lateral_uhrh;
-			troncon->ChangeApportLateral(max(0.0f, apport));
-
-			troncon->_surf = max(0.0f, troncon->_surf + static_cast<float>(_oc_surf[index_zone].debits[0]));
-			troncon->_hypo = max(0.0f, troncon->_hypo + static_cast<float>(_oc_hypo[index_zone].debits[0]));
-			troncon->_base = max(0.0f, troncon->_base + static_cast<float>(_oc_base[index_zone].debits[0]));
-
-			zone._ecoulementSurf = static_cast<float>(_oc_surf[index_zone].debits[0]);
-			zone._ecoulementHypo = static_cast<float>(_oc_hypo[index_zone].debits[0]);
-			zone._ecoulementBase = static_cast<float>(_oc_base[index_zone].debits[0]);
-
-			// decale les debits
-			for(j=0; j<_nb_debit-1; j++)
-			{
-				_oc_zone[index_zone].debits[j] = _oc_zone[index_zone].debits[j + 1];
-
-				_oc_surf[index_zone].debits[j] = _oc_surf[index_zone].debits[j + 1];
-				_oc_hypo[index_zone].debits[j] = _oc_hypo[index_zone].debits[j + 1];
-				_oc_base[index_zone].debits[j] = _oc_base[index_zone].debits[j + 1];
-			}
+					_oc_surf[index_zone].debits[j] = _oc_surf[index_zone].debits[j + 1];
+					_oc_hypo[index_zone].debits[j] = _oc_hypo[index_zone].debits[j + 1];
+					_oc_base[index_zone].debits[j] = _oc_base[index_zone].debits[j + 1];
+				}
 			
-			_oc_zone[index_zone].debits[_nb_debit - 1] = 0.0;
+				_oc_zone[index_zone].debits[_nb_debit - 1] = 0.0;
 
-			_oc_surf[index_zone].debits[_nb_debit - 1] = 0.0;
-			_oc_hypo[index_zone].debits[_nb_debit - 1] = 0.0;
-			_oc_base[index_zone].debits[_nb_debit - 1] = 0.0;
+				_oc_surf[index_zone].debits[_nb_debit - 1] = 0.0;
+				_oc_hypo[index_zone].debits[_nb_debit - 1] = 0.0;
+				_oc_base[index_zone].debits[_nb_debit - 1] = 0.0;
+			}
+
+			if (_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat - pas_de_temps == date_courante))
+				SauvegardeEtat(date_courante);
 		}
-
-		if (_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat - pas_de_temps == date_courante))
-			SauvegardeEtat(date_courante);
 
 		RUISSELEMENT_SURFACE::Calcule();
 	}
@@ -895,15 +900,18 @@ namespace HYDROTEL
 
 	void ONDE_CINEMATIQUE::Termine()
 	{
-		_pourcentage_forets.clear();
-		_pourcentage_eaux.clear();
-		_pourcentage_autres.clear();
+		if(!_sim_hyd._bSkipRuissellement)
+		{
+			_pourcentage_forets.clear();
+			_pourcentage_eaux.clear();
+			_pourcentage_autres.clear();
 
-		_oc_zone.clear();
+			_oc_zone.clear();
 
-		_oc_surf.clear();
-		_oc_hypo.clear();
-		_oc_base.clear();
+			_oc_surf.clear();
+			_oc_hypo.clear();
+			_oc_base.clear();
+		}
 
 		RUISSELEMENT_SURFACE::Termine();
 	}
@@ -2274,7 +2282,7 @@ namespace HYDROTEL
 					vector<double> vValeur = extrait_dvaleur(ligne, ";");
 
 					if(vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide. ONDE CINEMATIQUE");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count. ONDE CINEMATIQUE");
 
 					dVal = static_cast<double>(x);
 					if(dVal != vValeur[0])

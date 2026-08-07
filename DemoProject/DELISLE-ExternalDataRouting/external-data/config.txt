@@ -1,0 +1,64 @@
+//Hydrotel external data routing configuration file
+
+//Variables
+//VCONT     Water supply from rain and snowmelt (mm)
+//PROD1     Water depth produced at the surface (production) (surf) (mm)
+//PROD2     Water depth produced by the 2nd layer (production) (hypo) (mm)
+//PROD3     Water depth produced by the 3rd layer (production) (base) (mm)
+//PRODTOT   Water depth produced by the three soil layers (production) (mm)
+//QLAT1     Lateral inflow (RHHU) layer 1 (surface) (m3/s)
+//QLAT2     Lateral inflow (RHHU) layer 2 (hypo) (m3/s)
+//QLAT3     Lateral inflow (RHHU) layer 3 (base) (m3/s)
+//QLATTOT   Lateral inflow (RHHU) total (m3/s)
+
+//For PRODTOT AND QLATTOT variables, production/qlat in layers are distributed according to DISTRIBUTION_COEFF1 and DISTRIBUTION_COEFF2 values (0-1).
+
+
+TIME_DIMNAME;time
+TIME_VARNAME;time
+
+
+//DIMTYPE;GRID
+//LON_DIMNAME;x
+//LAT_DIMNAME;y
+//LON_VARNAME;x
+//LAT_VARNAME;y
+
+//DIMTYPE;STATION
+//STATION_DIMNAME;nbstation
+//LON_VARNAME;lon
+//LAT_VARNAME;lat
+
+DIMTYPE;RHHU
+//DIMTYPE;REACH
+ID_DIMNAME;uhrh
+ID_VARNAME;iduhrh
+
+
+//VCONT_SOURCE;external-data/vcont.nc
+//VCONT_VARNAME;vcont
+
+PROD1_SOURCE;external-data/production_surf.nc
+PROD1_VARNAME;production_surf
+PROD2_SOURCE;external-data/production_hypo.nc
+PROD2_VARNAME;production_hypo
+PROD3_SOURCE;external-data/production_base.nc
+PROD3_VARNAME;production_base
+
+//PRODTOT_SOURCE;external-data/prod.nc
+//PRODTOT_VARNAME;prod
+
+//QLAT1_SOURCE;external-data/qlat.nc
+//QLAT1_VARNAME;qlat1
+//QLAT2_SOURCE;external-data/qlat.nc
+//QLAT2_VARNAME;qlat2
+//QLAT3_SOURCE;external-data/qlat.nc
+//QLAT3_VARNAME;qlat3
+
+//QLATTOT_SOURCE;external-data/qlat.nc
+//QLATTOT_VARNAME;qlat
+
+
+//DISTRIBUTION_COEFF1;0.333
+//DISTRIBUTION_COEFF2;0.333
+

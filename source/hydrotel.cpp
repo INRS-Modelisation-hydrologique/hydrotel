@@ -299,11 +299,21 @@ int main(int argc, char* argv[])
 						str3 = argv[3];
 						std::replace(str3.begin(), str3.end(), '\\', '/');
 
-						std::cout << "Updating project..." << endl;
-						std::cout << str2 << endl;
+						if(_log && _nom_fichier_log.find('/') == string::npos)
+						{
+							if(_nom_fichier_log[_nom_fichier_log.size()-1] != '/')
+								_nom_fichier_log = str3 + "/" + _nom_fichier_log;
+							else
+								_nom_fichier_log = str3 + _nom_fichier_log;
+						}
+
+						Log("Updating project...");
+						Log(str2);
 
 						HYDROTEL::MiseAJourProjet(str2, str3);
-						std::cout << endl << "Update completed: " << str3 << endl << endl;
+						Log("");
+						Log("Update completed: " + str3);
+						Log("");
 					}
 				}
 				else if (option.compare("-i") == 0 || option.compare("-info") == 0)
@@ -317,6 +327,8 @@ int main(int argc, char* argv[])
 					}
 					else
 					{
+						_log = false;
+
 						GDALAllRegister();
 
 						str2 = argv[2];
@@ -359,6 +371,10 @@ int main(int argc, char* argv[])
 							str = argv[2];
 							std::replace(str.begin(), str.end(), '\\', '/');
 							sim_hyd->ChangeNomFichier(str);
+
+							if(_log && _nom_fichier_log.find('/') == string::npos)
+								_nom_fichier_log = sim_hyd->PrendreRepertoireProjet() + "/" + _nom_fichier_log;
+
 							sim_hyd->Lecture();
 
 							std::time(&begin);
@@ -380,8 +396,9 @@ int main(int argc, char* argv[])
 							else
 								oss << "   completed in " << setprecision(2) << setiosflags(ios::fixed) << (end - begin) / 60.0 / 60.0 << " h";
 
-							std::cout << oss.str() << endl << endl;
-							std::cout << "File saved: " << str << endl;
+							Log(oss.str());
+							Log("");
+							Log("File saved: " + str);
 						}
 					}
 				}
@@ -419,15 +436,22 @@ int main(int argc, char* argv[])
 
 						HYDROTEL::CopieRepertoire(path_in, repertoire_physitel);
 
-						std::cout << "Input: " << path_in << endl << endl;
+						Log("Input: " + path_in);
+						Log("");
 
-						std::cout << "Creating hydrotel project... " << endl;
+						Log("Creating hydrotel project... ");
 
 						sim_hyd = std::make_unique<SIM_HYD>();
 						sim_hyd->ChangeNomFichier(nom_fichier);
+
+						if(_log && _nom_fichier_log.find('/') == string::npos)
+							_nom_fichier_log = sim_hyd->PrendreRepertoireProjet() + "/" + _nom_fichier_log;
+
 						sim_hyd->CreerNouveauProjet(path_out);
 
-						std::cout << endl << "Hydrotel project created: " << path_out << endl << endl;
+						Log("");
+						Log("Hydrotel project created: " + path_out);
+						Log("");
 					}
 				}
 				else if (option.compare("-mr") == 0 || option.compare("-modreach") == 0)
@@ -440,6 +464,8 @@ int main(int argc, char* argv[])
 					}
 					else
 					{
+						_log = false;
+
 						GDALAllRegister();
 
 						sim_hyd = std::make_unique<SIM_HYD>();
@@ -470,6 +496,8 @@ int main(int argc, char* argv[])
 				}
 				else if (option.compare("-v") == 0 || option.compare("-version") == 0)
 				{
+					_log = false;
+
 					std::cout << "GDAL/OGR  " << GDAL_RELEASE_NAME << endl;
 					std::cout << "boost     " << BOOST_LIB_VERSION << endl;
 					std::cout << endl;
@@ -479,6 +507,8 @@ int main(int argc, char* argv[])
 				}
 				else if (option.compare("-h") == 0 || option.compare("-help") == 0)
 				{
+					_log = false;
+
 					displayHelp();
 				}
 				else
@@ -497,6 +527,10 @@ int main(int argc, char* argv[])
 						str = argv[1];
 						std::replace(str.begin(), str.end(), '\\', '/');
 						sim_hyd->ChangeNomFichier(str);	// [nom fichier projet]
+
+						if(_log && _nom_fichier_log.find('/') == string::npos)
+							_nom_fichier_log = sim_hyd->PrendreRepertoireProjet() + "/" + _nom_fichier_log;
+
 						sim_hyd->Lecture();
 
 						sim_hyd->_pr->GenerateBdPrelevements();
@@ -541,9 +575,6 @@ int main(int argc, char* argv[])
 						sim_hyd->ChangeNomFichier(str);
 						sim_hyd->Lecture();
 
-						if(_log && _nom_fichier_log.find('/') == string::npos)
-							_nom_fichier_log = sim_hyd->PrendreRepertoireSimulation() + "/" + _nom_fichier_log; //save log file to simulation folder if only filename without path is specified
-
 						if(sim_hyd->_bLogPerf)
 						{
 							sim_hyd->_logPerformance.EndStep(sim_hyd->_tempVal, boost::chrono::high_resolution_clock::now());	//Lecture données
@@ -561,6 +592,9 @@ int main(int argc, char* argv[])
 							std::cout << endl << "Interpolation of missing weather data at stations level will be skipped     " << flush;
 							HYDROTEL::_listLog.push_back("Interpolation of missing weather data at stations level will be skipped");
 						}
+
+						if(_log && _nom_fichier_log.find('/') == string::npos)
+							_nom_fichier_log = sim_hyd->PrendreRepertoireResultat() + "/" + _nom_fichier_log; //save log file to simulation folder if only filename without path is specified
 
 						sim_hyd->Initialise();
 

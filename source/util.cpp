@@ -22,6 +22,9 @@
 
 #include "erreur.hpp"
 #include "gdal_util.hpp"
+#include "projections.hpp"
+#include "station_meteo.hpp"
+#include "station_meteo_netcdf_station.hpp"
 
 #include <fstream>
 #include <memory>
@@ -32,6 +35,9 @@
 
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/shared_array.hpp>
+
+#include <netcdf.h>
 
 
 using namespace std;
@@ -1634,6 +1640,507 @@ namespace HYDROTEL
 			std::cout << endl;
 		else
 			std::cout << sLog << endl;
+	}
+
+
+	string ReadParameterFile(string sPathFile, std::map<string, string>& mapParam)
+	{
+		vector<string> sList;
+		ifstream file;
+		string ret, str;
+
+		ret = "";
+		mapParam.clear();
+
+		file.open(sPathFile, ios_base::in);
+		if(file)
+		{
+			try{
+			while(!file.eof())
+			{
+				getline_mod(file, str);
+				boost::trim(str);
+
+				if(str.size() > 2 && !(str[0] == '/' && str[1] == '/'))
+				{
+					SplitString(sList, str, ";", false, true);
+
+					boost::trim(sList[0]);
+					if(sList[0] != "")
+					{
+						boost::algorithm::to_upper(sList[0]);
+
+						if(sList.size() == 1)
+							mapParam[sList[0]] = "";
+						else
+						{
+							boost::trim(sList[1]);
+							mapParam[sList[0]] = sList[1];
+						}
+					}
+				}
+			}
+
+			file.close();
+			}
+			catch(const exception& ex)
+			{
+				if(file && file.is_open())
+					file.close();
+				str = ex.what();
+				ret = "error reading file: exception: " + str + ": " + sPathFile;
+			}
+		}
+		else
+			ret = "error opening file: " + sPathFile;
+
+		return ret;
+	}
+
+
+	//--------------------------------------------------------------------------------------------------------------
+	//NetCDF
+
+
+	//------------------------------------------------------------------------------------------------
+	//Pour type == GRID
+	//Format 9.3.1
+
+	string LectureFormatNetCDFTypeGrid(DATE_HEURE* pDateDebutSim, DATE_HEURE* pDateFinSim, size_t simulationTimestep, 
+										string sPathFile, string sTimeVar, string sLonVar, string sLatVar, 
+										vector<string> vValVar, vector<double*> pVal, vector<shared_ptr<STATION>>& stationsInterpol, 
+										double dExtentLimitNorth, double dExtentLimitSouth, double dExtentLimitEast, double dExtentLimitWest)
+	{
+		unsigned short yy, mm, dd, hh, min, ss;
+		istringstream iss;
+		ostringstream oss;
+		vector<int> vVarId;
+		DATE_HEURE dtDebutFichier;
+		DATE_HEURE dtFinFichier;
+		DATE_HEURE dtTimeUnit;
+		DATE_HEURE dateDebutVecteur;
+		DATE_HEURE dt;
+		PROJECTION projection;
+		size_t lNbPasTempsFichier, i, j, k, indexDebut, indexFin;
+		size_t lNbLat, lNbLong, lPasTemps, lNbPasTemps;
+		size_t lNbCoord;	//(lNbLat*lNbLong)
+		double dVal;
+		string ret, str1, str2, str3;
+		bool bMinutesUnit;
+		int iNcid, iRet, iVal;
+		int latid, lonid, timedimid, timeid, iLatDimID, iLonDimID;
+
+		ret = "";
+
+		stationsInterpol.clear();
+
+		oss.str("");
+
+		iRet = nc_open(sPathFile.c_str(), NC_NOWRITE, &iNcid);
+		if(iRet != NC_NOERR)
+		{
+			oss << iRet;
+			ret = "error opening NetCDF file: " + sPathFile + ": nc_open return code " + oss.str() + ".";
+			return ret;
+		}
+
+		//valide l'unité des pas de temps
+		//l'unité doit etre "days since yyyy-mm-dd hh:00:00" ou "minutes since yyyy-mm-dd hh:00:00"
+		iRet = nc_inq_varid(iNcid, sTimeVar.c_str(), &timeid);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": time variable `" + sTimeVar.c_str() + "` not found.";
+			return ret;
+		}
+
+		iRet = nc_inq_attlen(iNcid, timeid, "units", &i);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile	 + ": time variable `" + sTimeVar.c_str() + "` must have a `units` attribute equal to `minutes since 1970-01-01 00:00:00` or `days since 1970-01-01 00:00:00`.";
+			return ret;
+		}
+
+		boost::shared_array<char> str_att(new char[i+1]);
+		iRet = nc_get_att(iNcid, timeid, "units", reinterpret_cast<void*>(&str_att[0]));
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": time variable `" + sTimeVar.c_str() + "` must have a `units` attribute equal to `minutes since 1970-01-01 00:00:00` or `days since 1970-01-01 00:00:00`.";
+			return ret;
+		}
+
+		str1 = str_att.get();
+		str2 = str1.substr(0, i);
+		boost::algorithm::to_lower(str2);
+
+		if(str2.substr(0, 14) == "minutes since " && str2.length() == 33)
+		{
+			bMinutesUnit = true;	//"minutes since 1970-01-01 00:00:00"
+
+			str3 = str2.substr(14);
+
+			iss.str(str3.substr(0, 4));
+			iss >> yy;
+			iss.clear();
+			iss.str(str3.substr(5, 2));
+			iss >> mm;
+			iss.clear();
+			iss.str(str3.substr(8, 2));
+			iss >> dd;
+			iss.clear();
+			iss.str(str3.substr(11, 2));
+			iss >> hh;
+			iss.clear();
+			iss.str(str3.substr(14, 2));
+			iss >> min;
+			iss.clear();
+			iss.str(str3.substr(17, 2));
+			iss >> ss;
+
+			if(min != 0 || ss != 0)
+			{
+				nc_close(iNcid);
+				ret = "error reading NetCDF file: " + sPathFile + ": invalid time units: minutes and seconds must be 0.";
+				return ret;
+			}
+
+			dtTimeUnit = DATE_HEURE(yy, mm, dd, hh);
+		}
+		else
+		{
+			if(str2.substr(0, 11) == "days since " && str2.length() == 30)
+			{
+				bMinutesUnit = false;	//"days since 1970-01-01 00:00:00"
+
+				str3 = str2.substr(11);
+
+				iss.str(str3.substr(0, 4));
+				iss >> yy;
+				iss.clear();
+				iss.str(str3.substr(5, 2));
+				iss >> mm;
+				iss.clear();
+				iss.str(str3.substr(8, 2));
+				iss >> dd;
+				iss.clear();
+				iss.str(str3.substr(11, 2));
+				iss >> hh;
+				iss.clear();
+				iss.str(str3.substr(14, 2));
+				iss >> min;
+				iss.clear();
+				iss.str(str3.substr(17, 2));
+				iss >> ss;
+
+				if(min != 0 || ss != 0)
+				{
+					nc_close(iNcid);
+					ret = "error reading NetCDF file: " + sPathFile + ": invalid time units: minutes and seconds must be 0.";
+					return ret;
+				}
+
+				dtTimeUnit = DATE_HEURE(yy, mm, dd, hh);
+			}
+			else
+			{
+				nc_close(iNcid);
+				ret = "error reading NetCDF file: " + sPathFile + ": invalid time units: must be `minutes since yyyy-mm-dd hh:00:00` or `days since yyyy-mm-dd hh:00:00`" + ".";
+				return ret;
+			}
+		}
+
+		//lecture longitude et latitude dimensions
+		iRet = nc_inq_dimid(iNcid, sLatVar.c_str(), &iLatDimID);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": latitude dimension `" + sLatVar.c_str() + "` not found.";
+			return ret;
+		}
+
+		iRet = nc_inq_dimlen(iNcid, iLatDimID, &lNbLat);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			oss << iRet;
+			ret = "error reading NetCDF file: " + sPathFile + ": error reading latitude dimension length: error code " + oss.str() + ".";
+			return ret;
+		}
+
+		iRet = nc_inq_dimid(iNcid, sLonVar.c_str(), &iLonDimID);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": longitude dimension `" + sLonVar.c_str() + "` not found.";
+			return ret;
+		}
+
+		iRet = nc_inq_dimlen(iNcid, iLonDimID, &lNbLong);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			oss << iRet;
+			ret = "error reading NetCDF file: " + sPathFile + ": error reading longitude dimension length: error code " + oss.str() + ".";
+			return ret;
+		}
+
+		lNbCoord = lNbLat * lNbLong;
+		
+		//lecture variables ids
+		iRet = nc_inq_varid(iNcid, sLatVar.c_str(), &latid);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": latitude variable `" + sLatVar.c_str() + "` not found.";
+			return ret;
+		}
+
+		iRet = nc_inq_varid(iNcid, sLonVar.c_str(), &lonid);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": longitude variable `" + sLonVar.c_str() + "` not found.";
+			return ret;
+		}
+
+		for(i=0; i!=vValVar.size(); i++) //pour chaque variables à lire
+		{
+			iRet = nc_inq_varid(iNcid, vValVar[i].c_str(), &iVal);
+			vVarId.push_back(iVal);
+			if(iRet != NC_NOERR)
+			{
+				nc_close(iNcid);
+				ret = "error reading NetCDF file: " + sPathFile + ": tmax variable `" + vValVar[i].c_str() + "` not found.";
+				return ret;
+			}
+		}
+
+		//lecture des coordonnees et elevations
+		projection = PROJECTIONS::LONGLAT_WGS84();
+
+		vector<double> latitudes(lNbLat);
+		iRet = nc_get_var_double(iNcid, latid, &latitudes[0]);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			oss << iRet;
+			ret = "error reading NetCDF file: " + sPathFile + ": error reading latitude data: error code " + oss.str() + ".";
+			return ret;
+		}
+
+		vector<double> longitudes(lNbLong);
+		iRet = nc_get_var_double(iNcid, lonid, &longitudes[0]);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			oss << iRet;
+			ret = "error reading NetCDF file: " + sPathFile + ": error reading longitude data: error code " + oss.str() + ".";
+			return ret;
+		}
+
+		double* elevations = NULL;
+		size_t start2[] = { 0, 0 };	//row, col	//y, x
+		size_t count2[] = { lNbLat, lNbLong };
+
+		//lecture des pas de temps
+		iRet = nc_inq_dimid(iNcid, sTimeVar.c_str(), &timedimid);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": time dimension `" + sTimeVar.c_str() + "` not found.";
+			return ret;
+		}
+
+		iRet = nc_inq_dimlen(iNcid, timedimid, &lNbPasTempsFichier);
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			oss << iRet;
+			ret = "error reading NetCDF file: " + sPathFile + ": error reading time dimension length: error code " + oss.str() + ".";
+			return ret;
+		}
+
+		if(lNbPasTempsFichier < 2)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": invalid timestep count.";
+			return ret;
+		}
+
+		vector<double> dTimes;
+		vector<int> iTimes;
+
+		if(bMinutesUnit)
+		{
+			iTimes.resize(lNbPasTempsFichier);
+			iRet = nc_get_var_int(iNcid, timeid, &iTimes[0]);
+		}
+		else
+		{
+			dTimes.resize(lNbPasTempsFichier);
+			iRet = nc_get_var_double(iNcid, timeid, &dTimes[0]);
+		}
+		
+		if(iRet != NC_NOERR)
+		{
+			nc_close(iNcid);
+			oss << iRet;
+			ret = "error reading NetCDF file: " + sPathFile + ": error reading time data: error code " + oss.str() + ".";
+			return ret;
+		}
+
+		//determine dates debut et fin du fichier
+		if(bMinutesUnit)
+			lPasTemps = static_cast<size_t>((iTimes[1] - iTimes[0]) / 60);		//time step [hrs]
+		else
+			lPasTemps = static_cast<size_t>((dTimes[1] - dTimes[0]) * 24.0);	//
+
+		if(!bMinutesUnit && (lPasTemps != simulationTimestep))	//only for days unit because of double precision
+		{
+			//on passe d'une valeur en jours (epoch time) vers une valeur en heures
+			//essaie d'ajouter ou d'enlever 1 sec pour corriger les problemes de précision des réels lors de la conversion
+			dVal = (dTimes[1] - dTimes[0]) * 24.0 + 0.000011574074074074074074074074074074;	//ajoute 1 sec
+			lPasTemps = static_cast<size_t>(dVal);
+
+			if(lPasTemps != simulationTimestep)
+			{
+				dVal = (dTimes[1] - dTimes[0]) * 24.0 - 0.000011574074074074074074074074074074;	//enleve 1 sec
+				lPasTemps = static_cast<size_t>(dVal);
+			}
+		}
+
+		if(lPasTemps != simulationTimestep)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": timestep of data must be equal to simulation timestep.";
+			return ret;
+		}
+
+		//
+		dtDebutFichier = DATE_HEURE(dtTimeUnit.PrendreAnnee(), dtTimeUnit.PrendreMois(), dtTimeUnit.PrendreJour(), dtTimeUnit.PrendreHeure());
+
+		if(bMinutesUnit)
+			iVal = iTimes[0] / 60;	//hrs
+		else
+			iVal = static_cast<int>(dTimes[0] * 24.0);	//hrs
+
+		if(iVal > 0)
+			dtDebutFichier.AdditionHeure(iVal);
+		else
+		{
+			if (iVal < 0)
+				dtDebutFichier.SoustraitHeure(abs(iVal));
+		}
+
+		//
+		dtFinFichier = DATE_HEURE(dtTimeUnit.PrendreAnnee(), dtTimeUnit.PrendreMois(), dtTimeUnit.PrendreJour(), dtTimeUnit.PrendreHeure());
+
+		if(bMinutesUnit)
+			iVal = iTimes[lNbPasTempsFichier-1] / 60;	//hrs
+		else
+			iVal = static_cast<int>(dTimes[lNbPasTempsFichier-1] * 24.0);	//hrs
+
+		if (iVal > 0)
+			dtFinFichier.AdditionHeure(iVal);
+		else
+		{
+			if (iVal < 0)
+				dtFinFichier.SoustraitHeure(abs(iVal));
+		}
+
+		//determine la plage de données a lire selon les date de debut et fin de la simulation
+
+		//date debut
+		//met heure debut à 0; //si pdt < 24 tous les pdt de la derniere journee doivent etre lus pour fonction PrendreTemperatureJournaliere		
+		dateDebutVecteur = DATE_HEURE(pDateDebutSim->PrendreAnnee(), pDateDebutSim->PrendreMois(), pDateDebutSim->PrendreJour(), 0);
+
+		if(dateDebutVecteur < dtDebutFichier)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": data missing for simulation begin date.";
+			return ret;
+		}
+
+		indexDebut = dtDebutFichier.NbHeureEntre(dateDebutVecteur) / lPasTemps;
+
+		//date fin
+		dt = DATE_HEURE(pDateFinSim->PrendreAnnee(), pDateFinSim->PrendreMois(), pDateFinSim->PrendreJour(), 0); 		
+		if(simulationTimestep != 24)
+			dt.AdditionHeure(24);	//si pdt < 24 tous les pdt de la derniere journee doivent etre lus pour fonction PrendreTemperatureJournaliere		
+
+		if(dt > dtFinFichier)
+		{
+			nc_close(iNcid);
+			ret = "error reading NetCDF file: " + sPathFile + ": data missing for simulation end date.";
+			return ret;
+		}
+
+		indexFin = dtDebutFichier.NbHeureEntre(dt) / lPasTemps;
+
+		//heure lu en fin de pas de temps et remise en debut de pas de temps.
+		if(simulationTimestep != 24)
+			indexDebut = indexDebut + 1;
+
+		lNbPasTemps = indexFin - indexDebut + 1;
+
+		//lit et conserve les donnees en ram
+		size_t start[] = { indexDebut, 0, 0 };	//depth, row, col	//time, y, x
+		size_t count[] = { lNbPasTemps, lNbLat, lNbLong };
+
+		for(i=0; i!=vValVar.size(); i++) //pour chaque variables à lire
+		{
+			pVal[i] = new double[lNbPasTemps*lNbCoord];
+
+			iRet = nc_get_vara_double(iNcid, vVarId[i], start, count, &pVal[i][0]);
+			if(iRet != NC_NOERR)
+			{
+				nc_close(iNcid);
+				oss << iRet;
+				ret = "error reading NetCDF file: " + sPathFile + ": error reading data (" + vValVar[i] + "): error code " + oss.str() + ".";
+				return ret;
+			}
+		}
+
+		//initialisation des objets station
+		stationsInterpol.clear();
+		k = 0;
+		for(i=0; i!=lNbLat; i++)
+		{
+			for(j=0; j!=lNbLong; j++)
+			{
+				//pour cadrant nord/west
+				if( dExtentLimitNorth == -1.0 || 
+						(latitudes[i] <= dExtentLimitNorth && latitudes[i] >= dExtentLimitSouth &&
+						 longitudes[j] <= dExtentLimitEast && longitudes[j] >= dExtentLimitWest) )
+				{
+					shared_ptr<STATION> st = make_shared<STATION_METEO_NETCDF_STATION>(sPathFile, nullptr, i, j);
+					//if(_pSimHyd->PrendreNomInterpolationDonnees() == "THIESSEN1" || _pSimHyd->PrendreNomInterpolationDonnees() == "MOYENNE 3 STATIONS1")
+					//	st.get()->_iVersionThiessenMoy3Station = 1;
+					st.get()->_iVersionThiessenMoy3Station = 2;
+
+					oss.str("");
+					oss << "station" << k + 1;
+
+					st->ChangeNom(oss.str());
+					st->ChangeIdent(oss.str());
+					st->ChangeCoordonnee(COORDONNEE(longitudes[j], latitudes[i], elevations[i * lNbLong + j]));
+
+					stationsInterpol.push_back(st);
+					++k;
+				}
+			}
+		}
+
+		iRet = nc_close(iNcid);
+		if(iRet != NC_NOERR)
+		{
+			oss << iRet;
+			ret = "error closing NetCDF file: " + sPathFile + ": nc_close error code " + oss.str() + ".";
+		}
+
+		return ret;
 	}
 
 }

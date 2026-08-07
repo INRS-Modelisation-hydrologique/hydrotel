@@ -34,11 +34,12 @@ using namespace std;
 namespace HYDROTEL
 {
 
-	STATION_METEO_GIBSI::STATION_METEO_GIBSI(const string& nom_fichier, bool bAutoInverseTMinTMax)
+	STATION_METEO_GIBSI::STATION_METEO_GIBSI(const string& nom_fichier, bool bAutoInverseTMinTMax, bool bUseTempOnly)
 		: STATION_METEO(nom_fichier)
 		, _nb_donnee(0)
 	{
 		_bAutoInverseTMinTMax = bAutoInverseTMinTMax;
+		_bUseTempOnly = bUseTempOnly;
 	}
 
 
@@ -254,7 +255,11 @@ namespace HYDROTEL
 						else
 							donnee_meteo.ChangeTemperature(tmin, tmax);
 
-						donnee_meteo.ChangePluie(pluie);
+						if(_bUseTempOnly)						//use tmin & tmax only (for running water temp model when external data are enabled (_bSkipBilanVertical == true)
+							donnee_meteo.ChangePluie(0.0f);		//precip value is ignored; set to 0 to prevent missing data interpolation
+						else
+							donnee_meteo.ChangePluie(pluie);
+
 						donnee_meteo.ChangeNeige(neige);
 
 						donnees_meteo[date_lu] = donnee_meteo;

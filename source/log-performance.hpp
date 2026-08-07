@@ -63,6 +63,7 @@ namespace HYDROTEL
 		double													_nbSecBilanVertical;
 		double													_nbSecRuissellement;
 		double													_nbSecAcheminement;
+		double													_nbSecTempEau;
 
 		boost::chrono::steady_clock::time_point					_tpInitAndSimBegin;
 		boost::chrono::steady_clock::time_point					_tpInitAndSimEnd;

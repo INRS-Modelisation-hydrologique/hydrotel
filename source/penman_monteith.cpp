@@ -222,7 +222,7 @@ namespace HYDROTEL
 				if(vValeur.size() != 7)
 				{
 					fichier.close();
-					throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "PENMAN-MONTEITH; Nombre de colonne invalide.");
+					throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "PENMAN-MONTEITH; Invalid column count.");
 				}
 
 				iIdent = static_cast<int>(vValeur[0]);
@@ -280,7 +280,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 7)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "PENMAN-MONTEITH; Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "PENMAN-MONTEITH; Invalid column count.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

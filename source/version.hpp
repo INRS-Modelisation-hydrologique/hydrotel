@@ -22,7 +22,7 @@
 #define VERSION_H_INCLUDED
 
 
-#define HYDROTEL_VERSION "4.3.7.0000"
+#define HYDROTEL_VERSION "4.4.0.0000"
 
 
 #endif

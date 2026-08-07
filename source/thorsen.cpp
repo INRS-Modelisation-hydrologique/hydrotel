@@ -243,7 +243,7 @@ namespace HYDROTEL
 			getline_mod(fichier, ligne);	//ligne vide
 			getline_mod(fichier, ligne);	//entête
 
-			iLigne = 13;
+			iLigne = 11;
 			if(propriete_hydroliques._bDisponible)
 			{
 				for (index = 0; index < propriete_hydroliques.PrendreNb(); ++index)
@@ -255,7 +255,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(valeur, ";");
 
 					if(vValeur.size() != 1)
-						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Invalid column count.");
 
 					KT = vValeur[0];
 
@@ -276,7 +276,7 @@ namespace HYDROTEL
 				auto vValeur = extrait_fvaleur(valeur, ";");
 
 				if(vValeur.size() != 1)
-					throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Nombre de colonne invalide.");
+					throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), iLigne, "Invalid column count.");
 
 				_vfParamKT[0] = vValeur[0];
 			}
@@ -317,7 +317,7 @@ namespace HYDROTEL
 				vValeur = extrait_fvaleur(ligne, ";");
 
 				if(vValeur.size() != 4)
-					throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide THORSEN.");
+					throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count THORSEN.");
 
 				_fProfondeurInitialeGel = vValeur[0];
 				_fParamEmpirique1 = vValeur[1];
@@ -333,7 +333,7 @@ namespace HYDROTEL
 						vValeur = extrait_fvaleur(ligne, ";");
 
 						if(vValeur.size() != 2)
-							throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "THORSEN; Nombre de colonne invalide.");
+							throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "THORSEN; Invalid column count.");
 
 						fVal = static_cast<float>(index);
 						if(fVal != vValeur[0])
@@ -349,7 +349,7 @@ namespace HYDROTEL
 					vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 2)
-						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "THORSEN; Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "THORSEN; Invalid column count.");
 
 					_vfParamKT[0] = vValeur[1];
 				}

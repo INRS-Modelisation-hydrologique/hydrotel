@@ -178,13 +178,16 @@ namespace HYDROTEL
 
 		//obtient l'identifiant maximum
 		nbZone = _zones.size();
-
 		identMax = 1;
+
+		_listIdUhrh.clear();
 		for(index=0; index!=nbZone; index++)
 		{
 			ident = _zones[index].get()->_identABS;
 			if(ident > identMax)
 				identMax = ident;
+
+			_listIdUhrh.push_back(ident);	//conserve une liste des id uhrh
 		}
 
 		//

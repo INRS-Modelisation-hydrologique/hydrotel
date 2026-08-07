@@ -194,7 +194,7 @@ namespace HYDROTEL
 				if(vValeur.size() != 3 && vValeur.size() != 4)
 				{
 					fichier.close();
-					throw ERREUR_LECTURE_FICHIER("FICHIER PARAMETRES grilleprevision.csv; nombre de colonne invalide.");
+					throw ERREUR_LECTURE_FICHIER("FICHIER PARAMETRES grilleprevision.csv; Invalid column count.");
 				}
 
 				iIdent = static_cast<int>(vValeur[0]);
@@ -462,7 +462,7 @@ namespace HYDROTEL
 				if(sList.size() != 2)
 				{
 					fichier.close();
-					throw ERREUR("GRILLE_PREVISION; LectureAltitude; erreur lecture fichier des altitudes .agp; nombre de colonne invalide.");
+					throw ERREUR("GRILLE_PREVISION; LectureAltitude; erreur lecture fichier des altitudes .agp; Invalid column count.");
 				}
 
 				iss.clear();
@@ -790,7 +790,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 3 && vValeur.size() != 4)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd->_nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide GRILLE_PREVISION.");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd->_nomFichierParametresGlobal, no_ligne, "Invalid column count GRILLE_PREVISION.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

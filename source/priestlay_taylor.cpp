@@ -224,7 +224,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_fvaleur(ligne, ";");
 
 					if(vValeur.size() != 3)
-						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "PRIESTLAY-TAYLOR; Nombre de colonne invalide.");
+						throw ERREUR_LECTURE_FICHIER( PrendreNomFichierParametres(), no_ligne, "PRIESTLAY-TAYLOR; Invalid column count.");
 
 					fVal = static_cast<float>(x);
 					if(fVal != vValeur[0])

@@ -31,7 +31,7 @@ namespace HYDROTEL
 	class STATION_METEO_GIBSI : public STATION_METEO
 	{
 	public:
-		STATION_METEO_GIBSI(const std::string& nom_fichier, bool bAutoInverseTMinTMax = false);
+		STATION_METEO_GIBSI(const std::string& nom_fichier, bool bAutoInverseTMinTMax = false, bool bUseTempOnly = false);
 		virtual ~STATION_METEO_GIBSI();
 
 		virtual void LectureDonnees(const DATE_HEURE& debut, const DATE_HEURE& fin, unsigned short pas_de_temps);
@@ -44,6 +44,7 @@ namespace HYDROTEL
     
 	public:
 		bool				_bAutoInverseTMinTMax;
+		bool				_bUseTempOnly;
 
 	private:
 		//std::vector<DONNEE_METEO> _donnees_meteo;

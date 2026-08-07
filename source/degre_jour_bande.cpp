@@ -89,762 +89,765 @@ namespace HYDROTEL
 
 	void DEGRE_JOUR_BANDE::Initialise()
 	{
-		ostringstream oss;
-		double dNoDataDem, dPixelArea, dAlt, dNbBande, dArea, superficieUhrh;
-		double theta, k, h;
-		//double albedo;
-		size_t nb_zone, nb_zoneSim, nbColZone, nbRowZone, nbColDem, nbRowDem, nbColOcc, nbRowOcc, col, row, indexUhrh, i, j, nbPixel, idx;
-		string str, sFile;
-		int iNoDataZone, iUhrh, iOcc, iNoDataOcc, iNbBande, x;
-
-		//_corrections_neige_au_sol = _sim_hyd.PrendreCorrections().PrendreCorrectionsNeigeAuSol();
-
-		ZONES& zones = _sim_hyd.PrendreZones();
-		vector<size_t> zoneSimIndex = _sim_hyd.PrendreZonesSimules();
-
-		const RASTER<int>& grilleZone = zones.PrendreGrille();
-		const RASTER<float> grilleDem = LectureRaster_float(_sim_hyd.PrendreZones().PrendreNomFichierAltitude());
-		const RASTER<int>	grilleOcc = LectureRaster_int(RemplaceExtension(_sim_hyd.PrendreOccupationSol().PrendreNomFichier(), "tif"));
-
-		//valide que les coordonnees superieur gauche des matrices sont identique
-		//trunc les valeur à 7 décimale pour eviter les problemes de resolution numerique lors de la comparaison des valeurs double
-		long long int lx, ly, lxZone, lyZone;
-
-		lxZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreX() * 1000.0);
-		lyZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreY() * 1000.0);
-
-		lx = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreX() * 1000.0);
-		ly = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreY() * 1000.0);
-
-		if(lx != lxZone || ly != lyZone)
-			throw ERREUR("DEGRE_JOUR_BANDE error: the extent of the elevation matrix do not match with the extent of the rhhu matrix.");
-
-		lx = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreX() * 1000.0);
-		ly = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreY() * 1000.0);
-
-		if(lx != lxZone || ly != lyZone)
-			throw ERREUR("DEGRE_JOUR_BANDE error: the extent of the land cover matrix do not match with the extent of the rhhu matrix.");
-
-		nbColZone = grilleZone.PrendreNbColonne();
-		nbRowZone = grilleZone.PrendreNbLigne();
-		nbColDem = grilleDem.PrendreNbColonne();
-		nbRowDem = grilleDem.PrendreNbLigne();
-		nbColOcc = grilleOcc.PrendreNbColonne();
-		nbRowOcc = grilleOcc.PrendreNbLigne();
-
-		if(nbColDem < nbColZone || nbRowDem < nbRowZone || nbColOcc < nbColZone || nbRowOcc < nbRowZone)
-			throw ERREUR("DEGRE_JOUR_BANDE error: the elevation and land cover matrix must be of the same size (NbColumn and NbLine) or larger than the rhhu matrix.");
-
-		//initialisation pour les valeurs des gradients
-		if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "LECTURE INTERPOLATION DONNEES")
+		if(!_sim_hyd._bSkipFonteNeige)
 		{
-			if(_sim_hyd._versionTHIESSEN == 1)
-				_sim_hyd._smThiessen1->LectureParametres();
-			else
-				_sim_hyd._smThiessen2->LectureParametres();	//_sim_hyd._versionTHIESSEN == 2
+			ostringstream oss;
+			double dNoDataDem, dPixelArea, dAlt, dNbBande, dArea, superficieUhrh;
+			double theta, k, h;
+			//double albedo;
+			size_t nb_zone, nb_zoneSim, nbColZone, nbRowZone, nbColDem, nbRowDem, nbColOcc, nbRowOcc, col, row, indexUhrh, i, j, nbPixel, idx;
+			string str, sFile;
+			int iNoDataZone, iUhrh, iOcc, iNoDataOcc, iNbBande, x;
 
-			Log("");
-			Log("warning: degre_jour_bande submodel will use parameters from the thiessen submodel file because the interpolation model is in read mode");
-		}
+			//_corrections_neige_au_sol = _sim_hyd.PrendreCorrections().PrendreCorrectionsNeigeAuSol();
+
+			ZONES& zones = _sim_hyd.PrendreZones();
+			vector<size_t> zoneSimIndex = _sim_hyd.PrendreZonesSimules();
+
+			const RASTER<int>& grilleZone = zones.PrendreGrille();
+			const RASTER<float> grilleDem = LectureRaster_float(_sim_hyd.PrendreZones().PrendreNomFichierAltitude());
+			const RASTER<int>	grilleOcc = LectureRaster_int(RemplaceExtension(_sim_hyd.PrendreOccupationSol().PrendreNomFichier(), "tif"));
+
+			//valide que les coordonnees superieur gauche des matrices sont identique
+			//trunc les valeur à 7 décimale pour eviter les problemes de resolution numerique lors de la comparaison des valeurs double
+			long long int lx, ly, lxZone, lyZone;
+
+			lxZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreX() * 1000.0);
+			lyZone = static_cast<long long int>(grilleZone.PrendreCoordonnee().PrendreY() * 1000.0);
+
+			lx = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreX() * 1000.0);
+			ly = static_cast<long long int>(grilleDem.PrendreCoordonnee().PrendreY() * 1000.0);
+
+			if(lx != lxZone || ly != lyZone)
+				throw ERREUR("DEGRE_JOUR_BANDE error: the extent of the elevation matrix do not match with the extent of the RHHU matrix.");
+
+			lx = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreX() * 1000.0);
+			ly = static_cast<long long int>(grilleOcc.PrendreCoordonnee().PrendreY() * 1000.0);
+
+			if(lx != lxZone || ly != lyZone)
+				throw ERREUR("DEGRE_JOUR_BANDE error: the extent of the land cover matrix do not match with the extent of the RHHU matrix.");
+
+			nbColZone = grilleZone.PrendreNbColonne();
+			nbRowZone = grilleZone.PrendreNbLigne();
+			nbColDem = grilleDem.PrendreNbColonne();
+			nbRowDem = grilleDem.PrendreNbLigne();
+			nbColOcc = grilleOcc.PrendreNbColonne();
+			nbRowOcc = grilleOcc.PrendreNbLigne();
+
+			if(nbColDem < nbColZone || nbRowDem < nbRowZone || nbColOcc < nbColZone || nbRowOcc < nbRowZone)
+				throw ERREUR("DEGRE_JOUR_BANDE error: the elevation and land cover matrix must be of the same size (NbColumn and NbLine) or larger than the RHHU matrix.");
+
+			//initialisation pour les valeurs des gradients
+			if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "LECTURE INTERPOLATION DONNEES")
+			{
+				if(_sim_hyd._versionTHIESSEN == 1)
+					_sim_hyd._smThiessen1->LectureParametres();
+				else
+					_sim_hyd._smThiessen2->LectureParametres();	//_sim_hyd._versionTHIESSEN == 2
+
+				Log("");
+				Log("warning: degre_jour_bande submodel will use parameters from the thiessen submodel file because the interpolation model is in read mode");
+			}
 		
-		//ponderations et lecture des donnees des stations de neige
-		const PROJECTION& projection = zones.PrendreProjection();
+			//ponderations et lecture des donnees des stations de neige
+			const PROJECTION& projection = zones.PrendreProjection();
 
-		DATE_HEURE date_debut = _sim_hyd.PrendreDateDebut();
-		DATE_HEURE date_fin = _sim_hyd.PrendreDateFin();
+			DATE_HEURE date_debut = _sim_hyd.PrendreDateDebut();
+			DATE_HEURE date_fin = _sim_hyd.PrendreDateFin();
 
-		switch(_interpolation_conifers)
-		{
-		case INTERPOLATION_AUCUNE:
-			break;
+			switch(_interpolation_conifers)
+			{
+			case INTERPOLATION_AUCUNE:
+				break;
 
-		case INTERPOLATION_THIESSEN:			
-			_stations_neige_conifers.Lecture(projection);
+			case INTERPOLATION_THIESSEN:			
+				_stations_neige_conifers.Lecture(projection);
 			
-			if(_sim_hyd._versionTHIESSEN == 1)
-			{
-				_pThiessen1 = new THIESSEN1(_sim_hyd);
-				_pThiessen1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
-				_pThiessen1->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pThiessen1->LectureParametres();
-
-				if(!_pThiessen1->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifersF))
+				if(_sim_hyd._versionTHIESSEN == 1)
 				{
-					_pThiessen1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF, "DEGRE_JOUR_BANDE");
-					_pThiessen1->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
-				}
-			}
-			else
-			{
-				//_versionTHIESSEN == 2
-				_pThiessen2 = new THIESSEN2(_sim_hyd);
-				_pThiessen2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
-				_pThiessen2->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pThiessen2->LectureParametres();
+					_pThiessen1 = new THIESSEN1(_sim_hyd);
+					_pThiessen1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
+					_pThiessen1->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pThiessen1->LectureParametres();
 
-				if(!_pThiessen2->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifers))
-				{
-					_pThiessen2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, "DEGRE_JOUR_BANDE");
-					_pThiessen2->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
-				}
-			}
-
-			_stations_neige_conifers.LectureDonnees(date_debut, date_fin);
-			break;
-
-		case INTERPOLATION_MOYENNE_3_STATIONS:
-			_stations_neige_conifers.Lecture(projection);
-
-			if(_sim_hyd._versionMOY3STATION == 1)
-			{
-				_pMoy3station1 = new MOYENNE_3_STATIONS1(_sim_hyd);
-				_pMoy3station1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
-				_pMoy3station1->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pMoy3station1->LectureParametres();
-
-				if(!_pMoy3station1->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifersF))
-				{
-					_pMoy3station1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF, "DEGRE_JOUR_BANDE");
-					_pMoy3station1->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
-				}
-			}
-			else
-			{
-				//_versionMOY3STATION == 2
-				_pMoy3station2 = new MOYENNE_3_STATIONS2(_sim_hyd);
-				_pMoy3station2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
-				_pMoy3station2->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pMoy3station2->LectureParametres();
-
-				if(!_pMoy3station2->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifers))
-				{
-					_pMoy3station2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, "DEGRE_JOUR_BANDE");
-					_pMoy3station2->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
-				}
-			}
-
-			_stations_neige_conifers.LectureDonnees(date_debut, date_fin);
-			break;
-
-		default:
-			throw ERREUR("interpolation snow stations conifers");
-		}
-
-		switch(_interpolation_feuillus)
-		{
-		case INTERPOLATION_AUCUNE:
-			break;
-
-		case INTERPOLATION_THIESSEN:
-			_stations_neige_feuillus.Lecture(projection);
-			
-			if(_sim_hyd._versionTHIESSEN == 1)
-			{
-				_pThiessen1 = new THIESSEN1(_sim_hyd);
-				_pThiessen1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
-				_pThiessen1->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pThiessen1->LectureParametres();
-
-				if(!_pThiessen1->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF))
-				{
-					_pThiessen1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF, "DEGRE_JOUR_BANDE");
-					_pThiessen1->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
-				}
-			}
-			else
-			{
-				//_versionTHIESSEN == 2
-				_pThiessen2 = new THIESSEN2(_sim_hyd);
-				_pThiessen2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
-				_pThiessen2->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pThiessen2->LectureParametres();
-
-				if(!_pThiessen2->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus))
-				{
-					_pThiessen2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, "DEGRE_JOUR_BANDE");
-					_pThiessen2->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
-				}
-			}
-
-			_stations_neige_feuillus.LectureDonnees(date_debut, date_fin);
-			break;
-
-		case INTERPOLATION_MOYENNE_3_STATIONS:
-			_stations_neige_feuillus.Lecture(projection);
-
-			if(_sim_hyd._versionMOY3STATION == 1)
-			{
-				_pMoy3station1 = new MOYENNE_3_STATIONS1(_sim_hyd);
-				_pMoy3station1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
-				_pMoy3station1->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pMoy3station1->LectureParametres();
-
-				if(!_pMoy3station1->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF))
-				{
-					_pMoy3station1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF, "DEGRE_JOUR_BANDE");
-					_pMoy3station1->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
-				}
-			}
-			else
-			{
-				//_versionMOY3STATION == 2
-				_pMoy3station2 = new MOYENNE_3_STATIONS2(_sim_hyd);
-				_pMoy3station2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
-				_pMoy3station2->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pMoy3station2->LectureParametres();
-
-				if(!_pMoy3station2->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus))
-				{
-					_pMoy3station2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, "DEGRE_JOUR_BANDE");
-					_pMoy3station2->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
-				}
-			}
-
-			_stations_neige_feuillus.LectureDonnees(date_debut, date_fin);
-			break;
-
-		default:
-			throw ERREUR("interpolation snow stations deciduous");
-		}
-
-		switch(_interpolation_decouver)
-		{
-		case INTERPOLATION_AUCUNE:
-			break;
-
-		case INTERPOLATION_THIESSEN:
-			_stations_neige_decouver.Lecture(projection);
-
-			if(_sim_hyd._versionTHIESSEN == 1)
-			{
-				_pThiessen1 = new THIESSEN1(_sim_hyd);
-				_pThiessen1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
-				_pThiessen1->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pThiessen1->LectureParametres();
-
-				if(!_pThiessen1->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouverF))
-				{
-					_pThiessen1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF, "DEGRE_JOUR_BANDE");
-					_pThiessen1->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
-				}
-			}
-			else
-			{
-				//_versionTHIESSEN == 2
-				_pThiessen2 = new THIESSEN2(_sim_hyd);
-				_pThiessen2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
-				_pThiessen2->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pThiessen2->LectureParametres();
-
-				if(!_pThiessen2->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouver))
-				{
-					_pThiessen2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, "DEGRE_JOUR_BANDE");
-					_pThiessen2->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
-				}
-			}
-
-			_stations_neige_decouver.LectureDonnees(date_debut, date_fin);
-			break;
-
-		case INTERPOLATION_MOYENNE_3_STATIONS:
-			_stations_neige_decouver.Lecture(projection);
-
-			if(_sim_hyd._versionMOY3STATION == 1)
-			{
-				_pMoy3station1 = new MOYENNE_3_STATIONS1(_sim_hyd);
-				_pMoy3station1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
-				_pMoy3station1->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pMoy3station1->LectureParametres();
-
-				if(!_pMoy3station1->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouverF))
-				{
-					_pMoy3station1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF, "DEGRE_JOUR_BANDE");
-					_pMoy3station1->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
-				}
-			}
-			else
-			{
-				//_versionMOY3STATION == 2
-				_pMoy3station2 = new MOYENNE_3_STATIONS2(_sim_hyd);
-				_pMoy3station2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
-				_pMoy3station2->ChangeNbParams(_sim_hyd.PrendreZones());
-				_pMoy3station2->LectureParametres();
-
-				if(!_pMoy3station2->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouver))
-				{
-					_pMoy3station2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, "DEGRE_JOUR_BANDE");
-					_pMoy3station2->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
-				}
-			}
-
-			_stations_neige_decouver.LectureDonnees(date_debut, date_fin);
-			break;
-
-		default:
-			throw ERREUR("interpolation snow stations open areas");
-		}
-
-		//
-		iNoDataZone = grilleZone.PrendreNoData();
-		dNoDataDem = static_cast<double>(grilleDem.PrendreNoData());
-		iNoDataOcc = grilleOcc.PrendreNoData();
-
-		dPixelArea = static_cast<double>(grilleZone.PrendreTailleCelluleX());
-		dPixelArea = dPixelArea * dPixelArea;	//m2
-
-		nb_zone = zones.PrendreNbZone();
-
-		_ce1.resize(nb_zone, 0.0);
-		_ce0.resize(nb_zone, 0.0);
-		//_tsn.resize(nb_zone, 0.0);
-
-		_bUhrhSimule.clear();
-		_bUhrhSimule.resize(nb_zone, false);
-		_bUhrhIndexSimule.clear();
-		_bUhrhIndexSimule.resize(nb_zone, false);
-
-		for (i=0; i!=nb_zone; i++)
-		{
-			if(find(begin(zoneSimIndex), end(zoneSimIndex), i) != end(zoneSimIndex))
-			{
-				_bUhrhSimule[zones[i]._identABS-1] = true;
-				_bUhrhIndexSimule[i] = true;
-			}
-		}
-
-		//determination des bandes pour chaque uhrh
-		//parcours les matrices uhrh, occupation et altitude
-		//conserve les valeurs d'altitude de chaque pixel pour chaque milieu pour chaque uhrh
-		//conserve altitude min et max pour chaque milieu pour chaque uhrh
-
-		_altMin.clear();
-		_altMin.resize(nb_zone, 100000.0);
-		_altMax.clear();
-		_altMax.resize(nb_zone, -100000.0);
-
-		_altPixelM1.clear();			//conniferes
-		_altPixelM1.resize(nb_zone);
-		_altPixelM2.clear();			//feuillus
-		_altPixelM2.resize(nb_zone);
-		_altPixelM3.clear();			//decouvert
-		_altPixelM3.resize(nb_zone);
-
-		for(col=0; col!=nbColZone; col++)
-		{
-			for(row=0; row!=nbRowZone; row++)
-			{
-				iUhrh = grilleZone(row, col);
-
-				if(iUhrh != iNoDataZone && _bUhrhSimule[abs(iUhrh)-1])	//si l'uhrh est simulé
-				{
-					dAlt = static_cast<double>(grilleDem(row, col));
-					if(dAlt != dNoDataDem)
+					if(!_pThiessen1->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifersF))
 					{
-						iOcc = grilleOcc(row, col);
-						indexUhrh = zones.IdentVersIndex(iUhrh);
+						_pThiessen1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF, "DEGRE_JOUR_BANDE");
+						_pThiessen1->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
+					}
+				}
+				else
+				{
+					//_versionTHIESSEN == 2
+					_pThiessen2 = new THIESSEN2(_sim_hyd);
+					_pThiessen2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
+					_pThiessen2->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pThiessen2->LectureParametres();
 
-						if(dAlt < _altMin[indexUhrh])
-							_altMin[indexUhrh] = dAlt;
-						if(dAlt > _altMax[indexUhrh])
-							_altMax[indexUhrh] = dAlt;
+					if(!_pThiessen2->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifers))
+					{
+						_pThiessen2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, "DEGRE_JOUR_BANDE");
+						_pThiessen2->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
+					}
+				}
 
-						if(iOcc != iNoDataOcc)
+				_stations_neige_conifers.LectureDonnees(date_debut, date_fin);
+				break;
+
+			case INTERPOLATION_MOYENNE_3_STATIONS:
+				_stations_neige_conifers.Lecture(projection);
+
+				if(_sim_hyd._versionMOY3STATION == 1)
+				{
+					_pMoy3station1 = new MOYENNE_3_STATIONS1(_sim_hyd);
+					_pMoy3station1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
+					_pMoy3station1->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pMoy3station1->LectureParametres();
+
+					if(!_pMoy3station1->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifersF))
+					{
+						_pMoy3station1->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifersF, "DEGRE_JOUR_BANDE");
+						_pMoy3station1->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifersF);
+					}
+				}
+				else
+				{
+					//_versionMOY3STATION == 2
+					_pMoy3station2 = new MOYENNE_3_STATIONS2(_sim_hyd);
+					_pMoy3station2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
+					_pMoy3station2->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pMoy3station2->LectureParametres();
+
+					if(!_pMoy3station2->LecturePonderation(_stations_neige_conifers, zones, _ponderation_conifers))
+					{
+						_pMoy3station2->CalculePonderation(_stations_neige_conifers, zones, _ponderation_conifers, "DEGRE_JOUR_BANDE");
+						_pMoy3station2->SauvegardePonderation(_stations_neige_conifers, zones, _ponderation_conifers);
+					}
+				}
+
+				_stations_neige_conifers.LectureDonnees(date_debut, date_fin);
+				break;
+
+			default:
+				throw ERREUR("interpolation snow stations conifers");
+			}
+
+			switch(_interpolation_feuillus)
+			{
+			case INTERPOLATION_AUCUNE:
+				break;
+
+			case INTERPOLATION_THIESSEN:
+				_stations_neige_feuillus.Lecture(projection);
+			
+				if(_sim_hyd._versionTHIESSEN == 1)
+				{
+					_pThiessen1 = new THIESSEN1(_sim_hyd);
+					_pThiessen1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
+					_pThiessen1->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pThiessen1->LectureParametres();
+
+					if(!_pThiessen1->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF))
+					{
+						_pThiessen1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF, "DEGRE_JOUR_BANDE");
+						_pThiessen1->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
+					}
+				}
+				else
+				{
+					//_versionTHIESSEN == 2
+					_pThiessen2 = new THIESSEN2(_sim_hyd);
+					_pThiessen2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
+					_pThiessen2->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pThiessen2->LectureParametres();
+
+					if(!_pThiessen2->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus))
+					{
+						_pThiessen2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, "DEGRE_JOUR_BANDE");
+						_pThiessen2->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
+					}
+				}
+
+				_stations_neige_feuillus.LectureDonnees(date_debut, date_fin);
+				break;
+
+			case INTERPOLATION_MOYENNE_3_STATIONS:
+				_stations_neige_feuillus.Lecture(projection);
+
+				if(_sim_hyd._versionMOY3STATION == 1)
+				{
+					_pMoy3station1 = new MOYENNE_3_STATIONS1(_sim_hyd);
+					_pMoy3station1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
+					_pMoy3station1->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pMoy3station1->LectureParametres();
+
+					if(!_pMoy3station1->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF))
+					{
+						_pMoy3station1->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF, "DEGRE_JOUR_BANDE");
+						_pMoy3station1->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillusF);
+					}
+				}
+				else
+				{
+					//_versionMOY3STATION == 2
+					_pMoy3station2 = new MOYENNE_3_STATIONS2(_sim_hyd);
+					_pMoy3station2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
+					_pMoy3station2->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pMoy3station2->LectureParametres();
+
+					if(!_pMoy3station2->LecturePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus))
+					{
+						_pMoy3station2->CalculePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus, "DEGRE_JOUR_BANDE");
+						_pMoy3station2->SauvegardePonderation(_stations_neige_feuillus, zones, _ponderation_feuillus);
+					}
+				}
+
+				_stations_neige_feuillus.LectureDonnees(date_debut, date_fin);
+				break;
+
+			default:
+				throw ERREUR("interpolation snow stations deciduous");
+			}
+
+			switch(_interpolation_decouver)
+			{
+			case INTERPOLATION_AUCUNE:
+				break;
+
+			case INTERPOLATION_THIESSEN:
+				_stations_neige_decouver.Lecture(projection);
+
+				if(_sim_hyd._versionTHIESSEN == 1)
+				{
+					_pThiessen1 = new THIESSEN1(_sim_hyd);
+					_pThiessen1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
+					_pThiessen1->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pThiessen1->LectureParametres();
+
+					if(!_pThiessen1->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouverF))
+					{
+						_pThiessen1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF, "DEGRE_JOUR_BANDE");
+						_pThiessen1->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
+					}
+				}
+				else
+				{
+					//_versionTHIESSEN == 2
+					_pThiessen2 = new THIESSEN2(_sim_hyd);
+					_pThiessen2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_THIESSEN1]->PrendreNomFichierParametres());
+					_pThiessen2->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pThiessen2->LectureParametres();
+
+					if(!_pThiessen2->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouver))
+					{
+						_pThiessen2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, "DEGRE_JOUR_BANDE");
+						_pThiessen2->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
+					}
+				}
+
+				_stations_neige_decouver.LectureDonnees(date_debut, date_fin);
+				break;
+
+			case INTERPOLATION_MOYENNE_3_STATIONS:
+				_stations_neige_decouver.Lecture(projection);
+
+				if(_sim_hyd._versionMOY3STATION == 1)
+				{
+					_pMoy3station1 = new MOYENNE_3_STATIONS1(_sim_hyd);
+					_pMoy3station1->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
+					_pMoy3station1->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pMoy3station1->LectureParametres();
+
+					if(!_pMoy3station1->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouverF))
+					{
+						_pMoy3station1->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouverF, "DEGRE_JOUR_BANDE");
+						_pMoy3station1->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouverF);
+					}
+				}
+				else
+				{
+					//_versionMOY3STATION == 2
+					_pMoy3station2 = new MOYENNE_3_STATIONS2(_sim_hyd);
+					_pMoy3station2->ChangeNomFichierParametres(_sim_hyd._vinterpolation_donnees[_sim_hyd.INTERPOLATION_MOYENNE_3_STATIONS1]->PrendreNomFichierParametres());
+					_pMoy3station2->ChangeNbParams(_sim_hyd.PrendreZones());
+					_pMoy3station2->LectureParametres();
+
+					if(!_pMoy3station2->LecturePonderation(_stations_neige_decouver, zones, _ponderation_decouver))
+					{
+						_pMoy3station2->CalculePonderation(_stations_neige_decouver, zones, _ponderation_decouver, "DEGRE_JOUR_BANDE");
+						_pMoy3station2->SauvegardePonderation(_stations_neige_decouver, zones, _ponderation_decouver);
+					}
+				}
+
+				_stations_neige_decouver.LectureDonnees(date_debut, date_fin);
+				break;
+
+			default:
+				throw ERREUR("interpolation snow stations open areas");
+			}
+
+			//
+			iNoDataZone = grilleZone.PrendreNoData();
+			dNoDataDem = static_cast<double>(grilleDem.PrendreNoData());
+			iNoDataOcc = grilleOcc.PrendreNoData();
+
+			dPixelArea = static_cast<double>(grilleZone.PrendreTailleCelluleX());
+			dPixelArea = dPixelArea * dPixelArea;	//m2
+
+			nb_zone = zones.PrendreNbZone();
+
+			_ce1.resize(nb_zone, 0.0);
+			_ce0.resize(nb_zone, 0.0);
+			//_tsn.resize(nb_zone, 0.0);
+
+			_bUhrhSimule.clear();
+			_bUhrhSimule.resize(nb_zone, false);
+			_bUhrhIndexSimule.clear();
+			_bUhrhIndexSimule.resize(nb_zone, false);
+
+			for (i=0; i!=nb_zone; i++)
+			{
+				if(find(begin(zoneSimIndex), end(zoneSimIndex), i) != end(zoneSimIndex))
+				{
+					_bUhrhSimule[zones[i]._identABS-1] = true;
+					_bUhrhIndexSimule[i] = true;
+				}
+			}
+
+			//determination des bandes pour chaque uhrh
+			//parcours les matrices uhrh, occupation et altitude
+			//conserve les valeurs d'altitude de chaque pixel pour chaque milieu pour chaque uhrh
+			//conserve altitude min et max pour chaque milieu pour chaque uhrh
+
+			_altMin.clear();
+			_altMin.resize(nb_zone, 100000.0);
+			_altMax.clear();
+			_altMax.resize(nb_zone, -100000.0);
+
+			_altPixelM1.clear();			//conniferes
+			_altPixelM1.resize(nb_zone);
+			_altPixelM2.clear();			//feuillus
+			_altPixelM2.resize(nb_zone);
+			_altPixelM3.clear();			//decouvert
+			_altPixelM3.resize(nb_zone);
+
+			for(col=0; col!=nbColZone; col++)
+			{
+				for(row=0; row!=nbRowZone; row++)
+				{
+					iUhrh = grilleZone(row, col);
+
+					if(iUhrh != iNoDataZone && _bUhrhSimule[abs(iUhrh)-1])	//si l'uhrh est simulé
+					{
+						dAlt = static_cast<double>(grilleDem(row, col));
+						if(dAlt != dNoDataDem)
 						{
-							if(find(begin(_index_occupation_conifers), end(_index_occupation_conifers), iOcc-1) != end(_index_occupation_conifers))
-								_altPixelM1[indexUhrh].push_back(dAlt);
-							else
+							iOcc = grilleOcc(row, col);
+							indexUhrh = zones.IdentVersIndex(iUhrh);
+
+							if(dAlt < _altMin[indexUhrh])
+								_altMin[indexUhrh] = dAlt;
+							if(dAlt > _altMax[indexUhrh])
+								_altMax[indexUhrh] = dAlt;
+
+							if(iOcc != iNoDataOcc)
 							{
-								if(find(begin(_index_occupation_feuillus), end(_index_occupation_feuillus), iOcc-1) != end(_index_occupation_feuillus))
-									_altPixelM2[indexUhrh].push_back(dAlt);
+								if(find(begin(_index_occupation_conifers), end(_index_occupation_conifers), iOcc-1) != end(_index_occupation_conifers))
+									_altPixelM1[indexUhrh].push_back(dAlt);
 								else
-									_altPixelM3[indexUhrh].push_back(dAlt);
+								{
+									if(find(begin(_index_occupation_feuillus), end(_index_occupation_feuillus), iOcc-1) != end(_index_occupation_feuillus))
+										_altPixelM2[indexUhrh].push_back(dAlt);
+									else
+										_altPixelM3[indexUhrh].push_back(dAlt);
+								}
 							}
 						}
 					}
 				}
 			}
-		}
 
-		_bandeSuperficieM1.clear();
-		_bandeSuperficieM1.resize(nb_zone);
-		_bandeSuperficieM2.clear();
-		_bandeSuperficieM2.resize(nb_zone);
-		_bandeSuperficieM3.clear();
-		_bandeSuperficieM3.resize(nb_zone);
+			_bandeSuperficieM1.clear();
+			_bandeSuperficieM1.resize(nb_zone);
+			_bandeSuperficieM2.clear();
+			_bandeSuperficieM2.resize(nb_zone);
+			_bandeSuperficieM3.clear();
+			_bandeSuperficieM3.resize(nb_zone);
 
-		_bandePourcentageM1.clear();
-		_bandePourcentageM1.resize(nb_zone);		
-		_bandePourcentageM2.clear();
-		_bandePourcentageM2.resize(nb_zone);
-		_bandePourcentageM3.clear();
-		_bandePourcentageM3.resize(nb_zone);
+			_bandePourcentageM1.clear();
+			_bandePourcentageM1.resize(nb_zone);		
+			_bandePourcentageM2.clear();
+			_bandePourcentageM2.resize(nb_zone);
+			_bandePourcentageM3.clear();
+			_bandePourcentageM3.resize(nb_zone);
 
-		_bandeAltMoyM1.clear();
-		_bandeAltMoyM1.resize(nb_zone);
-		_bandeAltMoyM2.clear();
-		_bandeAltMoyM2.resize(nb_zone);
-		_bandeAltMoyM3.clear();
-		_bandeAltMoyM3.resize(nb_zone);
+			_bandeAltMoyM1.clear();
+			_bandeAltMoyM1.resize(nb_zone);
+			_bandeAltMoyM2.clear();
+			_bandeAltMoyM2.resize(nb_zone);
+			_bandeAltMoyM3.clear();
+			_bandeAltMoyM3.resize(nb_zone);
 
-		_stock_conifers.clear();
-		_stock_conifers.resize(nb_zone);
-		_stock_feuillus.clear();
-		_stock_feuillus.resize(nb_zone);
-		_stock_decouver.clear();
-		_stock_decouver.resize(nb_zone);
+			_stock_conifers.clear();
+			_stock_conifers.resize(nb_zone);
+			_stock_feuillus.clear();
+			_stock_feuillus.resize(nb_zone);
+			_stock_decouver.clear();
+			_stock_decouver.resize(nb_zone);
 
-		_hauteur_conifers.clear();
-		_hauteur_conifers.resize(nb_zone);
-		_hauteur_feuillus.clear();
-		_hauteur_feuillus.resize(nb_zone);
-		_hauteur_decouver.clear();
-		_hauteur_decouver.resize(nb_zone);
+			_hauteur_conifers.clear();
+			_hauteur_conifers.resize(nb_zone);
+			_hauteur_feuillus.clear();
+			_hauteur_feuillus.resize(nb_zone);
+			_hauteur_decouver.clear();
+			_hauteur_decouver.resize(nb_zone);
 
-		_chaleur_conifers.clear();
-		_chaleur_conifers.resize(nb_zone);
-		_chaleur_feuillus.clear();
-		_chaleur_feuillus.resize(nb_zone);
-		_chaleur_decouver.clear();
-		_chaleur_decouver.resize(nb_zone);
+			_chaleur_conifers.clear();
+			_chaleur_conifers.resize(nb_zone);
+			_chaleur_feuillus.clear();
+			_chaleur_feuillus.resize(nb_zone);
+			_chaleur_decouver.clear();
+			_chaleur_decouver.resize(nb_zone);
 
-		_eau_retenu_conifers.clear();
-		_eau_retenu_conifers.resize(nb_zone);
-		_eau_retenu_feuillus.clear();
-		_eau_retenu_feuillus.resize(nb_zone);
-		_eau_retenu_decouver.clear();
-		_eau_retenu_decouver.resize(nb_zone);
+			_eau_retenu_conifers.clear();
+			_eau_retenu_conifers.resize(nb_zone);
+			_eau_retenu_feuillus.clear();
+			_eau_retenu_feuillus.resize(nb_zone);
+			_eau_retenu_decouver.clear();
+			_eau_retenu_decouver.resize(nb_zone);
 
-		//_superficieUhrhM1.clear();
-		//_superficieUhrhM1.resize(nb_zone, 0.0);
+			//_superficieUhrhM1.clear();
+			//_superficieUhrhM1.resize(nb_zone, 0.0);
 
-		_albedo_conifers.clear();
-		_albedo_conifers.resize(nb_zone);
-		_albedo_feuillus.clear();
-		_albedo_feuillus.resize(nb_zone);
-		_albedo_decouver.clear();
-		_albedo_decouver.resize(nb_zone);
+			_albedo_conifers.clear();
+			_albedo_conifers.resize(nb_zone);
+			_albedo_feuillus.clear();
+			_albedo_feuillus.resize(nb_zone);
+			_albedo_decouver.clear();
+			_albedo_decouver.resize(nb_zone);
 
-		//_methode_albedo.resize(nb_zone, 0);
+			//_methode_albedo.resize(nb_zone, 0);
 
-		// mise a jour de la neige avec stations de neige
-		if (_stations_neige_conifers.PrendreNbStation() != 0 || _stations_neige_feuillus.PrendreNbStation() != 0 || _stations_neige_decouver.PrendreNbStation() != 0)
-		{
-			_mise_a_jour_neige = true;
+			// mise a jour de la neige avec stations de neige
+			if (_stations_neige_conifers.PrendreNbStation() != 0 || _stations_neige_feuillus.PrendreNbStation() != 0 || _stations_neige_decouver.PrendreNbStation() != 0)
+			{
+				_mise_a_jour_neige = true;
 
-			_maj_conifers.resize(nb_zone);
-			_maj_feuillus.resize(nb_zone);
-			_maj_decouver.resize(nb_zone);
-		}
-		else
-			_mise_a_jour_neige = false;
-
-		nb_zoneSim = zoneSimIndex.size();	//nb de zone simulé
-
-		for(i=0; i!=nb_zoneSim; i++)
-		{
-			indexUhrh = zoneSimIndex[i];
-
-			ZONE& zone = zones[indexUhrh];
-
-			//determine le nb de bandes
-			dNbBande = (_altMax[indexUhrh] - _altMin[indexUhrh]) / _dHauteurBande;
-			iNbBande = static_cast<int>(dNbBande);
-
-			if(iNbBande == 0)	//denivellation inferieur a hauteur bande
-				iNbBande = 1;
+				_maj_conifers.resize(nb_zone);
+				_maj_feuillus.resize(nb_zone);
+				_maj_decouver.resize(nb_zone);
+			}
 			else
-				++iNbBande;	//bande supplementaire pour l'exedent (altMax - altMin) / HauteurBande ne donne pas un resultat entier
-							//si le resultat est entier la bande supplementaire est ajouté pour la valeur maximum (_altMax[indexUhrh]), qui theoriquement est l'altitude de depart de la bande suivante
+				_mise_a_jour_neige = false;
 
-			//calcule la superficie de chaque milieu pour chaque bande
-			_bandeSuperficieM1[indexUhrh].resize(iNbBande, 0.0);
-			_bandeSuperficieM2[indexUhrh].resize(iNbBande, 0.0);
-			_bandeSuperficieM3[indexUhrh].resize(iNbBande, 0.0);
+			nb_zoneSim = zoneSimIndex.size();	//nb de zone simulé
 
-			_bandePourcentageM1[indexUhrh].resize(iNbBande, 0.0);
-			_bandePourcentageM2[indexUhrh].resize(iNbBande, 0.0);
-			_bandePourcentageM3[indexUhrh].resize(iNbBande, 0.0);
-
-			_bandeAltMoyM1[indexUhrh].resize(iNbBande, 0.0);
-			_bandeAltMoyM2[indexUhrh].resize(iNbBande, 0.0);
-			_bandeAltMoyM3[indexUhrh].resize(iNbBande, 0.0);
-
-			//M1
-			nbPixel = _altPixelM1[indexUhrh].size();
-			for(j=0; j!=nbPixel; j++)
+			for(i=0; i!=nb_zoneSim; i++)
 			{
-				idx = static_cast<size_t>( (_altPixelM1[indexUhrh][j] - _altMin[indexUhrh]) / _dHauteurBande );	//obtient l'index de la bande d'altitude pour le pixel
+				indexUhrh = zoneSimIndex[i];
 
-				_bandeSuperficieM1[indexUhrh][idx]+= dPixelArea;	//m2
-				_bandeAltMoyM1[indexUhrh][idx]+= _altPixelM1[indexUhrh][j];	//altitude moy des bandes calculé selon les pixels correspondant au milieu
+				ZONE& zone = zones[indexUhrh];
 
-				//_superficieUhrhM1[indexUhrh]+= dPixelArea;	//m2
-			}
+				//determine le nb de bandes
+				dNbBande = (_altMax[indexUhrh] - _altMin[indexUhrh]) / _dHauteurBande;
+				iNbBande = static_cast<int>(dNbBande);
 
-			//M2
-			nbPixel = _altPixelM2[indexUhrh].size();
-			for(j=0; j!=nbPixel; j++)
-			{
-				idx = static_cast<size_t>( (_altPixelM2[indexUhrh][j] - _altMin[indexUhrh]) / _dHauteurBande );	//obtient l'index de la bande d'altitude pour le pixel
+				if(iNbBande == 0)	//denivellation inferieur a hauteur bande
+					iNbBande = 1;
+				else
+					++iNbBande;	//bande supplementaire pour l'exedent (altMax - altMin) / HauteurBande ne donne pas un resultat entier
+								//si le resultat est entier la bande supplementaire est ajouté pour la valeur maximum (_altMax[indexUhrh]), qui theoriquement est l'altitude de depart de la bande suivante
 
-				_bandeSuperficieM2[indexUhrh][idx]+= dPixelArea;	//m2
-				_bandeAltMoyM2[indexUhrh][idx]+= _altPixelM2[indexUhrh][j];	//altitude moy des bandes calculé selon les pixels correspondant au milieu
+				//calcule la superficie de chaque milieu pour chaque bande
+				_bandeSuperficieM1[indexUhrh].resize(iNbBande, 0.0);
+				_bandeSuperficieM2[indexUhrh].resize(iNbBande, 0.0);
+				_bandeSuperficieM3[indexUhrh].resize(iNbBande, 0.0);
 
-				//_superficieUhrhM2[indexUhrh]+= dPixelArea;	//m2
-			}
+				_bandePourcentageM1[indexUhrh].resize(iNbBande, 0.0);
+				_bandePourcentageM2[indexUhrh].resize(iNbBande, 0.0);
+				_bandePourcentageM3[indexUhrh].resize(iNbBande, 0.0);
 
-			//M3
-			nbPixel = _altPixelM3[indexUhrh].size();
-			for(j=0; j!=nbPixel; j++)
-			{
-				idx = static_cast<size_t>( (_altPixelM3[indexUhrh][j] - _altMin[indexUhrh]) / _dHauteurBande );	//obtient l'index de la bande d'altitude pour le pixel
+				_bandeAltMoyM1[indexUhrh].resize(iNbBande, 0.0);
+				_bandeAltMoyM2[indexUhrh].resize(iNbBande, 0.0);
+				_bandeAltMoyM3[indexUhrh].resize(iNbBande, 0.0);
 
-				_bandeSuperficieM3[indexUhrh][idx]+= dPixelArea;	//m2
-				_bandeAltMoyM3[indexUhrh][idx]+= _altPixelM3[indexUhrh][j];	//altitude moy des bandes calculé selon les pixels correspondant au milieu
+				//M1
+				nbPixel = _altPixelM1[indexUhrh].size();
+				for(j=0; j!=nbPixel; j++)
+				{
+					idx = static_cast<size_t>( (_altPixelM1[indexUhrh][j] - _altMin[indexUhrh]) / _dHauteurBande );	//obtient l'index de la bande d'altitude pour le pixel
 
-				//_superficieUhrhM3[indexUhrh]+= dPixelArea;	//m2
-			}
+					_bandeSuperficieM1[indexUhrh][idx]+= dPixelArea;	//m2
+					_bandeAltMoyM1[indexUhrh][idx]+= _altPixelM1[indexUhrh][j];	//altitude moy des bandes calculé selon les pixels correspondant au milieu
 
-			//calcul des donnees par bande
-			superficieUhrh = zone.PrendreSuperficie() * 1000000.0;	//km2 -> m2
+					//_superficieUhrhM1[indexUhrh]+= dPixelArea;	//m2
+				}
 
-			_stock_conifers[indexUhrh].resize(iNbBande, 0.0);
-			_stock_feuillus[indexUhrh].resize(iNbBande, 0.0);
-			_stock_decouver[indexUhrh].resize(iNbBande, 0.0);
+				//M2
+				nbPixel = _altPixelM2[indexUhrh].size();
+				for(j=0; j!=nbPixel; j++)
+				{
+					idx = static_cast<size_t>( (_altPixelM2[indexUhrh][j] - _altMin[indexUhrh]) / _dHauteurBande );	//obtient l'index de la bande d'altitude pour le pixel
 
-			_hauteur_conifers[indexUhrh].resize(iNbBande, 0.0);
-			_hauteur_feuillus[indexUhrh].resize(iNbBande, 0.0);
-			_hauteur_decouver[indexUhrh].resize(iNbBande, 0.0);
+					_bandeSuperficieM2[indexUhrh][idx]+= dPixelArea;	//m2
+					_bandeAltMoyM2[indexUhrh][idx]+= _altPixelM2[indexUhrh][j];	//altitude moy des bandes calculé selon les pixels correspondant au milieu
 
-			_chaleur_conifers[indexUhrh].resize(iNbBande, 0.0);
-			_chaleur_feuillus[indexUhrh].resize(iNbBande, 0.0);
-			_chaleur_decouver[indexUhrh].resize(iNbBande, 0.0);
+					//_superficieUhrhM2[indexUhrh]+= dPixelArea;	//m2
+				}
 
-			_eau_retenu_conifers[indexUhrh].resize(iNbBande, 0.0);
-			_eau_retenu_feuillus[indexUhrh].resize(iNbBande, 0.0);
-			_eau_retenu_decouver[indexUhrh].resize(iNbBande, 0.0);
+				//M3
+				nbPixel = _altPixelM3[indexUhrh].size();
+				for(j=0; j!=nbPixel; j++)
+				{
+					idx = static_cast<size_t>( (_altPixelM3[indexUhrh][j] - _altMin[indexUhrh]) / _dHauteurBande );	//obtient l'index de la bande d'altitude pour le pixel
 
-			_albedo_conifers[indexUhrh].resize(iNbBande, 0.8);
-			_albedo_feuillus[indexUhrh].resize(iNbBande, 0.8);
-			_albedo_decouver[indexUhrh].resize(iNbBande, 0.8);
+					_bandeSuperficieM3[indexUhrh][idx]+= dPixelArea;	//m2
+					_bandeAltMoyM3[indexUhrh][idx]+= _altPixelM3[indexUhrh][j];	//altitude moy des bandes calculé selon les pixels correspondant au milieu
 
-			if(_mise_a_jour_neige)
-			{
-				_maj_conifers[indexUhrh].resize(iNbBande);
-				_maj_feuillus[indexUhrh].resize(iNbBande);
-				_maj_decouver[indexUhrh].resize(iNbBande);
-			}
+					//_superficieUhrhM3[indexUhrh]+= dPixelArea;	//m2
+				}
 
-			for(x=0; x!=iNbBande; x++)
-			{
+				//calcul des donnees par bande
+				superficieUhrh = zone.PrendreSuperficie() * 1000000.0;	//km2 -> m2
+
+				_stock_conifers[indexUhrh].resize(iNbBande, 0.0);
+				_stock_feuillus[indexUhrh].resize(iNbBande, 0.0);
+				_stock_decouver[indexUhrh].resize(iNbBande, 0.0);
+
+				_hauteur_conifers[indexUhrh].resize(iNbBande, 0.0);
+				_hauteur_feuillus[indexUhrh].resize(iNbBande, 0.0);
+				_hauteur_decouver[indexUhrh].resize(iNbBande, 0.0);
+
+				_chaleur_conifers[indexUhrh].resize(iNbBande, 0.0);
+				_chaleur_feuillus[indexUhrh].resize(iNbBande, 0.0);
+				_chaleur_decouver[indexUhrh].resize(iNbBande, 0.0);
+
+				_eau_retenu_conifers[indexUhrh].resize(iNbBande, 0.0);
+				_eau_retenu_feuillus[indexUhrh].resize(iNbBande, 0.0);
+				_eau_retenu_decouver[indexUhrh].resize(iNbBande, 0.0);
+
+				_albedo_conifers[indexUhrh].resize(iNbBande, 0.8);
+				_albedo_feuillus[indexUhrh].resize(iNbBande, 0.8);
+				_albedo_decouver[indexUhrh].resize(iNbBande, 0.8);
+
 				if(_mise_a_jour_neige)
 				{
-					_maj_conifers[indexUhrh][x].nb_pas_derniere_correction = 0;
-					_maj_conifers[indexUhrh][x].pourcentage_corrige = 0;
-					_maj_conifers[indexUhrh][x].pourcentage_sim_eq = 1;
-					_maj_conifers[indexUhrh][x].pourcentage_sim_ha = 1;
-					_maj_conifers[indexUhrh][x].stations_utilisees.resize( _stations_neige_conifers.PrendreNbStation() );
+					_maj_conifers[indexUhrh].resize(iNbBande);
+					_maj_feuillus[indexUhrh].resize(iNbBande);
+					_maj_decouver[indexUhrh].resize(iNbBande);
+				}
+
+				for(x=0; x!=iNbBande; x++)
+				{
+					if(_mise_a_jour_neige)
+					{
+						_maj_conifers[indexUhrh][x].nb_pas_derniere_correction = 0;
+						_maj_conifers[indexUhrh][x].pourcentage_corrige = 0;
+						_maj_conifers[indexUhrh][x].pourcentage_sim_eq = 1;
+						_maj_conifers[indexUhrh][x].pourcentage_sim_ha = 1;
+						_maj_conifers[indexUhrh][x].stations_utilisees.resize( _stations_neige_conifers.PrendreNbStation() );
 					
-					_maj_feuillus[indexUhrh][x].nb_pas_derniere_correction = 0;
-					_maj_feuillus[indexUhrh][x].pourcentage_corrige = 0;
-					_maj_feuillus[indexUhrh][x].pourcentage_sim_eq = 1;
-					_maj_feuillus[indexUhrh][x].pourcentage_sim_ha = 1;
-					_maj_feuillus[indexUhrh][x].stations_utilisees.resize( _stations_neige_feuillus.PrendreNbStation() );
+						_maj_feuillus[indexUhrh][x].nb_pas_derniere_correction = 0;
+						_maj_feuillus[indexUhrh][x].pourcentage_corrige = 0;
+						_maj_feuillus[indexUhrh][x].pourcentage_sim_eq = 1;
+						_maj_feuillus[indexUhrh][x].pourcentage_sim_ha = 1;
+						_maj_feuillus[indexUhrh][x].stations_utilisees.resize( _stations_neige_feuillus.PrendreNbStation() );
 
-					_maj_decouver[indexUhrh][x].nb_pas_derniere_correction = 0;
-					_maj_decouver[indexUhrh][x].pourcentage_corrige = 0;
-					_maj_decouver[indexUhrh][x].pourcentage_sim_eq = 1;
-					_maj_decouver[indexUhrh][x].pourcentage_sim_ha = 1;
-					_maj_decouver[indexUhrh][x].stations_utilisees.resize( _stations_neige_decouver.PrendreNbStation() );
+						_maj_decouver[indexUhrh][x].nb_pas_derniere_correction = 0;
+						_maj_decouver[indexUhrh][x].pourcentage_corrige = 0;
+						_maj_decouver[indexUhrh][x].pourcentage_sim_eq = 1;
+						_maj_decouver[indexUhrh][x].pourcentage_sim_ha = 1;
+						_maj_decouver[indexUhrh][x].stations_utilisees.resize( _stations_neige_decouver.PrendreNbStation() );
+					}
+
+					//calcul moyenne des altitudes des bandes et superficie (pourcentage) des bandes
+					dArea = _bandeSuperficieM1[indexUhrh][x];
+					if(dArea != 0.0)
+					{
+						_bandeAltMoyM1[indexUhrh][x]/= (dArea / dPixelArea);			//calcule moyenne des altitude	//divise la somme par le nb de pixel
+						_bandePourcentageM1[indexUhrh][x] = dArea / superficieUhrh;
+					}
+
+					dArea = _bandeSuperficieM2[indexUhrh][x];
+					if(dArea != 0.0)
+					{
+						_bandeAltMoyM2[indexUhrh][x]/= (dArea / dPixelArea);			//
+						_bandePourcentageM2[indexUhrh][x] = dArea / superficieUhrh;
+					}
+
+					dArea = _bandeSuperficieM3[indexUhrh][x];
+					if(dArea != 0.0)
+					{
+						_bandeAltMoyM3[indexUhrh][x]/= (dArea / dPixelArea);			//
+						_bandePourcentageM3[indexUhrh][x] = dArea / superficieUhrh;
+					}
 				}
 
-				//calcul moyenne des altitudes des bandes et superficie (pourcentage) des bandes
-				dArea = _bandeSuperficieM1[indexUhrh][x];
-				if(dArea != 0.0)
-				{
-					_bandeAltMoyM1[indexUhrh][x]/= (dArea / dPixelArea);			//calcule moyenne des altitude	//divise la somme par le nb de pixel
-					_bandePourcentageM1[indexUhrh][x] = dArea / superficieUhrh;
-				}
+				//parametres pour calcul indice radiation
+				theta = zone.PrendreCentroide().PrendreY() / dRAD1;
 
-				dArea = _bandeSuperficieM2[indexUhrh][x];
-				if(dArea != 0.0)
-				{
-					_bandeAltMoyM2[indexUhrh][x]/= (dArea / dPixelArea);			//
-					_bandePourcentageM2[indexUhrh][x] = dArea / superficieUhrh;
-				}
+				k = atan(static_cast<double>(zone.PrendrePente()));
+				h = ((495 - zone.PrendreOrientation() * 45) % 360) / dRAD1;
 
-				dArea = _bandeSuperficieM3[indexUhrh][x];
-				if(dArea != 0.0)
-				{
-					_bandeAltMoyM3[indexUhrh][x]/= (dArea / dPixelArea);			//
-					_bandePourcentageM3[indexUhrh][x] = dArea / superficieUhrh;
-				}
+				_ce0[indexUhrh] = atan(sin(h) * sin(k) / (cos(k) * cos(theta) - cos(h) * sin(k) * sin(theta))) * dRAD1;
+				_ce1[indexUhrh] = asin(sin(k) * cos(h) * cos(theta) + cos(k) * sin(theta)) * dRAD1;
+
+				//if (_methode_albedo[indexUhrh] == 0)
+				//{
+				//	albedo = (_albedo_conifers[indexUhrh] + _albedo_feuillus[indexUhrh] + _albedo_decouver[indexUhrh]) / 3.0;
+				//	_tsn[indexUhrh] = log( (albedo - 0.8) / 0.4 + 1.0 ) / -0.2;
+				//}
 			}
 
-			//parametres pour calcul indice radiation
-			theta = zone.PrendreCentroide().PrendreY() / dRAD1;
-
-			k = atan(static_cast<double>(zone.PrendrePente()));
-			h = ((495 - zone.PrendreOrientation() * 45) % 360) / dRAD1;
-
-			_ce0[indexUhrh] = atan(sin(h) * sin(k) / (cos(k) * cos(theta) - cos(h) * sin(k) * sin(theta))) * dRAD1;
-			_ce1[indexUhrh] = asin(sin(k) * cos(h) * cos(theta) + cos(k) * sin(theta)) * dRAD1;
-
-			//if (_methode_albedo[indexUhrh] == 0)
+			//// mise a jour de la neige avec grille
+			//if(_bMAJGrilleNeige)
 			//{
-			//	albedo = (_albedo_conifers[indexUhrh] + _albedo_feuillus[indexUhrh] + _albedo_decouver[indexUhrh]) / 3.0;
-			//	_tsn[indexUhrh] = log( (albedo - 0.8) / 0.4 + 1.0 ) / -0.2;
+			//	_maj_feuillus.resize(nb_zone);
+			//	_maj_conifers.resize(nb_zone);
+			//	_maj_decouver.resize(nb_zone);
+
+			//	for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
+			//	{
+			//		_maj_feuillus[index_zone].nb_pas_derniere_correction = 0;
+			//		_maj_feuillus[index_zone].pourcentage_corrige = 0;
+			//		_maj_feuillus[index_zone].pourcentage_sim_eq = 1;
+			//		_maj_feuillus[index_zone].pourcentage_sim_ha = 1;
+			//		_maj_feuillus[index_zone].stations_utilisees.resize( _stations_neige_feuillus.PrendreNbStation() );
+
+			//		_maj_conifers[index_zone].nb_pas_derniere_correction = 0;
+			//		_maj_conifers[index_zone].pourcentage_corrige = 0;
+			//		_maj_conifers[index_zone].pourcentage_sim_eq = 1;
+			//		_maj_conifers[index_zone].pourcentage_sim_ha = 1;
+			//		_maj_conifers[index_zone].stations_utilisees.resize( _stations_neige_conifers.PrendreNbStation() );
+
+			//		_maj_decouver[index_zone].nb_pas_derniere_correction = 0;
+			//		_maj_decouver[index_zone].pourcentage_corrige = 0;
+			//		_maj_decouver[index_zone].pourcentage_sim_eq = 1;
+			//		_maj_decouver[index_zone].pourcentage_sim_ha = 1;
+			//		_maj_decouver[index_zone].stations_utilisees.resize( _stations_neige_decouver.PrendreNbStation() );
+			//	}
+
+			//	_grilleneige.Initialise();
 			//}
-		}
+			//else
+			//{
+			//}
 
-		//// mise a jour de la neige avec grille
-		//if(_bMAJGrilleNeige)
-		//{
-		//	_maj_feuillus.resize(nb_zone);
-		//	_maj_conifers.resize(nb_zone);
-		//	_maj_decouver.resize(nb_zone);
-
-		//	for (size_t index_zone = 0; index_zone < nb_zone; ++index_zone)
-		//	{
-		//		_maj_feuillus[index_zone].nb_pas_derniere_correction = 0;
-		//		_maj_feuillus[index_zone].pourcentage_corrige = 0;
-		//		_maj_feuillus[index_zone].pourcentage_sim_eq = 1;
-		//		_maj_feuillus[index_zone].pourcentage_sim_ha = 1;
-		//		_maj_feuillus[index_zone].stations_utilisees.resize( _stations_neige_feuillus.PrendreNbStation() );
-
-		//		_maj_conifers[index_zone].nb_pas_derniere_correction = 0;
-		//		_maj_conifers[index_zone].pourcentage_corrige = 0;
-		//		_maj_conifers[index_zone].pourcentage_sim_eq = 1;
-		//		_maj_conifers[index_zone].pourcentage_sim_ha = 1;
-		//		_maj_conifers[index_zone].stations_utilisees.resize( _stations_neige_conifers.PrendreNbStation() );
-
-		//		_maj_decouver[index_zone].nb_pas_derniere_correction = 0;
-		//		_maj_decouver[index_zone].pourcentage_corrige = 0;
-		//		_maj_decouver[index_zone].pourcentage_sim_eq = 1;
-		//		_maj_decouver[index_zone].pourcentage_sim_ha = 1;
-		//		_maj_decouver[index_zone].stations_utilisees.resize( _stations_neige_decouver.PrendreNbStation() );
-		//	}
-
-		//	_grilleneige.Initialise();
-		//}
-		//else
-		//{
-		//}
-
-		// ouverture des fichiers output
-		OUTPUT& output = _sim_hyd.PrendreOutput();
-		if (output.SauvegardeCouvertNival())
-		{
-			//fichier couvert_nival.csv, par uhrh
-			sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "couvert_nival.csv");
-			_fichier_couvert_nival.open(sFile);
-			_fichier_couvert_nival << "Couvert nival (EEN) (mm)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-			oss.str("");
-
-			for (idx=0; idx!=zones.PrendreNbZone(); idx++)
+			// ouverture des fichiers output
+			OUTPUT& output = _sim_hyd.PrendreOutput();
+			if (output.SauvegardeCouvertNival())
 			{
-				if(_bUhrhIndexSimule[idx])
+				//fichier couvert_nival.csv, par uhrh
+				sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "couvert_nival.csv");
+				_fichier_couvert_nival.open(sFile);
+				_fichier_couvert_nival << "Couvert nival (EEN) (mm)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+				oss.str("");
+
+				for (idx=0; idx!=zones.PrendreNbZone(); idx++)
 				{
-					if (output._bSauvegardeTous || 
-						find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+					if(_bUhrhIndexSimule[idx])
 					{
-						oss << zones[idx].PrendreIdent() << output.Separator();
+						if (output._bSauvegardeTous || 
+							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						{
+							oss << zones[idx].PrendreIdent() << output.Separator();
+						}
 					}
 				}
-			}
 			
-			str = oss.str();
-			str = str.substr(0, str.length()-1); //enleve le dernier separateur
-			_fichier_couvert_nival << str << endl;
+				str = oss.str();
+				str = str.substr(0, str.length()-1); //enleve le dernier separateur
+				_fichier_couvert_nival << str << endl;
 
-			//fichier couvert_nival_bande.csv, par uhrh/bande
-			sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "couvert_nival_bande.csv");
-			_fichier_couvert_nival_bande.open(sFile);
-			_fichier_couvert_nival_bande << "Couvert nival bandes altitude (EEN) (mm)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh-bande" << output.Separator();
+				//fichier couvert_nival_bande.csv, par uhrh/bande
+				sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "couvert_nival_bande.csv");
+				_fichier_couvert_nival_bande.open(sFile);
+				_fichier_couvert_nival_bande << "Couvert nival bandes altitude (EEN) (mm)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh-bande" << output.Separator();
 
-			oss.str("");
+				oss.str("");
 
-			for (idx=0; idx!=zones.PrendreNbZone(); idx++)
-			{
-				if(_bUhrhIndexSimule[idx])
+				for (idx=0; idx!=zones.PrendreNbZone(); idx++)
 				{
-					if (output._bSauvegardeTous || 
-						find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+					if(_bUhrhIndexSimule[idx])
 					{
-						j = _bandePourcentageM1[idx].size();	//nb bande
-						for(i=0; i!=j; i++)
-							oss << zones[idx].PrendreIdent() << "-" << i+1 << output.Separator();
+						if (output._bSauvegardeTous || 
+							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						{
+							j = _bandePourcentageM1[idx].size();	//nb bande
+							for(i=0; i!=j; i++)
+								oss << zones[idx].PrendreIdent() << "-" << i+1 << output.Separator();
+						}
 					}
 				}
+
+				str = oss.str();
+				str = str.substr(0, str.length()-1); //enleve le dernier separateur
+				_fichier_couvert_nival_bande << str << endl;
 			}
 
-			str = oss.str();
-			str = str.substr(0, str.length()-1); //enleve le dernier separateur
-			_fichier_couvert_nival_bande << str << endl;
-		}
-
-		//fichier hauteur_neige
-		if (output.SauvegardeHauteurNeige())
-		{
-			sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "hauteur_neige.csv");
-			_fichier_hauteur_neige.open(sFile);
-			_fichier_hauteur_neige << "Hauteur couvert nival (m)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-			oss.str("");
-
-			for (idx=0; idx!=zones.PrendreNbZone(); idx++)
+			//fichier hauteur_neige
+			if (output.SauvegardeHauteurNeige())
 			{
-				if(_bUhrhIndexSimule[idx])
+				sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "hauteur_neige.csv");
+				_fichier_hauteur_neige.open(sFile);
+				_fichier_hauteur_neige << "Hauteur couvert nival (m)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+				oss.str("");
+
+				for (idx=0; idx!=zones.PrendreNbZone(); idx++)
 				{
-					if (output._bSauvegardeTous || 
-						find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+					if(_bUhrhIndexSimule[idx])
 					{
-						oss << zones[idx].PrendreIdent() << output.Separator();
+						if (output._bSauvegardeTous || 
+							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						{
+							oss << zones[idx].PrendreIdent() << output.Separator();
+						}
 					}
 				}
-			}
 			
-			str = oss.str();
-			str = str.substr(0, str.length()-1); //enleve le dernier separateur
-			_fichier_hauteur_neige << str << endl;
-		}
+				str = oss.str();
+				str = str.substr(0, str.length()-1); //enleve le dernier separateur
+				_fichier_hauteur_neige << str << endl;
+			}
 
-		//fichier albedo_neige
-		if (output.SauvegardeAlbedoNeige())
-		{
-			sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "albedo_neige.csv");
-			_fichier_albedo_neige.open(sFile);
-			_fichier_albedo_neige << "Albedo neige (0-1)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
-
-			oss.str("");
-
-			for (idx=0; idx!=zones.PrendreNbZone(); idx++)
+			//fichier albedo_neige
+			if (output.SauvegardeAlbedoNeige())
 			{
-				if(_bUhrhIndexSimule[idx])
+				sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "albedo_neige.csv");
+				_fichier_albedo_neige.open(sFile);
+				_fichier_albedo_neige << "Albedo neige (0-1)" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl << "date heure\\uhrh" << output.Separator();
+
+				oss.str("");
+
+				for (idx=0; idx!=zones.PrendreNbZone(); idx++)
 				{
-					if (output._bSauvegardeTous || 
-						find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+					if(_bUhrhIndexSimule[idx])
 					{
-						oss << zones[idx].PrendreIdent() << output.Separator();
+						if (output._bSauvegardeTous || 
+							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[idx].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						{
+							oss << zones[idx].PrendreIdent() << output.Separator();
+						}
 					}
 				}
-			}
 			
-			str = oss.str();
-			str = str.substr(0, str.length()-1); //enleve le dernier separateur
-			_fichier_albedo_neige << str << endl;
+				str = oss.str();
+				str = str.substr(0, str.length()-1); //enleve le dernier separateur
+				_fichier_albedo_neige << str << endl;
+			}
+
+			//fichier fonteneige-meteo.csv
+			sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "fonteneige-meteo.csv");
+			_outMeteoBandes.open(sFile);
+			_outMeteoBandes << "Meteo bandes altitude" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl;
+			_outMeteoBandes << "DateHeure" << output.Separator() << "Uhrh" << output.Separator() << "Bande" << output.Separator() << "Milieu" << output.Separator() << "TempMin (dC)" << output.Separator() << "TempMax (dC)" << output.Separator() << "Pluie (mm)" << output.Separator() << "Neige (EEN) (mm)" << endl;
+
+			//Fichier d'état
+			if (!_nom_fichier_lecture_etat.empty())
+				LectureEtat( _sim_hyd.PrendreDateDebut() );
 		}
-
-		//fichier fonteneige-meteo.csv
-		sFile = Combine(_sim_hyd.PrendreRepertoireResultat(), "fonteneige-meteo.csv");
-		_outMeteoBandes.open(sFile);
-		_outMeteoBandes << "Meteo bandes altitude" << output.Separator() << PrendreNomSousModele() << " ( VERSION " << HYDROTEL_VERSION << " )" << endl;
-		_outMeteoBandes << "DateHeure" << output.Separator() << "Uhrh" << output.Separator() << "Bande" << output.Separator() << "Milieu" << output.Separator() << "TempMin (dC)" << output.Separator() << "TempMax (dC)" << output.Separator() << "Pluie (mm)" << output.Separator() << "Neige (EEN) (mm)" << endl;
-
-		//Fichier d'état
-		if (!_nom_fichier_lecture_etat.empty())
-			LectureEtat( _sim_hyd.PrendreDateDebut() );
 
 		FONTE_NEIGE::Initialise();
 	}
@@ -891,539 +894,542 @@ namespace HYDROTEL
 
 	void DEGRE_JOUR_BANDE::Calcule()
 	{
-		//STATION_NEIGE::typeOccupationStation occupation;	//pour maj grille neige
-		ostringstream oss;
-		string str, sString, sString2, sString3;
-		size_t index, nbZone, index_zone, nbBande, idxBande;
-		double apport, apport_conifers, apport_feuillus, apport_decouver, dAltMoyUhrh, dGradientVerticalTemp, dGradientVerticalPrecip, dTempPassagePluieNeige, dVal;
-		double diff_alt, dPrecipNeigeHauteur, stock_moyen, albedo_moyen, dHauteurCouvertNival;
-		double dPourcentM1, dPourcentM2, dPourcentM3, dSuperficieTotalBande;
-		double apportMilieu, dDensite, precipMilieu, pluieMilieu, neigeMilieu, TMinMilieu, TMaxMilieu;
-		double TMoyZone, TMinZone, TMaxZone, precipZone;
-		//double dIndiceRadiationUhrh, dCoeffAdditif, albedo, neige;
-		bool bMajEffectuer;
-
-		ZONES& zones = _sim_hyd.PrendreZones();
-
-		OUTPUT& output = _sim_hyd.PrendreOutput();
-
-		DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
-		unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
-
-		//if(_bMAJGrilleNeige)
-		//{
-		//	//lecture des grilles equivalent en eau & hauteur de neige pour le pas de temps courant
-		//	_grilleneige._grilleEquivalentEau.clear();
-		//	_grilleneige._grilleHauteurNeige.clear();
-
-		//	_grilleneige.FormatePathFichierGrilleCourant(sString);
-		//	sString2 = sString + ".een";
-		//	sString3 = sString + ".hau";
-		//	if(FichierExiste(sString2) && FichierExiste(sString3))
-		//	{
-		//		_grilleneige._grilleEquivalentEau.push_back(ReadGeoTIFF_float(sString2));
-		//		_grilleneige._grilleHauteurNeige.push_back(ReadGeoTIFF_float(sString3));
-		//	}
-		//}
-
-		vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
-		nbZone = index_zones.size();
-
-		for(index=0; index!=nbZone; index++)
+		if(!_sim_hyd._bSkipFonteNeige)
 		{
-			index_zone = index_zones[index];
+			//STATION_NEIGE::typeOccupationStation occupation;	//pour maj grille neige
+			ostringstream oss;
+			string str, sString, sString2, sString3;
+			size_t index, nbZone, index_zone, nbBande, idxBande;
+			double apport, apport_conifers, apport_feuillus, apport_decouver, dAltMoyUhrh, dGradientVerticalTemp, dGradientVerticalPrecip, dTempPassagePluieNeige, dVal;
+			double diff_alt, dPrecipNeigeHauteur, stock_moyen, albedo_moyen, dHauteurCouvertNival;
+			double dPourcentM1, dPourcentM2, dPourcentM3, dSuperficieTotalBande;
+			double apportMilieu, dDensite, precipMilieu, pluieMilieu, neigeMilieu, TMinMilieu, TMaxMilieu;
+			double TMoyZone, TMinZone, TMaxZone, precipZone;
+			//double dIndiceRadiationUhrh, dCoeffAdditif, albedo, neige;
+			bool bMajEffectuer;
 
-			ZONE& zone = zones[index_zone];
+			ZONES& zones = _sim_hyd.PrendreZones();
 
-			zone._precip_m1.clear();
-			zone._precip_m2.clear();
-			zone._precip_m3.clear();
-			
-			zone._apport_m1.clear();
-			zone._apport_m2.clear();
-			zone._apport_m3.clear();
+			OUTPUT& output = _sim_hyd.PrendreOutput();
 
-			CalculIndiceRadiation(date_courante, pas_de_temps, zone, index_zone);
-
-			//// calcul albedo de la neige
-			//if (_methode_albedo[index_zone] == 0)	//methode albedo fixé pour l'instant à 1 (sol-neige)
-			//{
-			//	neige = static_cast<double>(zone.PrendreNeige()) / 10.0;	//mm -> cm
-			//
-			//	_tsn[index_zone] = neige < _seuil_albedo[index_zone] ? _tsn[index_zone] + static_cast<double>(pas_de_temps) / 24.0 : 0.0;
-			//
-			//	albedo = min(0.8 - 0.4 * (1.0 - exp(-0.2 * _tsn[index_zone])), 1.0);
-			//
-			//	_albedo_conifers[index_zone] = albedo;
-			//	_albedo_feuillus[index_zone] = albedo;
-			//	_albedo_decouver[index_zone] = albedo;
-			//}
-			
-			//TODO lorsque le mode lecture est activé pour interpolation, le fichier de parametres du mode lecture ne contient pas les parametres gradients et passage pluie/neige.
-			//     ces parametres devrait etre dans le modele degre_jour_bande.
-			//     pour l'instant on prend les meme params que le modele interpolation (ou thiessen si mode lecture)
-
-			if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "THIESSEN2")
-			{
-				dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientTemperature(index_zone));
-				dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientPrecipitation(index_zone));
-				dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen2->PrendrePassagePluieNeige(index_zone));
-			}
-			else
-			{
-				if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "MOYENNE 3 STATIONS2")
-				{
-					dGradientVerticalTemp = static_cast<double>(_sim_hyd._smMoy3station2->PrendreGradientTemperature(index_zone));
-					dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smMoy3station2->PrendreGradientPrecipitation(index_zone));
-					dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smMoy3station2->PrendrePassagePluieNeige(index_zone));
-				}
-				else
-				{
-					if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "THIESSEN1")
-					{
-						dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientTemperature(index_zone));
-						dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientPrecipitation(index_zone));
-						dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen1->PrendrePassagePluieNeige(index_zone));
-					}
-					else
-					{
-						if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "MOYENNE 3 STATIONS1")
-						{
-							dGradientVerticalTemp = static_cast<double>(_sim_hyd._smMoy3station1->PrendreGradientTemperature(index_zone));
-							dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smMoy3station1->PrendreGradientPrecipitation(index_zone));
-							dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smMoy3station1->PrendrePassagePluieNeige(index_zone));
-						}
-						else
-						{
-							if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "GRILLE")
-							{
-								dGradientVerticalTemp = static_cast<double>(_sim_hyd._smGrilleMeteo->PrendreGradientTemperature(index_zone));
-								dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smGrilleMeteo->PrendreGradientPrecipitation(index_zone));
-								dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smGrilleMeteo->PrendrePassagePluieNeige(index_zone));
-							}
-							else
-							{
-								//LECTURE_INTERPOLATION_DONNEES	//use params of thiessen model
-								if(_sim_hyd._versionTHIESSEN == 1)
-								{
-									dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientTemperature(index_zone));
-									dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientPrecipitation(index_zone));
-									dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen1->PrendrePassagePluieNeige(index_zone));
-								}
-								else
-								{
-									//_sim_hyd._versionTHIESSEN == 2
-									dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientTemperature(index_zone));
-									dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientPrecipitation(index_zone));
-									dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen2->PrendrePassagePluieNeige(index_zone));
-								}
-							}
-						}
-					}
-				}
-			}
-
-			//
-			dAltMoyUhrh = static_cast<double>(zone.PrendreAltitude());
-
-			TMoyZone = (static_cast<double>(zone.PrendreTMin()) + static_cast<double>(zone.PrendreTMax())) / 2.0;
-			TMinZone = static_cast<double>(zone.PrendreTMin());
-			TMaxZone = static_cast<double>(zone.PrendreTMax());
-			
-			//transforme la neige en equivalent en eau (EEN) avant l'application du gradient vertical (dans le modele d'interpolation, le gradient est appliqué sur la precip totale en eau avant la répartition pluie/neige)
-			if(pas_de_temps == 1)
-				dDensite = CalculDensiteNeige(TMinZone) / DENSITE_EAU;
-			else
-				dDensite = CalculDensiteNeige(TMoyZone) / DENSITE_EAU;
-
-			precipZone = static_cast<double>(zone.PrendrePluie()) + ( static_cast<double>(zone.PrendreNeige()) * dDensite );	//mm	//transforme la neige en equivalent en eau
-
-			nbBande = _bandeSuperficieM1[index_zone].size();
-			
-			dHauteurCouvertNival = 0.0;
-			albedo_moyen = 0.0;
-			stock_moyen = 0.0;
-			apport = 0.0;
-
-			for(idxBande=0; idxBande!=nbBande; idxBande++)
-			{
-				//M1
-				precipMilieu = 0.0;	//mm
-				apportMilieu = 0.0;	//mm
-
-				if(_bandePourcentageM1[index_zone][idxBande] != 0.0)
-				{
-					diff_alt = _bandeAltMoyM1[index_zone][idxBande] - dAltMoyUhrh;
-					
-					TMinMilieu = TMinZone + dGradientVerticalTemp * diff_alt / 100.0;
-					TMaxMilieu = TMaxZone + dGradientVerticalTemp * diff_alt / 100.0;
-
-					precipMilieu = precipZone * (1.0 + (dGradientVerticalPrecip / 1000.0) / 100.0 * diff_alt);	//mm
-					if(precipMilieu < 0.0)
-						precipMilieu = 0.0;
-
-					PassagePluieNeige(dTempPassagePluieNeige, TMinMilieu, TMaxMilieu, precipMilieu, &pluieMilieu, &neigeMilieu);
-
-					if(_sim_hyd.PrendreDateCourante().PrendreAnnee() == _sim_hyd.PrendreDateDebut().PrendreAnnee())		//seulement pour la 1ere annee sinon le fichier output est trop volumineux
-					{
-						if(output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zone.PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
-						{
-							oss.str("");
-							oss << _sim_hyd.PrendreDateCourante() << output.Separator();
-							oss << zone.PrendreIdent() << output.Separator() << idxBande+1 << output.Separator() << "1" << output.Separator();
-							oss << setprecision(4) << setiosflags(ios::fixed) << TMinMilieu << output.Separator() << TMaxMilieu << output.Separator() << pluieMilieu << output.Separator() << neigeMilieu;
-							_outMeteoBandes << oss.str() << endl;
-						}
-					}
-
-					//ramene la neige en hauteur de neige (EEN -> HauteurNeige)
-					dDensite = CalculDensiteNeige( (TMinMilieu+TMaxMilieu) / 2.0 ) / DENSITE_EAU;
-					dPrecipNeigeHauteur = neigeMilieu / dDensite;	//mm
-
-					CalculeFonte(zone, index_zone, pas_de_temps, ((TMinMilieu+TMaxMilieu)/2.0), pluieMilieu, dPrecipNeigeHauteur, _bandePourcentageM1[index_zone][idxBande], 
-									_taux_fonte_conifers[index_zone] / 1000.0, _seuil_fonte_conifers[index_zone], _albedo_conifers[index_zone][idxBande], 
-									_stock_conifers[index_zone][idxBande], _hauteur_conifers[index_zone][idxBande], _chaleur_conifers[index_zone][idxBande], apport_conifers, _eau_retenu_conifers[index_zone][idxBande]);
-
-					apportMilieu = apport_conifers * 1000.0;	//m -> mm
-
-					albedo_moyen+= _bandePourcentageM1[index_zone][idxBande] * _albedo_conifers[index_zone][idxBande];
-					dHauteurCouvertNival+= _bandePourcentageM1[index_zone][idxBande] * _hauteur_conifers[index_zone][idxBande];
-					stock_moyen+= _bandePourcentageM1[index_zone][idxBande] * _stock_conifers[index_zone][idxBande];
-					apport+= apport_conifers;
-				}
-				zone._precip_m1.push_back(precipMilieu);
-				zone._apport_m1.push_back(apportMilieu);
-
-				//M2
-				precipMilieu = 0.0;	//mm
-				apportMilieu = 0.0;	//mm
-
-				if(_bandePourcentageM2[index_zone][idxBande] != 0.0)
-				{
-					diff_alt = _bandeAltMoyM2[index_zone][idxBande] - dAltMoyUhrh;
-					
-					TMinMilieu = TMinZone + dGradientVerticalTemp * diff_alt / 100.0;
-					TMaxMilieu = TMaxZone + dGradientVerticalTemp * diff_alt / 100.0;
-
-					precipMilieu = precipZone * (1.0 + (dGradientVerticalPrecip / 1000.0) / 100.0 * diff_alt);	//mm
-					if(precipMilieu < 0.0)
-						precipMilieu = 0.0;
-
-					PassagePluieNeige(dTempPassagePluieNeige, TMinMilieu, TMaxMilieu, precipMilieu, &pluieMilieu, &neigeMilieu);
-
-					if(_sim_hyd.PrendreDateCourante().PrendreAnnee() == _sim_hyd.PrendreDateDebut().PrendreAnnee())		//seulement pour la 1ere annee sinon le fichier output est trop volumineux
-					{
-						if(output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zone.PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
-						{
-							oss.str("");
-							oss << _sim_hyd.PrendreDateCourante() << output.Separator();
-							oss << zone.PrendreIdent() << output.Separator() << idxBande+1 << output.Separator() << "2" << output.Separator();
-							oss << setprecision(4) << setiosflags(ios::fixed) << TMinMilieu << output.Separator() << TMaxMilieu << output.Separator() << pluieMilieu << output.Separator() << neigeMilieu;
-							_outMeteoBandes << oss.str() << endl;
-						}
-					}
-
-					//ramene la neige en hauteur de neige (EEN -> HauteurNeige)
-					dDensite = CalculDensiteNeige( (TMinMilieu+TMaxMilieu) / 2.0 ) / DENSITE_EAU;
-					dPrecipNeigeHauteur = neigeMilieu / dDensite;	//mm
-
-					CalculeFonte(zone, index_zone, pas_de_temps, ((TMinMilieu+TMaxMilieu)/2.0), pluieMilieu, dPrecipNeigeHauteur, _bandePourcentageM2[index_zone][idxBande], 
-									_taux_fonte_feuillus[index_zone] / 1000.0, _seuil_fonte_feuillus[index_zone], _albedo_feuillus[index_zone][idxBande], 
-									_stock_feuillus[index_zone][idxBande], _hauteur_feuillus[index_zone][idxBande], _chaleur_feuillus[index_zone][idxBande], apport_feuillus, _eau_retenu_feuillus[index_zone][idxBande]);
-
-					apportMilieu = apport_feuillus * 1000.0;	//m -> mm
-
-					albedo_moyen+= _bandePourcentageM2[index_zone][idxBande] * _albedo_feuillus[index_zone][idxBande];
-					dHauteurCouvertNival+= _bandePourcentageM2[index_zone][idxBande] * _hauteur_feuillus[index_zone][idxBande];
-					stock_moyen+= _bandePourcentageM2[index_zone][idxBande] * _stock_feuillus[index_zone][idxBande];
-					apport+= apport_feuillus;
-				}
-				zone._precip_m2.push_back(precipMilieu);
-				zone._apport_m2.push_back(apportMilieu);
-
-				//M3
-				precipMilieu = 0.0;	//mm
-				apportMilieu = 0.0;	//mm
-
-				if(_bandePourcentageM3[index_zone][idxBande] != 0.0)
-				{
-					diff_alt = _bandeAltMoyM3[index_zone][idxBande] - dAltMoyUhrh;
-					
-					TMinMilieu = TMinZone + dGradientVerticalTemp * diff_alt / 100.0;
-					TMaxMilieu = TMaxZone + dGradientVerticalTemp * diff_alt / 100.0;
-
-					precipMilieu = precipZone * (1.0 + (dGradientVerticalPrecip / 1000.0) / 100.0 * diff_alt);	//mm
-					if(precipMilieu < 0.0)
-						precipMilieu = 0.0;
-
-					PassagePluieNeige(dTempPassagePluieNeige, TMinMilieu, TMaxMilieu, precipMilieu, &pluieMilieu, &neigeMilieu);
-
-					if(_sim_hyd.PrendreDateCourante().PrendreAnnee() == _sim_hyd.PrendreDateDebut().PrendreAnnee())		//seulement pour la 1ere annee sinon le fichier output est trop volumineux
-					{
-						if(output._bSauvegardeTous || 
-							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zone.PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
-						{
-							oss.str("");
-							oss << _sim_hyd.PrendreDateCourante() << output.Separator();
-							oss << zone.PrendreIdent() << output.Separator() << idxBande+1 << output.Separator() << "3" << output.Separator();
-							oss << setprecision(4) << setiosflags(ios::fixed) << TMinMilieu << output.Separator() << TMaxMilieu << output.Separator() << pluieMilieu << output.Separator() << neigeMilieu;
-							_outMeteoBandes << oss.str() << endl;
-						}
-					}
-
-					//ramene la neige en hauteur de neige (EEN -> HauteurNeige)
-					dDensite = CalculDensiteNeige( (TMinMilieu+TMaxMilieu) / 2.0 ) / DENSITE_EAU;
-					dPrecipNeigeHauteur = neigeMilieu / dDensite;	//mm
-
-					CalculeFonte(zone, index_zone, pas_de_temps, ((TMinMilieu+TMaxMilieu)/2.0), pluieMilieu, dPrecipNeigeHauteur, _bandePourcentageM3[index_zone][idxBande], 
-									_taux_fonte_decouver[index_zone] / 1000.0, _seuil_fonte_decouver[index_zone], _albedo_decouver[index_zone][idxBande], 
-									_stock_decouver[index_zone][idxBande], _hauteur_decouver[index_zone][idxBande], _chaleur_decouver[index_zone][idxBande], apport_decouver, _eau_retenu_decouver[index_zone][idxBande]);
-
-					apportMilieu = apport_decouver * 1000.0;	//m -> mm
-
-					albedo_moyen+= _bandePourcentageM3[index_zone][idxBande] * _albedo_decouver[index_zone][idxBande];
-					dHauteurCouvertNival+= _bandePourcentageM3[index_zone][idxBande] * _hauteur_decouver[index_zone][idxBande];
-					stock_moyen+= _bandePourcentageM3[index_zone][idxBande] * _stock_decouver[index_zone][idxBande];
-					apport+= apport_decouver;
-				}
-				zone._precip_m3.push_back(precipMilieu);
-				zone._apport_m3.push_back(apportMilieu);
-			}
-
+			DATE_HEURE date_courante = _sim_hyd.PrendreDateCourante();
+			unsigned short pas_de_temps = _sim_hyd.PrendrePasDeTemps();
 
 			//if(_bMAJGrilleNeige)
 			//{
-			//	if(_grilleneige._grilleEquivalentEau.size() != 0)	//s'il y a des données pour le jour courant
-			//	{
-			//		// On prend l occupation du sol dominant de lUHRH
-			//		occupation = STATION_NEIGE::RESINEUX;
-			//					
-			//		if(_pourcentage_conifers[index_zone] < _pourcentage_feuillus[index_zone])
-			//		{
-			//			occupation = STATION_NEIGE::FEUILLUS;
-			//			if ( _pourcentage_feuillus[index_zone] < _pourcentage_autres[index_zone])
-			//				occupation = STATION_NEIGE::DECOUVERTE;
-			//		}
-			//		else
-			//		{
-			//			if(_pourcentage_conifers[index_zone] < _pourcentage_autres[index_zone])
-			//				occupation = STATION_NEIGE::DECOUVERTE;
-			//		}
+			//	//lecture des grilles equivalent en eau & hauteur de neige pour le pas de temps courant
+			//	_grilleneige._grilleEquivalentEau.clear();
+			//	_grilleneige._grilleHauteurNeige.clear();
 
-			//		MiseAJourGrille(index_zone, occupation);
+			//	_grilleneige.FormatePathFichierGrilleCourant(sString);
+			//	sString2 = sString + ".een";
+			//	sString3 = sString + ".hau";
+			//	if(FichierExiste(sString2) && FichierExiste(sString3))
+			//	{
+			//		_grilleneige._grilleEquivalentEau.push_back(ReadGeoTIFF_float(sString2));
+			//		_grilleneige._grilleHauteurNeige.push_back(ReadGeoTIFF_float(sString3));
 			//	}
 			//}
-			//else
-			//{
 
-				if (_mise_a_jour_neige)
+			vector<size_t> index_zones = _sim_hyd.PrendreZonesSimules();
+			nbZone = index_zones.size();
+
+			for(index=0; index!=nbZone; index++)
+			{
+				index_zone = index_zones[index];
+
+				ZONE& zone = zones[index_zone];
+
+				zone._precip_m1.clear();
+				zone._precip_m2.clear();
+				zone._precip_m3.clear();
+			
+				zone._apport_m1.clear();
+				zone._apport_m2.clear();
+				zone._apport_m3.clear();
+
+				CalculIndiceRadiation(date_courante, pas_de_temps, zone, index_zone);
+
+				//// calcul albedo de la neige
+				//if (_methode_albedo[index_zone] == 0)	//methode albedo fixé pour l'instant à 1 (sol-neige)
+				//{
+				//	neige = static_cast<double>(zone.PrendreNeige()) / 10.0;	//mm -> cm
+				//
+				//	_tsn[index_zone] = neige < _seuil_albedo[index_zone] ? _tsn[index_zone] + static_cast<double>(pas_de_temps) / 24.0 : 0.0;
+				//
+				//	albedo = min(0.8 - 0.4 * (1.0 - exp(-0.2 * _tsn[index_zone])), 1.0);
+				//
+				//	_albedo_conifers[index_zone] = albedo;
+				//	_albedo_feuillus[index_zone] = albedo;
+				//	_albedo_decouver[index_zone] = albedo;
+				//}
+			
+				//TODO lorsque le mode lecture est activé pour interpolation, le fichier de parametres du mode lecture ne contient pas les parametres gradients et passage pluie/neige.
+				//     ces parametres devrait etre dans le modele degre_jour_bande.
+				//     pour l'instant on prend les meme params que le modele interpolation (ou thiessen si mode lecture)
+
+				if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "THIESSEN2")
 				{
-					MiseAJour(date_courante, index_zone, bMajEffectuer);
-
-					if(bMajEffectuer)
+					dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientTemperature(index_zone));
+					dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientPrecipitation(index_zone));
+					dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen2->PrendrePassagePluieNeige(index_zone));
+				}
+				else
+				{
+					if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "MOYENNE 3 STATIONS2")
 					{
-						stock_moyen = 0.0;
-						dHauteurCouvertNival = 0.0;
-
-						for(idxBande=0; idxBande!=nbBande; idxBande++)
+						dGradientVerticalTemp = static_cast<double>(_sim_hyd._smMoy3station2->PrendreGradientTemperature(index_zone));
+						dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smMoy3station2->PrendreGradientPrecipitation(index_zone));
+						dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smMoy3station2->PrendrePassagePluieNeige(index_zone));
+					}
+					else
+					{
+						if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "THIESSEN1")
 						{
-							dHauteurCouvertNival+= (_bandePourcentageM1[index_zone][idxBande] * _hauteur_conifers[index_zone][idxBande] + 
-								_bandePourcentageM2[index_zone][idxBande] * _hauteur_feuillus[index_zone][idxBande] + _bandePourcentageM3[index_zone][idxBande] * _hauteur_decouver[index_zone][idxBande]);
-
-							stock_moyen+= (_bandePourcentageM1[index_zone][idxBande] * _stock_conifers[index_zone][idxBande] + 
-								_bandePourcentageM2[index_zone][idxBande] * _stock_feuillus[index_zone][idxBande] + _bandePourcentageM3[index_zone][idxBande] * _stock_decouver[index_zone][idxBande]);
+							dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientTemperature(index_zone));
+							dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientPrecipitation(index_zone));
+							dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen1->PrendrePassagePluieNeige(index_zone));
+						}
+						else
+						{
+							if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "MOYENNE 3 STATIONS1")
+							{
+								dGradientVerticalTemp = static_cast<double>(_sim_hyd._smMoy3station1->PrendreGradientTemperature(index_zone));
+								dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smMoy3station1->PrendreGradientPrecipitation(index_zone));
+								dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smMoy3station1->PrendrePassagePluieNeige(index_zone));
+							}
+							else
+							{
+								if(_sim_hyd._interpolation_donnees->PrendreNomSousModele() == "GRILLE")
+								{
+									dGradientVerticalTemp = static_cast<double>(_sim_hyd._smGrilleMeteo->PrendreGradientTemperature(index_zone));
+									dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smGrilleMeteo->PrendreGradientPrecipitation(index_zone));
+									dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smGrilleMeteo->PrendrePassagePluieNeige(index_zone));
+								}
+								else
+								{
+									//LECTURE_INTERPOLATION_DONNEES	//use params of thiessen model
+									if(_sim_hyd._versionTHIESSEN == 1)
+									{
+										dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientTemperature(index_zone));
+										dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen1->PrendreGradientPrecipitation(index_zone));
+										dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen1->PrendrePassagePluieNeige(index_zone));
+									}
+									else
+									{
+										//_sim_hyd._versionTHIESSEN == 2
+										dGradientVerticalTemp = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientTemperature(index_zone));
+										dGradientVerticalPrecip = static_cast<double>(_sim_hyd._smThiessen2->PrendreGradientPrecipitation(index_zone));
+										dTempPassagePluieNeige = static_cast<double>(_sim_hyd._smThiessen2->PrendrePassagePluieNeige(index_zone));
+									}
+								}
+							}
 						}
 					}
 				}
 
-			//}
+				//
+				dAltMoyUhrh = static_cast<double>(zone.PrendreAltitude());
 
-			apport*= 1000.0;		//[m] -> [mm]
-			zone.ChangeApport(static_cast<float>(apport));
-
-			stock_moyen*= 1000.0;	//[m] -> [mm]
-			if(stock_moyen >= 0.001)
-			{
-				zone.ChangeAlbedoNeige(static_cast<float>(albedo_moyen));
-				zone.ChangeCouvertNival(static_cast<float>(stock_moyen));   //equivalent en eau de la neige [mm]
-			}
-			else
-			{
-				zone.ChangeAlbedoNeige(0.0f);
-				zone.ChangeCouvertNival(0.0f);
-			}
-
-			zone.ChangeHauteurCouvertNival(static_cast<float>(dHauteurCouvertNival));	//m
-
-			//conserve les stocks de l'uhrh par milieu et par bande pour le pdt courant
-			zone._couvert_nival_m1.clear();
-			zone._couvert_nival_m2.clear();
-			zone._couvert_nival_m3.clear();
-
-			for(idxBande=0; idxBande!=nbBande; idxBande++)
-			{
-				if(_stock_conifers[index_zone][idxBande] * 1000.0 >= 0.001)
-					zone._couvert_nival_m1.push_back(_stock_conifers[index_zone][idxBande] * 1000.0);	// * 1000: [m] -> [mm]
+				TMoyZone = (static_cast<double>(zone.PrendreTMin()) + static_cast<double>(zone.PrendreTMax())) / 2.0;
+				TMinZone = static_cast<double>(zone.PrendreTMin());
+				TMaxZone = static_cast<double>(zone.PrendreTMax());
+			
+				//transforme la neige en equivalent en eau (EEN) avant l'application du gradient vertical (dans le modele d'interpolation, le gradient est appliqué sur la precip totale en eau avant la répartition pluie/neige)
+				if(pas_de_temps == 1)
+					dDensite = CalculDensiteNeige(TMinZone) / DENSITE_EAU;
 				else
-					zone._couvert_nival_m1.push_back(0.0);
+					dDensite = CalculDensiteNeige(TMoyZone) / DENSITE_EAU;
 
-				if(_stock_feuillus[index_zone][idxBande] * 1000.0 >= 0.001)
-					zone._couvert_nival_m2.push_back(_stock_feuillus[index_zone][idxBande] * 1000.0);	// * 1000: [m] -> [mm]
-				else
-					zone._couvert_nival_m2.push_back(0.0);
+				precipZone = static_cast<double>(zone.PrendrePluie()) + ( static_cast<double>(zone.PrendreNeige()) * dDensite );	//mm	//transforme la neige en equivalent en eau
 
-				if(_stock_decouver[index_zone][idxBande] * 1000.0 >= 0.001)
-					zone._couvert_nival_m3.push_back(_stock_decouver[index_zone][idxBande] * 1000.0);	// * 1000: [m] -> [mm]
-				else
-					zone._couvert_nival_m3.push_back(0.0);
-			}
-		}
+				nbBande = _bandeSuperficieM1[index_zone].size();
+			
+				dHauteurCouvertNival = 0.0;
+				albedo_moyen = 0.0;
+				stock_moyen = 0.0;
+				apport = 0.0;
 
-		// correction de la neige au sol
-
-		//for(auto iter = begin(_corrections_neige_au_sol); iter != end(_corrections_neige_au_sol); ++iter)
-		//{
-		//	CORRECTION* correction = *iter;
-
-		//	if (correction->Applicable(date_courante))
-		//	{
-		//		GROUPE_ZONE* groupe_zone = nullptr;
-
-		//		switch (correction->PrendreTypeGroupe())
-		//		{
-		//		case TYPE_GROUPE_ALL:
-		//			groupe_zone = _sim_hyd.PrendreToutBassin();
-		//			break;
-
-		//		case TYPE_GROUPE_HYDRO:
-		//			groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
-		//			break;
-
-		//		case TYPE_GROUPE_CORRECTION:
-		//			groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
-		//			break;
-		//		}
-
-		//		fCoeffAdditif = correction->PrendreCoefficientAdditif() / 1000.0f;
-
-		//		for (size_t index = 0; index < groupe_zone->PrendreNbZone(); ++index)
-		//		{
-		//			if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
-		//			{
-		//				int ident = groupe_zone->PrendreIdent(index);
-		//				size_t index_zone = zones.IdentVersIndex(ident);
-
-		//				float stock_avant;
-		//			
-		//				stock_avant = _stock_conifers[index_zone];
-		//				_stock_conifers[index_zone] = (stock_avant + fCoeffAdditif) * correction->PrendreCoefficientMultiplicatif();
-		//				if(stock_avant != 0.0)
-		//				{
-		//					_chaleur_conifers[index_zone] = _chaleur_conifers[index_zone] * _stock_conifers[index_zone] / stock_avant;
-		//					_eau_retenu_conifers[index_zone] = _eau_retenu_conifers[index_zone] * _stock_conifers[index_zone] / stock_avant;
-		//				}
-
-		//				stock_avant = _stock_feuillus[index_zone];
-		//				_stock_feuillus[index_zone] = (stock_avant + fCoeffAdditif) * correction->PrendreCoefficientMultiplicatif();
-		//				if(stock_avant != 0.0)
-		//				{
-		//					_chaleur_feuillus[index_zone] = _chaleur_feuillus[index_zone] * _stock_feuillus[index_zone] / stock_avant;
-		//					_eau_retenu_feuillus[index_zone] = _eau_retenu_feuillus[index_zone] * _stock_feuillus[index_zone] / stock_avant;
-		//				}
-
-		//				stock_avant = _stock_decouver[index_zone];
-		//				_stock_decouver[index_zone] = (stock_avant + fCoeffAdditif) * correction->PrendreCoefficientMultiplicatif();
-		//				if(stock_avant != 0.0)
-		//				{
-		//					_chaleur_decouver[index_zone] = _chaleur_decouver[index_zone] * _stock_decouver[index_zone] / stock_avant;
-		//					_eau_retenu_decouver[index_zone] = _eau_retenu_decouver[index_zone] * _stock_decouver[index_zone] / stock_avant;
-		//				}
-		//			}
-		//		}
-		//	}
-		//}
-
-		if(output.SauvegardeCouvertNival() || output.SauvegardeHauteurNeige() || output.SauvegardeAlbedoNeige())
-		{
-			ostringstream ossCN, ossCNB, ossHN, ossAN;
-
-			if(output.SauvegardeCouvertNival())	//fichier couvert_nival.csv & couvert_nival_bande.csv
-			{
-				ossCN << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-				ossCNB << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-			}
-
-			if(output.SauvegardeHauteurNeige())	//fichier hauteur_neige.csv
-				ossHN << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-			if(output.SauvegardeAlbedoNeige())	//fichier albedo_neige.csv
-				ossAN << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
-
-			for(index=0; index!=zones.PrendreNbZone(); index++)
-			{
-				if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+				for(idxBande=0; idxBande!=nbBande; idxBande++)
 				{
-					if(output._bSauvegardeTous || 
-						find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+					//M1
+					precipMilieu = 0.0;	//mm
+					apportMilieu = 0.0;	//mm
+
+					if(_bandePourcentageM1[index_zone][idxBande] != 0.0)
 					{
-						if(output.SauvegardeCouvertNival())
+						diff_alt = _bandeAltMoyM1[index_zone][idxBande] - dAltMoyUhrh;
+					
+						TMinMilieu = TMinZone + dGradientVerticalTemp * diff_alt / 100.0;
+						TMaxMilieu = TMaxZone + dGradientVerticalTemp * diff_alt / 100.0;
+
+						precipMilieu = precipZone * (1.0 + (dGradientVerticalPrecip / 1000.0) / 100.0 * diff_alt);	//mm
+						if(precipMilieu < 0.0)
+							precipMilieu = 0.0;
+
+						PassagePluieNeige(dTempPassagePluieNeige, TMinMilieu, TMaxMilieu, precipMilieu, &pluieMilieu, &neigeMilieu);
+
+						if(_sim_hyd.PrendreDateCourante().PrendreAnnee() == _sim_hyd.PrendreDateDebut().PrendreAnnee())		//seulement pour la 1ere annee sinon le fichier output est trop volumineux
 						{
-							ossCN << zones[index].PrendreCouvertNival() << output.Separator();	//equivalent en eau du couvert nival	//mm
-
-							nbBande = _bandePourcentageM1[index].size();
-							for(idxBande=0; idxBande!=nbBande; idxBande++)
+							if(output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zone.PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
 							{
-								dSuperficieTotalBande = _bandeSuperficieM1[index][idxBande] + _bandeSuperficieM2[index][idxBande] + _bandeSuperficieM3[index][idxBande];
-								dPourcentM1 = _bandeSuperficieM1[index][idxBande] / dSuperficieTotalBande;
-								dPourcentM2 = _bandeSuperficieM2[index][idxBande] / dSuperficieTotalBande;
-								dPourcentM3 = _bandeSuperficieM3[index][idxBande] / dSuperficieTotalBande;
-
-								dVal = dPourcentM1 * _stock_conifers[index][idxBande] + dPourcentM2 * _stock_feuillus[index][idxBande] + dPourcentM3 * _stock_decouver[index][idxBande];
-								dVal*= 1000.0;	//[m] -> [mm]
-								ossCNB << dVal << output.Separator();	//equivalent en eau du couvert nival de la bande	//mm
+								oss.str("");
+								oss << _sim_hyd.PrendreDateCourante() << output.Separator();
+								oss << zone.PrendreIdent() << output.Separator() << idxBande+1 << output.Separator() << "1" << output.Separator();
+								oss << setprecision(4) << setiosflags(ios::fixed) << TMinMilieu << output.Separator() << TMaxMilieu << output.Separator() << pluieMilieu << output.Separator() << neigeMilieu;
+								_outMeteoBandes << oss.str() << endl;
 							}
 						}
 
-						if(output.SauvegardeHauteurNeige())
-							ossHN << zones[index].PrendreHauteurCouvertNival() << output.Separator();	//m
+						//ramene la neige en hauteur de neige (EEN -> HauteurNeige)
+						dDensite = CalculDensiteNeige( (TMinMilieu+TMaxMilieu) / 2.0 ) / DENSITE_EAU;
+						dPrecipNeigeHauteur = neigeMilieu / dDensite;	//mm
 
-						if(output.SauvegardeAlbedoNeige())
-							ossAN << zones[index].PrendreAlbedoNeige() << output.Separator();
+						CalculeFonte(zone, index_zone, pas_de_temps, ((TMinMilieu+TMaxMilieu)/2.0), pluieMilieu, dPrecipNeigeHauteur, _bandePourcentageM1[index_zone][idxBande], 
+										_taux_fonte_conifers[index_zone] / 1000.0, _seuil_fonte_conifers[index_zone], _albedo_conifers[index_zone][idxBande], 
+										_stock_conifers[index_zone][idxBande], _hauteur_conifers[index_zone][idxBande], _chaleur_conifers[index_zone][idxBande], apport_conifers, _eau_retenu_conifers[index_zone][idxBande]);
+
+						apportMilieu = apport_conifers * 1000.0;	//m -> mm
+
+						albedo_moyen+= _bandePourcentageM1[index_zone][idxBande] * _albedo_conifers[index_zone][idxBande];
+						dHauteurCouvertNival+= _bandePourcentageM1[index_zone][idxBande] * _hauteur_conifers[index_zone][idxBande];
+						stock_moyen+= _bandePourcentageM1[index_zone][idxBande] * _stock_conifers[index_zone][idxBande];
+						apport+= apport_conifers;
 					}
+					zone._precip_m1.push_back(precipMilieu);
+					zone._apport_m1.push_back(apportMilieu);
+
+					//M2
+					precipMilieu = 0.0;	//mm
+					apportMilieu = 0.0;	//mm
+
+					if(_bandePourcentageM2[index_zone][idxBande] != 0.0)
+					{
+						diff_alt = _bandeAltMoyM2[index_zone][idxBande] - dAltMoyUhrh;
+					
+						TMinMilieu = TMinZone + dGradientVerticalTemp * diff_alt / 100.0;
+						TMaxMilieu = TMaxZone + dGradientVerticalTemp * diff_alt / 100.0;
+
+						precipMilieu = precipZone * (1.0 + (dGradientVerticalPrecip / 1000.0) / 100.0 * diff_alt);	//mm
+						if(precipMilieu < 0.0)
+							precipMilieu = 0.0;
+
+						PassagePluieNeige(dTempPassagePluieNeige, TMinMilieu, TMaxMilieu, precipMilieu, &pluieMilieu, &neigeMilieu);
+
+						if(_sim_hyd.PrendreDateCourante().PrendreAnnee() == _sim_hyd.PrendreDateDebut().PrendreAnnee())		//seulement pour la 1ere annee sinon le fichier output est trop volumineux
+						{
+							if(output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zone.PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss.str("");
+								oss << _sim_hyd.PrendreDateCourante() << output.Separator();
+								oss << zone.PrendreIdent() << output.Separator() << idxBande+1 << output.Separator() << "2" << output.Separator();
+								oss << setprecision(4) << setiosflags(ios::fixed) << TMinMilieu << output.Separator() << TMaxMilieu << output.Separator() << pluieMilieu << output.Separator() << neigeMilieu;
+								_outMeteoBandes << oss.str() << endl;
+							}
+						}
+
+						//ramene la neige en hauteur de neige (EEN -> HauteurNeige)
+						dDensite = CalculDensiteNeige( (TMinMilieu+TMaxMilieu) / 2.0 ) / DENSITE_EAU;
+						dPrecipNeigeHauteur = neigeMilieu / dDensite;	//mm
+
+						CalculeFonte(zone, index_zone, pas_de_temps, ((TMinMilieu+TMaxMilieu)/2.0), pluieMilieu, dPrecipNeigeHauteur, _bandePourcentageM2[index_zone][idxBande], 
+										_taux_fonte_feuillus[index_zone] / 1000.0, _seuil_fonte_feuillus[index_zone], _albedo_feuillus[index_zone][idxBande], 
+										_stock_feuillus[index_zone][idxBande], _hauteur_feuillus[index_zone][idxBande], _chaleur_feuillus[index_zone][idxBande], apport_feuillus, _eau_retenu_feuillus[index_zone][idxBande]);
+
+						apportMilieu = apport_feuillus * 1000.0;	//m -> mm
+
+						albedo_moyen+= _bandePourcentageM2[index_zone][idxBande] * _albedo_feuillus[index_zone][idxBande];
+						dHauteurCouvertNival+= _bandePourcentageM2[index_zone][idxBande] * _hauteur_feuillus[index_zone][idxBande];
+						stock_moyen+= _bandePourcentageM2[index_zone][idxBande] * _stock_feuillus[index_zone][idxBande];
+						apport+= apport_feuillus;
+					}
+					zone._precip_m2.push_back(precipMilieu);
+					zone._apport_m2.push_back(apportMilieu);
+
+					//M3
+					precipMilieu = 0.0;	//mm
+					apportMilieu = 0.0;	//mm
+
+					if(_bandePourcentageM3[index_zone][idxBande] != 0.0)
+					{
+						diff_alt = _bandeAltMoyM3[index_zone][idxBande] - dAltMoyUhrh;
+					
+						TMinMilieu = TMinZone + dGradientVerticalTemp * diff_alt / 100.0;
+						TMaxMilieu = TMaxZone + dGradientVerticalTemp * diff_alt / 100.0;
+
+						precipMilieu = precipZone * (1.0 + (dGradientVerticalPrecip / 1000.0) / 100.0 * diff_alt);	//mm
+						if(precipMilieu < 0.0)
+							precipMilieu = 0.0;
+
+						PassagePluieNeige(dTempPassagePluieNeige, TMinMilieu, TMaxMilieu, precipMilieu, &pluieMilieu, &neigeMilieu);
+
+						if(_sim_hyd.PrendreDateCourante().PrendreAnnee() == _sim_hyd.PrendreDateDebut().PrendreAnnee())		//seulement pour la 1ere annee sinon le fichier output est trop volumineux
+						{
+							if(output._bSauvegardeTous || 
+								find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zone.PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+							{
+								oss.str("");
+								oss << _sim_hyd.PrendreDateCourante() << output.Separator();
+								oss << zone.PrendreIdent() << output.Separator() << idxBande+1 << output.Separator() << "3" << output.Separator();
+								oss << setprecision(4) << setiosflags(ios::fixed) << TMinMilieu << output.Separator() << TMaxMilieu << output.Separator() << pluieMilieu << output.Separator() << neigeMilieu;
+								_outMeteoBandes << oss.str() << endl;
+							}
+						}
+
+						//ramene la neige en hauteur de neige (EEN -> HauteurNeige)
+						dDensite = CalculDensiteNeige( (TMinMilieu+TMaxMilieu) / 2.0 ) / DENSITE_EAU;
+						dPrecipNeigeHauteur = neigeMilieu / dDensite;	//mm
+
+						CalculeFonte(zone, index_zone, pas_de_temps, ((TMinMilieu+TMaxMilieu)/2.0), pluieMilieu, dPrecipNeigeHauteur, _bandePourcentageM3[index_zone][idxBande], 
+										_taux_fonte_decouver[index_zone] / 1000.0, _seuil_fonte_decouver[index_zone], _albedo_decouver[index_zone][idxBande], 
+										_stock_decouver[index_zone][idxBande], _hauteur_decouver[index_zone][idxBande], _chaleur_decouver[index_zone][idxBande], apport_decouver, _eau_retenu_decouver[index_zone][idxBande]);
+
+						apportMilieu = apport_decouver * 1000.0;	//m -> mm
+
+						albedo_moyen+= _bandePourcentageM3[index_zone][idxBande] * _albedo_decouver[index_zone][idxBande];
+						dHauteurCouvertNival+= _bandePourcentageM3[index_zone][idxBande] * _hauteur_decouver[index_zone][idxBande];
+						stock_moyen+= _bandePourcentageM3[index_zone][idxBande] * _stock_decouver[index_zone][idxBande];
+						apport+= apport_decouver;
+					}
+					zone._precip_m3.push_back(precipMilieu);
+					zone._apport_m3.push_back(apportMilieu);
+				}
+
+
+				//if(_bMAJGrilleNeige)
+				//{
+				//	if(_grilleneige._grilleEquivalentEau.size() != 0)	//s'il y a des données pour le jour courant
+				//	{
+				//		// On prend l occupation du sol dominant de lUHRH
+				//		occupation = STATION_NEIGE::RESINEUX;
+				//					
+				//		if(_pourcentage_conifers[index_zone] < _pourcentage_feuillus[index_zone])
+				//		{
+				//			occupation = STATION_NEIGE::FEUILLUS;
+				//			if ( _pourcentage_feuillus[index_zone] < _pourcentage_autres[index_zone])
+				//				occupation = STATION_NEIGE::DECOUVERTE;
+				//		}
+				//		else
+				//		{
+				//			if(_pourcentage_conifers[index_zone] < _pourcentage_autres[index_zone])
+				//				occupation = STATION_NEIGE::DECOUVERTE;
+				//		}
+
+				//		MiseAJourGrille(index_zone, occupation);
+				//	}
+				//}
+				//else
+				//{
+
+					if (_mise_a_jour_neige)
+					{
+						MiseAJour(date_courante, index_zone, bMajEffectuer);
+
+						if(bMajEffectuer)
+						{
+							stock_moyen = 0.0;
+							dHauteurCouvertNival = 0.0;
+
+							for(idxBande=0; idxBande!=nbBande; idxBande++)
+							{
+								dHauteurCouvertNival+= (_bandePourcentageM1[index_zone][idxBande] * _hauteur_conifers[index_zone][idxBande] + 
+									_bandePourcentageM2[index_zone][idxBande] * _hauteur_feuillus[index_zone][idxBande] + _bandePourcentageM3[index_zone][idxBande] * _hauteur_decouver[index_zone][idxBande]);
+
+								stock_moyen+= (_bandePourcentageM1[index_zone][idxBande] * _stock_conifers[index_zone][idxBande] + 
+									_bandePourcentageM2[index_zone][idxBande] * _stock_feuillus[index_zone][idxBande] + _bandePourcentageM3[index_zone][idxBande] * _stock_decouver[index_zone][idxBande]);
+							}
+						}
+					}
+
+				//}
+
+				apport*= 1000.0;		//[m] -> [mm]
+				zone.ChangeApport(static_cast<float>(apport));
+
+				stock_moyen*= 1000.0;	//[m] -> [mm]
+				if(stock_moyen >= 0.001)
+				{
+					zone.ChangeAlbedoNeige(static_cast<float>(albedo_moyen));
+					zone.ChangeCouvertNival(static_cast<float>(stock_moyen));   //equivalent en eau de la neige [mm]
+				}
+				else
+				{
+					zone.ChangeAlbedoNeige(0.0f);
+					zone.ChangeCouvertNival(0.0f);
+				}
+
+				zone.ChangeHauteurCouvertNival(static_cast<float>(dHauteurCouvertNival));	//m
+
+				//conserve les stocks de l'uhrh par milieu et par bande pour le pdt courant
+				zone._couvert_nival_m1.clear();
+				zone._couvert_nival_m2.clear();
+				zone._couvert_nival_m3.clear();
+
+				for(idxBande=0; idxBande!=nbBande; idxBande++)
+				{
+					if(_stock_conifers[index_zone][idxBande] * 1000.0 >= 0.001)
+						zone._couvert_nival_m1.push_back(_stock_conifers[index_zone][idxBande] * 1000.0);	// * 1000: [m] -> [mm]
+					else
+						zone._couvert_nival_m1.push_back(0.0);
+
+					if(_stock_feuillus[index_zone][idxBande] * 1000.0 >= 0.001)
+						zone._couvert_nival_m2.push_back(_stock_feuillus[index_zone][idxBande] * 1000.0);	// * 1000: [m] -> [mm]
+					else
+						zone._couvert_nival_m2.push_back(0.0);
+
+					if(_stock_decouver[index_zone][idxBande] * 1000.0 >= 0.001)
+						zone._couvert_nival_m3.push_back(_stock_decouver[index_zone][idxBande] * 1000.0);	// * 1000: [m] -> [mm]
+					else
+						zone._couvert_nival_m3.push_back(0.0);
 				}
 			}
 
-			if(output.SauvegardeCouvertNival())
-			{
-				str = ossCN.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_couvert_nival << str << endl;
+			// correction de la neige au sol
 
-				str = ossCNB.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_couvert_nival_bande << str << endl;
+			//for(auto iter = begin(_corrections_neige_au_sol); iter != end(_corrections_neige_au_sol); ++iter)
+			//{
+			//	CORRECTION* correction = *iter;
+
+			//	if (correction->Applicable(date_courante))
+			//	{
+			//		GROUPE_ZONE* groupe_zone = nullptr;
+
+			//		switch (correction->PrendreTypeGroupe())
+			//		{
+			//		case TYPE_GROUPE_ALL:
+			//			groupe_zone = _sim_hyd.PrendreToutBassin();
+			//			break;
+
+			//		case TYPE_GROUPE_HYDRO:
+			//			groupe_zone = _sim_hyd.RechercheGroupeZone(correction->PrendreNomGroupe());
+			//			break;
+
+			//		case TYPE_GROUPE_CORRECTION:
+			//			groupe_zone = _sim_hyd.RechercheGroupeCorrection(correction->PrendreNomGroupe());
+			//			break;
+			//		}
+
+			//		fCoeffAdditif = correction->PrendreCoefficientAdditif() / 1000.0f;
+
+			//		for (size_t index = 0; index < groupe_zone->PrendreNbZone(); ++index)
+			//		{
+			//			if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+			//			{
+			//				int ident = groupe_zone->PrendreIdent(index);
+			//				size_t index_zone = zones.IdentVersIndex(ident);
+
+			//				float stock_avant;
+			//			
+			//				stock_avant = _stock_conifers[index_zone];
+			//				_stock_conifers[index_zone] = (stock_avant + fCoeffAdditif) * correction->PrendreCoefficientMultiplicatif();
+			//				if(stock_avant != 0.0)
+			//				{
+			//					_chaleur_conifers[index_zone] = _chaleur_conifers[index_zone] * _stock_conifers[index_zone] / stock_avant;
+			//					_eau_retenu_conifers[index_zone] = _eau_retenu_conifers[index_zone] * _stock_conifers[index_zone] / stock_avant;
+			//				}
+
+			//				stock_avant = _stock_feuillus[index_zone];
+			//				_stock_feuillus[index_zone] = (stock_avant + fCoeffAdditif) * correction->PrendreCoefficientMultiplicatif();
+			//				if(stock_avant != 0.0)
+			//				{
+			//					_chaleur_feuillus[index_zone] = _chaleur_feuillus[index_zone] * _stock_feuillus[index_zone] / stock_avant;
+			//					_eau_retenu_feuillus[index_zone] = _eau_retenu_feuillus[index_zone] * _stock_feuillus[index_zone] / stock_avant;
+			//				}
+
+			//				stock_avant = _stock_decouver[index_zone];
+			//				_stock_decouver[index_zone] = (stock_avant + fCoeffAdditif) * correction->PrendreCoefficientMultiplicatif();
+			//				if(stock_avant != 0.0)
+			//				{
+			//					_chaleur_decouver[index_zone] = _chaleur_decouver[index_zone] * _stock_decouver[index_zone] / stock_avant;
+			//					_eau_retenu_decouver[index_zone] = _eau_retenu_decouver[index_zone] * _stock_decouver[index_zone] / stock_avant;
+			//				}
+			//			}
+			//		}
+			//	}
+			//}
+
+			if(output.SauvegardeCouvertNival() || output.SauvegardeHauteurNeige() || output.SauvegardeAlbedoNeige())
+			{
+				ostringstream ossCN, ossCNB, ossHN, ossAN;
+
+				if(output.SauvegardeCouvertNival())	//fichier couvert_nival.csv & couvert_nival_bande.csv
+				{
+					ossCN << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+					ossCNB << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+				}
+
+				if(output.SauvegardeHauteurNeige())	//fichier hauteur_neige.csv
+					ossHN << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+				if(output.SauvegardeAlbedoNeige())	//fichier albedo_neige.csv
+					ossAN << _sim_hyd.PrendreDateCourante() << output.Separator() << setprecision(6) << setiosflags(ios::fixed);
+
+				for(index=0; index!=zones.PrendreNbZone(); index++)
+				{
+					if(find(begin(_sim_hyd.PrendreZonesSimules()), end(_sim_hyd.PrendreZonesSimules()), index) != end(_sim_hyd.PrendreZonesSimules()))
+					{
+						if(output._bSauvegardeTous || 
+							find(begin(output._vIdTronconSelect), end(output._vIdTronconSelect), zones[index].PrendreTronconAval()->PrendreIdent()) != end(output._vIdTronconSelect))
+						{
+							if(output.SauvegardeCouvertNival())
+							{
+								ossCN << zones[index].PrendreCouvertNival() << output.Separator();	//equivalent en eau du couvert nival	//mm
+
+								nbBande = _bandePourcentageM1[index].size();
+								for(idxBande=0; idxBande!=nbBande; idxBande++)
+								{
+									dSuperficieTotalBande = _bandeSuperficieM1[index][idxBande] + _bandeSuperficieM2[index][idxBande] + _bandeSuperficieM3[index][idxBande];
+									dPourcentM1 = _bandeSuperficieM1[index][idxBande] / dSuperficieTotalBande;
+									dPourcentM2 = _bandeSuperficieM2[index][idxBande] / dSuperficieTotalBande;
+									dPourcentM3 = _bandeSuperficieM3[index][idxBande] / dSuperficieTotalBande;
+
+									dVal = dPourcentM1 * _stock_conifers[index][idxBande] + dPourcentM2 * _stock_feuillus[index][idxBande] + dPourcentM3 * _stock_decouver[index][idxBande];
+									dVal*= 1000.0;	//[m] -> [mm]
+									ossCNB << dVal << output.Separator();	//equivalent en eau du couvert nival de la bande	//mm
+								}
+							}
+
+							if(output.SauvegardeHauteurNeige())
+								ossHN << zones[index].PrendreHauteurCouvertNival() << output.Separator();	//m
+
+							if(output.SauvegardeAlbedoNeige())
+								ossAN << zones[index].PrendreAlbedoNeige() << output.Separator();
+						}
+					}
+				}
+
+				if(output.SauvegardeCouvertNival())
+				{
+					str = ossCN.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_couvert_nival << str << endl;
+
+					str = ossCNB.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_couvert_nival_bande << str << endl;
+				}
+
+				if(output.SauvegardeHauteurNeige())
+				{
+					str = ossHN.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_hauteur_neige << str << endl;
+				}
+
+				if(output.SauvegardeAlbedoNeige())
+				{
+					str = ossAN.str();
+					str = str.substr(0, str.length()-1); //enleve le dernier separateur
+					_fichier_albedo_neige << str << endl;
+				}
 			}
 
-			if(output.SauvegardeHauteurNeige())
-			{
-				str = ossHN.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_hauteur_neige << str << endl;
-			}
-
-			if(output.SauvegardeAlbedoNeige())
-			{
-				str = ossAN.str();
-				str = str.substr(0, str.length()-1); //enleve le dernier separateur
-				_fichier_albedo_neige << str << endl;
-			}
+			//Fichier d'état
+			if (_sauvegarde_tous_etat || (_sauvegarde_etat && (_date_sauvegarde_etat - pas_de_temps == date_courante)))
+				SauvegardeEtat(date_courante);
 		}
-
-		//Fichier d'état
-		if (_sauvegarde_tous_etat || (_sauvegarde_etat && (_date_sauvegarde_etat - pas_de_temps == date_courante)))
-			SauvegardeEtat(date_courante);
 
 		FONTE_NEIGE::Calcule();
 	}
@@ -1431,49 +1437,52 @@ namespace HYDROTEL
 
 	void DEGRE_JOUR_BANDE::Termine()
 	{
-		_ce1.clear();
-		_ce0.clear();
-		//_tsn.clear();
-
-		_stock_conifers.clear();
-		_stock_feuillus.clear();
-		_stock_decouver.clear();
-
-		_hauteur_conifers.clear();
-		_hauteur_feuillus.clear();
-		_hauteur_decouver.clear();
-
-		_chaleur_conifers.clear();
-		_chaleur_feuillus.clear();
-		_chaleur_decouver.clear();
-
-		_eau_retenu_conifers.clear();
-		_eau_retenu_feuillus.clear();
-		_eau_retenu_decouver.clear();
-
-		_albedo_conifers.clear();
-		_albedo_feuillus.clear();
-		_albedo_decouver.clear();
-
-		_methode_albedo.clear();
-
-		OUTPUT& output = _sim_hyd.PrendreOutput();
-
-		if (output.SauvegardeCouvertNival())
+		if(!_sim_hyd._bSkipFonteNeige)
 		{
-			_fichier_couvert_nival.close();
-			_fichier_couvert_nival_bande.close();
+			_ce1.clear();
+			_ce0.clear();
+			//_tsn.clear();
+
+			_stock_conifers.clear();
+			_stock_feuillus.clear();
+			_stock_decouver.clear();
+
+			_hauteur_conifers.clear();
+			_hauteur_feuillus.clear();
+			_hauteur_decouver.clear();
+
+			_chaleur_conifers.clear();
+			_chaleur_feuillus.clear();
+			_chaleur_decouver.clear();
+
+			_eau_retenu_conifers.clear();
+			_eau_retenu_feuillus.clear();
+			_eau_retenu_decouver.clear();
+
+			_albedo_conifers.clear();
+			_albedo_feuillus.clear();
+			_albedo_decouver.clear();
+
+			_methode_albedo.clear();
+
+			OUTPUT& output = _sim_hyd.PrendreOutput();
+
+			if (output.SauvegardeCouvertNival())
+			{
+				_fichier_couvert_nival.close();
+				_fichier_couvert_nival_bande.close();
+			}
+			if (output.SauvegardeHauteurNeige())
+				_fichier_hauteur_neige.close();
+			if (output.SauvegardeAlbedoNeige())
+				_fichier_albedo_neige.close();
+
+			_outMeteoBandes.close();
+
+			_maj_conifers.clear();
+			_maj_feuillus.clear();
+			_maj_decouver.clear();
 		}
-		if (output.SauvegardeHauteurNeige())
-			_fichier_hauteur_neige.close();
-		if (output.SauvegardeAlbedoNeige())
-			_fichier_albedo_neige.close();
-
-		_outMeteoBandes.close();
-
-		_maj_conifers.clear();
-		_maj_feuillus.clear();
-		_maj_decouver.clear();
 
 		FONTE_NEIGE::Termine();
 	}
@@ -3062,7 +3071,7 @@ namespace HYDROTEL
 					auto vValeur = extrait_dvaleur(ligne, ";");
 
 					if(vValeur.size() != 11)
-						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Nombre de colonne invalide. DEGRE JOUR BANDE");
+						throw ERREUR_LECTURE_FICHIER( _sim_hyd._nomFichierParametresGlobal, no_ligne, "Invalid column count. DEGRE JOUR BANDE");
 
 					dVal = static_cast<double>(x);
 					if(dVal != vValeur[0])
