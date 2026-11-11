@@ -35,7 +35,6 @@ HYDROTEL<sup>[1]</sup> is a physically-based distributed hydrological model deve
 * Overland flow routing (geomorphological unit hydrograph)
 * Channel routing
 * Water temperature
-***
 * Wetland hydrology
 * Water withdrawals and effluents
 
