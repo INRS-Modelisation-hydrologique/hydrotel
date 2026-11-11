@@ -37,7 +37,7 @@ HYDROTEL<sup>[1]</sup> is a physically-based semi-distributed hydrological model
 * Wetland hydrology
 
 <p align='justify'>
-This repository contains the files required to run HYDROTEL from the command line. This approach requires compiling the C++ source files for the target operating system to generate the appropriate executable (e.g., hydrotel.exe on Windows).
+This repository contains the files required to run HYDROTEL from the command line. The appropriate executable for the target operating system (Linux or Windows) can be generated from the C++ source files. A pre-built executable for Windows is available in the Release section.
 
 <!-- REFERENCES -->
 ### References
