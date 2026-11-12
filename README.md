@@ -35,12 +35,11 @@ HYDROTEL<sup>[1]</sup> is a physically-based distributed hydrological model deve
 * Overland flow routing (geomorphological unit hydrograph)
 * Channel routing
 * Water temperature
-***
 * Wetland hydrology
 * Water withdrawals and effluents
 
 <p align='justify'>
-This repository contains the files required to run HYDROTEL from the command line. The appropriate executable for the target operating system (Linux or Windows) can be generated from the C++ source files. A pre-built executable for Windows is available in the Release section.
+This repository contains the files required to run HYDROTEL from the command line. The appropriate executable for the target operating system (Linux or Windows) can be generated from the C++ source files. A pre-built executable for Windows is available in the Releases section.
 
 <!-- REFERENCES -->
 ### References
