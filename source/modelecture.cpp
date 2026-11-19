@@ -1305,7 +1305,7 @@ namespace HYDROTEL
 			}
 			else
 			{
-				//CTot
+				//QLatTot
 				pTroncon->ChangeApportLateral(_pVal[_idxQLatTot][idx]);
 
 				pTroncon->_surf = _pVal[_idxQLatTot][idx] * _fDISTRIBUTION_COEFF1;

@@ -219,7 +219,7 @@ namespace HYDROTEL
 
 					ifstream fichier2(str);
 					if (!fichier2)
-						throw ERREUR_LECTURE_FICHIER("ACHEMINEMENT_RIVIERE; fichier etat ONDE_CINEMATIQUE_MODIFIEE; " + str);
+						throw ERREUR_LECTURE_FICHIER("ACHEMINEMENT_RIVIERE; fichier etat ONDE_CINEMATIQUE_MODIFIEE MH; " + str);
 
 					getline_mod(fichier2, ligne);
 					getline_mod(fichier2, ligne);
@@ -262,7 +262,7 @@ namespace HYDROTEL
 
 					std::sort(vValidation.begin(), vValidation.end());
 					if(!equal(vValidation.begin(), vValidation.end(), tronconsMH_simules_ident.begin()))
-						throw ERREUR_LECTURE_FICHIER("ACHEMINEMENT_RIVIERE; fichier etat ONDE_CINEMATIQUE_MODIFIEE; " + str);
+						throw ERREUR_LECTURE_FICHIER("ACHEMINEMENT_RIVIERE; fichier etat ONDE_CINEMATIQUE_MODIFIEE MH; " + str);
 				}
 			}
 		}
@@ -1097,7 +1097,7 @@ namespace HYDROTEL
 
 		//------------------------------------------------------------------------------------------------
 		//Prélèvements
-		//Fichier output test des prélèvements calculés (prelevements_calcule.csv)
+		//Fichier output des prélèvements calculés (pour tests/validations) (prelevements_calcule.csv)
 		if(_sim_hyd._pr->_bSimulePrelevements && t == 0)
 		{
 			annee = date_courante.PrendreAnnee();

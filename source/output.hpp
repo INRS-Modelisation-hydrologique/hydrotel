@@ -102,11 +102,12 @@ namespace HYDROTEL
 
 		bool SauvegardeTemperatureEau() const;
 
-		std::string SauvegardeOutputNetCDF(std::string sPathFile, bool bUHRH, 
-											std::string sOutputVariableName, float* pData, std::string sUnits, std::string sDescription);
+		std::string SauvegardeOutputNetCDF(std::string sPathFile, std::string sOutputVariableName, float* pData, 
+											std::string outputIdVarName, size_t outputIdNb, int* outputIdVec, std::string sUnits, std::string sDescription);
 
 
 	public:
+
 		SIM_HYD*			_sim_hyd;
 
 		std::vector<int>	_vIdTronconSelect;
@@ -114,7 +115,11 @@ namespace HYDROTEL
 		//output variables
 		std::string			_sSeparator;
 		std::string			_sFichiersEtatsSeparator;
+
 		bool				_bSauvegardeTous;
+
+		int					_iIDTronconExutoire;
+
 		bool				_debit_aval;
 		bool				_debit_aval_moy7j_min;
 		bool				_debit_amont;
@@ -154,7 +159,6 @@ namespace HYDROTEL
 		bool				_profondeurgel;
 		bool				_weighted_avg;
 		bool                _temperature_eau;
-		int					_iIDTronconExutoire;
 
 		//nb digits
 		int					_nbDigit_dC;

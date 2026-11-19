@@ -176,10 +176,10 @@ namespace HYDROTEL
 
 		if(_pOutput->_hauteur_aval)
 		{
-			//if (_sim_hyd._outputCDF)
-			//	_netCdf_hauteuraval = new float[_sim_hyd._lNbPasTempsSim*_pOutput->_tronconOutputNb];
-			//else
-			//{
+			if (_sim_hyd._outputCDF)
+				_netCdf_hauteuraval = new float[_sim_hyd._lNbPasTempsSim*_pOutput->_tronconOutputNb];
+			else
+			{
 				string nom_fichier( Combine(_sim_hyd.PrendreRepertoireResultat(), "hauteur_aval.csv") );
 
 				_fichier_hauteur_aval.open(nom_fichier.c_str());
@@ -205,7 +205,7 @@ namespace HYDROTEL
 				str = oss.str();
 				str = str.substr(0, str.length()-1); //enleve le dernier separateur
 				_fichier_hauteur_aval << str << endl;
-			//}
+			}
 		}
 
 		if(_sim_hyd._pr->_bSimulePrelevements)	//if (_pOutput->SauvegardePrelevementPression())
@@ -318,17 +318,17 @@ namespace HYDROTEL
 
 		if(_pOutput->_hauteur_aval)
 		{
-			//if(_netCdf_hauteuraval != NULL)
-			//{
-			//	idx = _sim_hyd._lPasTempsCourantIndex * _pOutput->_tronconOutputNb;
+			if(_netCdf_hauteuraval != NULL)
+			{
+				idx = _sim_hyd._lPasTempsCourantIndex * _pOutput->_tronconOutputNb;
 
-			//	for(i=0; i<_pOutput->_tronconOutputNb; i++)
-			//		_netCdf_hauteuraval[idx+i] = troncons[_pOutput->_tronconOutputIndex[i]]->_hauteurAvalMoy;
-			//}
-			//else
-			//{
+				for(i=0; i<_pOutput->_tronconOutputNb; i++)
+					_netCdf_hauteuraval[idx+i] = static_cast<float>(troncons[_pOutput->_tronconOutputIndex[i]]->_hauteurAvalMoy);
+			}
+			else
+			{
 				oss.str("");
-				oss << _sim_hyd.PrendreDateCourante() << _pOutput->Separator() << setprecision(_pOutput->_nbDigit_m3s) << setiosflags(ios::fixed);
+				oss << _sim_hyd.PrendreDateCourante() << _pOutput->Separator() << setprecision(_pOutput->_nbDigit_m) << setiosflags(ios::fixed);
 
 				for(index = 0; index < troncons.PrendreNbTroncon(); ++index)
 				{
@@ -345,7 +345,7 @@ namespace HYDROTEL
 				str = oss.str();
 				str = str.substr(0, str.length()-1); //enleve le dernier separateur
 				_fichier_hauteur_aval << str << endl;
-			//}
+			}
 		}
 
 		if(_sim_hyd._pr->_bSimulePrelevements)	//if (_pOutput->SauvegardePrelevementPression())
@@ -393,7 +393,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "acheminement-debit_aval.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "debit_aval.nc");
 				//str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "acheminement-debit_aval", _netCdf_debitaval, "m3/s", "Debit en aval du troncon");
-				str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "debit_aval", _netCdf_debitaval, "m3/s", "Debit en aval du troncon");
+				str2 = _pOutput->SauvegardeOutputNetCDF(str1, "debit_aval", _netCdf_debitaval, "troncon", _pOutput->_tronconOutputNb, _pOutput->_tronconOutputIDs, "m3/s","Debit en aval du troncon");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -410,7 +410,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "acheminement-debit_amont.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "debit_amont.nc");
 				//str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "acheminement-debit_amont", _netCdf_debitamont, "m3/s", "Debit en amont du troncon");
-				str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "debit_amont", _netCdf_debitamont, "m3/s", "Debit en amont du troncon");
+				str2 = _pOutput->SauvegardeOutputNetCDF(str1, "debit_amont", _netCdf_debitamont, "troncon", _pOutput->_tronconOutputNb, _pOutput->_tronconOutputIDs, "m3/s", "Debit en amont du troncon");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -422,18 +422,18 @@ namespace HYDROTEL
 
 		if(_pOutput->_hauteur_aval)
 		{
-			//if(_netCdf_hauteuraval != NULL)
-			//{
-			//	//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "acheminement-hauteur_aval.nc");
-			//	str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "hauteur_aval.nc");
-			//	//str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "acheminement-hauteur_aval", _netCdf_hauteuraval, "m3/s", "Hauteur eau en aval du troncon");
-			//	str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "hauteur_aval", _netCdf_hauteuraval, "m3/s", "Hauteur eau en aval du troncon");
-			//	if(str2 != "")
-			//		throw ERREUR(str2);
+			if(_netCdf_hauteuraval != NULL)
+			{
+				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "acheminement-hauteur_aval.nc");
+				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "hauteur_aval.nc");
+				//str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "acheminement-hauteur_aval", _netCdf_hauteuraval, "m3/s", "Hauteur eau en aval du troncon");
+				str2 = _pOutput->SauvegardeOutputNetCDF(str1, "hauteur_aval", _netCdf_hauteuraval, "troncon", _pOutput->_tronconOutputNb, _pOutput->_tronconOutputIDs, "m3/s", "Hauteur eau en aval du troncon");
+				if(str2 != "")
+					throw ERREUR(str2);
 
-			//	delete [] _netCdf_hauteuraval;
-			//}
-			//else
+				delete [] _netCdf_hauteuraval;
+			}
+			else
 				_fichier_hauteur_aval.close();
 		}
 
@@ -441,10 +441,8 @@ namespace HYDROTEL
 		{
 			if(_netCdf_prelevements_pression != NULL)
 			{
-				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "acheminement-debit_aval.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "prelevements_pression.nc");
-				//str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "acheminement-debit_aval", _netCdf_debitaval, "m3/s", "Debit en aval du troncon");
-				str2 = _pOutput->SauvegardeOutputNetCDF(str1, false, "prelevements_pression", _netCdf_prelevements_pression, "0-1", "Indice de pression des prélèvements");
+				str2 = _pOutput->SauvegardeOutputNetCDF(str1, "prelevements_pression", _netCdf_prelevements_pression, "troncon", _pOutput->_tronconOutputNb, _pOutput->_tronconOutputIDs, "0-1", "Indice de pression des prélèvements");
 				if(str2 != "")
 					throw ERREUR(str2);
 

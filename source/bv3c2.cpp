@@ -1553,7 +1553,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta1.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta1.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta1", _netCdf_theta1, "[0-1]", "Teneur en eau de la couche 1");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta1", _netCdf_theta1, "[0-1]", "Teneur en eau de la couche 1");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "theta1", _netCdf_theta1, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "[0-1]", "Teneur en eau de la couche 1");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1570,7 +1570,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta2.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta2.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta2", _netCdf_theta2, "[0-1]", "Teneur en eau de la couche 2");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta2", _netCdf_theta2, "[0-1]", "Teneur en eau de la couche 2");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "theta2", _netCdf_theta2, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "[0-1]", "Teneur en eau de la couche 2");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1587,7 +1587,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-theta3.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "theta3.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-theta3", _netCdf_theta3, "[0-1]", "Teneur en eau de la couche 3");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "theta3", _netCdf_theta3, "[0-1]", "Teneur en eau de la couche 3");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "theta3", _netCdf_theta3, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "[0-1]", "Teneur en eau de la couche 3");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1604,7 +1604,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr1.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr1.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr1", _netCdf_etr1, "mm", "Evapotranspiration reelle de la couche 1");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr1", _netCdf_etr1, "mm", "Evapotranspiration reelle de la couche 1");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "etr1", _netCdf_etr1, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Evapotranspiration reelle de la couche 1");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1621,7 +1621,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr2.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr2.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr2", _netCdf_etr2, "mm", "Evapotranspiration reelle de la couche 2");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr2", _netCdf_etr2, "mm", "Evapotranspiration reelle de la couche 2");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "etr2", _netCdf_etr2, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Evapotranspiration reelle de la couche 2");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1638,7 +1638,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr3.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr3.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr3", _netCdf_etr3, "mm", "Evapotranspiration reelle de la couche 3");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr3", _netCdf_etr3, "mm", "Evapotranspiration reelle de la couche 3");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "etr3", _netCdf_etr3, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Evapotranspiration reelle de la couche 3");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1655,7 +1655,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-etr_total.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etr_total.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-etr_total", _netCdf_etr_total, "mm", "Evapotranspiration reelle totale");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etr_total", _netCdf_etr_total, "mm", "Evapotranspiration reelle totale");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "etr_total", _netCdf_etr_total, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Evapotranspiration reelle totale");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1672,7 +1672,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-q12.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "q12.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-q12", _netCdf_q12, "mm/pdt", "Ecoulement vertical de la couche 1 a 2");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "q12", _netCdf_q12, "mm", "Ecoulement vertical de la couche 1 a 2");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "q12", _netCdf_q12, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Ecoulement vertical de la couche 1 a 2");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1689,7 +1689,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-q23.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "q23.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-q23", _netCdf_q23, "mm/pdt", "Ecoulement vertical de la couche 2 a 3");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "q23", _netCdf_q23, "mm", "Ecoulement vertical de la couche 2 a 3");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "q23", _netCdf_q23, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Ecoulement vertical de la couche 2 a 3");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1706,7 +1706,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-bv3c-qrecharge.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "qrecharge.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-bv3c-qrecharge", _netCdf_qrecharge, "mm/pdt", "Recharge sous-terrain");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "qrecharge", _netCdf_qRecharge, "mm", "Recharge sous-terrain");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "qrecharge", _netCdf_qRecharge, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Recharge sous-terrain");
 					if(str2 != "")
 						throw ERREUR(str2);
 

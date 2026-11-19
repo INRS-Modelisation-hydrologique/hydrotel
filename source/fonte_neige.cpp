@@ -139,7 +139,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "fonte_neige-apport.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "apport.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "fonte_neige-apport", _netCdf_apport, "mm", "Apport de la fonte de neige et de la pluie");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "apport", _netCdf_apport, "mm", "Apport de la fonte de neige et de la pluie");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "apport", _netCdf_apport, "uhrh", _sim_hyd.PrendreOutput()._uhrhOutputNb, _sim_hyd.PrendreOutput()._uhrhOutputIDs, "mm", "Apport de la fonte de neige et de la pluie");
 				if(str2 != "")
 					throw ERREUR(str2);
 

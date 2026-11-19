@@ -44,6 +44,7 @@ namespace HYDROTEL
 		: _sSeparator(";")
 		, _sFichiersEtatsSeparator(";")
 		, _bSauvegardeTous(false)
+		, _iIDTronconExutoire(1)
 		, _debit_aval(true)
 		, _debit_aval_moy7j_min(false)
 		, _debit_amont(false)
@@ -83,7 +84,6 @@ namespace HYDROTEL
 		, _profondeurgel(false)
 		, _weighted_avg(false)
 		, _temperature_eau(false)
-		, _iIDTronconExutoire(1)
 	{
 		_sim_hyd = NULL;
 		_timeVectorEpoch = NULL;
@@ -354,11 +354,12 @@ namespace HYDROTEL
 		if(_sFichiersEtatsSeparator.length() > 1)
 			throw ERREUR_LECTURE_FICHIER("FICHIER OUTPUT: " + nom_fichier + ": invalid FICHIERS_ETATS_SEPARATEUR value");
 
-		if(_debit_aval || _debit_amont || _apport_lateral || _temperature_eau)
+		if(_debit_aval || _debit_amont || _hauteur_aval || _apport_lateral || _temperature_eau)
 			_bOutputTronconVar = true;
 
-		if(_apport || _etp || _neige || _pluie || _production_base || _production_hypo || _production_surf || _q12 || _q23 || _theta1 || _theta2
-			|| _theta3 || _tmin || _tmax || _tmin_jr || _tmax_jr || _etr1 || _etr2 || _etr3 || _etr_total || _couvert_nival || _hauteur_neige || _albedo_neige || _profondeurgel || _apport_lateral_uhrh)
+		if(_apport || _etp || _neige || _pluie || _production_base || _production_hypo || _production_surf || _q12 || _q23 || _theta1 || _theta2 || _theta3 || 
+			_tmin || _tmax || _tmin_jr || _tmax_jr || _etr1 || _etr2 || _etr3 || _etr_total || _couvert_nival || _hauteur_neige || _albedo_neige || 
+			_profondeurgel || _apport_lateral_uhrh || _ecoulement_surf || _ecoulement_hypo || _ecoulement_base)	//_apport_glacier || _eau_glacier
 		{
 			_bOutputUhrhVar = true;
 		}
@@ -587,8 +588,8 @@ namespace HYDROTEL
 
 
 	//--------------------------------------------------------------------------------------------------------------------
-	string OUTPUT::SauvegardeOutputNetCDF(string sPathFile, bool bUHRH, 
-											string sOutputVariableName, float* pData, string sUnits, string sDescription)
+	string OUTPUT::SauvegardeOutputNetCDF(string sPathFile, string sOutputVariableName, float* pData, 
+											string outputIdVarName, size_t outputIdNb, int* outputIdVec, string sUnits, string sDescription)
 	{
 		ostringstream oss;
 		string sDimName, str;
@@ -606,16 +607,8 @@ namespace HYDROTEL
 		if(FichierExiste(sPathFile))
 			SupprimerFichier(sPathFile);
 
-		if(bUHRH)
-		{
-			sDimName = "uhrh";
-			lDimSize = _uhrhOutputNb;
-		}
-		else
-		{
-			sDimName = "troncon";
-			lDimSize = _tronconOutputNb;
-		}
+		sDimName = outputIdVarName;
+		lDimSize = outputIdNb;
 
 		//chunksize optimisé pour série temporelle par UHRH/troncon
 		chunksize[0] = _sim_hyd->_lNbPasTempsSim;	//time dimension
@@ -752,10 +745,7 @@ namespace HYDROTEL
 			return "error creating file: " + sPathFile + ": error 15";
 
 		//save data
-		if (bUHRH)
-			ret = nc_put_var_int(iNcid, iElemID, _uhrhOutputIDs);
-		else
-			ret = nc_put_var_int(iNcid, iElemID, _tronconOutputIDs);
+		ret = nc_put_var_int(iNcid, iElemID, outputIdVec);
 
 		if (ret != NC_NOERR)
 			return "error creating file: " + sPathFile + ": error 16";

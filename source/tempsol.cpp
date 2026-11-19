@@ -151,7 +151,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "tempsol-profondeur_gel.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "profondeur_gel.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "tempsol-profondeur_gel", _netCdf_profondeurgel, "cm", "Profondeur du gel au sol");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "profondeur_gel", _netCdf_profondeurgel, "cm", "Profondeur du gel au sol");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "profondeur_gel", _netCdf_profondeurgel, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "cm", "Profondeur du gel au sol");
 				if(str2 != "")
 					throw ERREUR(str2);
 

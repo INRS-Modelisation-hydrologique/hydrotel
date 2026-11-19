@@ -424,7 +424,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ruissellement-apport_lateral.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "apport_lateral.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, false, "ruissellement-apport_lateral", _netCdf_apport_lateral, "m3/s", "Apport lateral");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, false, "apport_lateral", _netCdf_apport_lateral, "m3/s", "Apport lateral");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "apport_lateral", _netCdf_apport_lateral, "troncon", _sim_hyd.PrendreOutput()._tronconOutputNb, _sim_hyd.PrendreOutput()._tronconOutputIDs, "m3/s", "Apport lateral");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -443,7 +443,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ruissellement-apport_lateral.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ecoulement_surf.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, false, "ruissellement-apport_lateral", _netCdf_apport_lateral, "m3/s", "Apport lateral");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "ecoulement_surf", _netCdf_ecoulement_surf, "m3/s", "Ecoulement vers le reseau hydrographique (couche 1) (surface)");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "ecoulement_surf", _netCdf_ecoulement_surf, "uhrh", _sim_hyd.PrendreOutput()._uhrhOutputNb, _sim_hyd.PrendreOutput()._uhrhOutputIDs, "m3/s", "Ecoulement vers le reseau hydrographique (couche 1) (surface)");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -462,7 +462,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ruissellement-apport_lateral.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ecoulement_hypo.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, false, "ruissellement-apport_lateral", _netCdf_apport_lateral, "m3/s", "Apport lateral");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "ecoulement_hypo", _netCdf_ecoulement_hypo, "m3/s", "Ecoulement vers le reseau hydrographique (couche 2) (hypodermique)");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "ecoulement_hypo", _netCdf_ecoulement_hypo, "uhrh", _sim_hyd.PrendreOutput()._uhrhOutputNb, _sim_hyd.PrendreOutput()._uhrhOutputIDs, "m3/s", "Ecoulement vers le reseau hydrographique (couche 2) (hypodermique)");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -481,7 +481,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ruissellement-apport_lateral.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "ecoulement_base.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, false, "ruissellement-apport_lateral", _netCdf_apport_lateral, "m3/s", "Apport lateral");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "ecoulement_base", _netCdf_ecoulement_base, "m3/s", "Ecoulement vers le reseau hydrographique (couche 3) (base)");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "ecoulement_base", _netCdf_ecoulement_base, "uhrh", _sim_hyd.PrendreOutput()._uhrhOutputNb, _sim_hyd.PrendreOutput()._uhrhOutputIDs, "m3/s", "Ecoulement vers le reseau hydrographique (couche 3) (base)");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -498,7 +498,7 @@ namespace HYDROTEL
 				string str1, str2;
 
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "apport_lateral_uhrh.nc");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "apport_lateral_uhrh", _netCdf_apport_lateral_uhrh, "m3/s", "Apport lateral au troncon");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "apport_lateral_uhrh", _netCdf_apport_lateral_uhrh, "uhrh", _sim_hyd.PrendreOutput()._uhrhOutputNb, _sim_hyd.PrendreOutput()._uhrhOutputIDs, "m3/s", "Apport lateral au troncon");
 				if(str2 != "")
 					throw ERREUR(str2);
 

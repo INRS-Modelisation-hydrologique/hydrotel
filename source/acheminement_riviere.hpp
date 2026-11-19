@@ -34,26 +34,29 @@ namespace HYDROTEL
 	class ACHEMINEMENT_RIVIERE : public SOUS_MODELE
 	{
 	public:
+
 		ACHEMINEMENT_RIVIERE(SIM_HYD& sim_hyd, const std::string& nom);
 		virtual ~ACHEMINEMENT_RIVIERE() = 0;
 
-		virtual void Initialise();
+		virtual void		Initialise();
+		virtual void		Calcule();
+		virtual void		Termine();
 
-		virtual void Calcule();
 
-		virtual void Termine();
-
-		std::string _nom_fichier_debit_amont;
-		std::string _nom_fichier_debit_aval;
+		std::string			_nom_fichier_debit_amont;
+		std::string			_nom_fichier_debit_aval;
 
 		OUTPUT*				_pOutput;
 
 		float*				_netCdf_debitaval;
 		float*				_netCdf_debitamont;
 
+		float*				_netCdf_hauteuraval;
+
 		float*				_netCdf_prelevements_pression;
 
 	private:
+
 		std::ofstream		_fichier_debit_aval;
 		std::ofstream		_fichier_debit_amont;
 

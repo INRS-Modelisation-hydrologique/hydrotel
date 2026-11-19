@@ -828,7 +828,7 @@ namespace HYDROTEL
 			if (_troncons[index].get()->PrendreIdent() == ident)
 				return index;
 		}
-		throw ERREUR("ident troncon introuvable");
+		throw ERREUR("ident troncon not found");
 	}
 
 }

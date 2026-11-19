@@ -187,7 +187,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "evapotranspiration-etp.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "etp.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "evapotranspiration-etp", _netCdf_etp, "mm", "Evapotranspiration potentielle");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "etp", _netCdf_etp, "mm", "Evapotranspiration potentielle");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "etp", _netCdf_etp, "uhrh", _sim_hyd.PrendreOutput()._uhrhOutputNb, _sim_hyd.PrendreOutput()._uhrhOutputIDs, "mm", "Evapotranspiration potentielle");
 				if(str2 != "")
 					throw ERREUR(str2);
 

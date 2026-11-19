@@ -450,7 +450,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-tmin.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "tmin.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-tmin", _netCdf_tmin, "C", "Temperature minimum");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "tmin", _netCdf_tmin, "C", "Temperature minimum");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "tmin", _netCdf_tmin, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "C", "Temperature minimum");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -467,7 +467,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-tmax.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "tmax.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-tmax", _netCdf_tmax, "C", "Temperature maximum");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "tmax", _netCdf_tmax, "C", "Temperature maximum");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "tmax", _netCdf_tmax, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "C", "Temperature maximum");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -486,7 +486,7 @@ namespace HYDROTEL
 						//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-pluie.nc");
 						str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "pluie.nc");
 						//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-pluie", _netCdf_pluie, "mm", "Precipitation pluie");
-						str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "pluie", _netCdf_pluie, "mm", "Precipitation pluie");
+						str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "pluie", _netCdf_pluie, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Precipitation pluie");
 						if(str2 != "")
 							throw ERREUR(str2);
 
@@ -503,7 +503,7 @@ namespace HYDROTEL
 						//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-neige.nc");
 						str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "neige.nc");
 						//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-neige", _netCdf_neige, "mm", "Pecipitation neige (EEN)");
-						str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "neige", _netCdf_neige, "mm", "Pecipitation neige (EEN)");
+						str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "neige", _netCdf_neige, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Pecipitation neige (EEN)");
 						if(str2 != "")
 							throw ERREUR(str2);
 
@@ -521,7 +521,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-tminjour.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "tminjour.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-tminjour", _netCdf_tminjour, "C", "Temperature minimum journaliere");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "tminjour", _netCdf_tminjour, "C", "Temperature minimum journaliere");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "tminjour", _netCdf_tminjour, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "C", "Temperature minimum journaliere");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -538,7 +538,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "interpolation-tmaxjour.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "tmaxjour.nc");
 					//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "interpolation-tmaxjour", _netCdf_tmaxjour, "C", "Temperature maximum journaliere");
-					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "tmaxjour", _netCdf_tmaxjour, "C", "Temperature maximum journaliere");
+					str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "tmaxjour", _netCdf_tmaxjour, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "C", "Temperature maximum journaliere");
 					if(str2 != "")
 						throw ERREUR(str2);
 

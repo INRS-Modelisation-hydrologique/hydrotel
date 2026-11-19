@@ -139,7 +139,7 @@ namespace HYDROTEL
 				string str1, str2;
 
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "temp_eau.nc");
-				str2 = output.SauvegardeOutputNetCDF(str1, false, "temp_eau", _netCdf_tempeau, "C", "Temperature eau");
+				str2 = output.SauvegardeOutputNetCDF(str1, "temp_eau", _netCdf_tempeau, "troncon", output._tronconOutputNb, output._tronconOutputIDs, "C", "Temperature eau");
 				if(str2 != "")
 					throw ERREUR(str2);
 

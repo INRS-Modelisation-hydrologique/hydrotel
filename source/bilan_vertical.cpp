@@ -290,7 +290,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-production_surf.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "production_surf.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-production_surf", _netCdf_prodSurf, "mm", "Lame d`eau produite a la surface (production)");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "production_surf", _netCdf_prodSurf, "mm", "Lame d`eau produite a la surface (production)");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "production_surf", _netCdf_prodSurf, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Lame d`eau produite a la surface (production)");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -307,7 +307,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-production_hypo.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "production_hypo.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-production_hypo", _netCdf_prodHypo, "mm", "Lame d`eau produite par la 2e couche (production)");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "production_hypo", _netCdf_prodHypo, "mm", "Lame d`eau produite par la 2e couche (production)");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "production_hypo", _netCdf_prodHypo, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Lame d`eau produite par la 2e couche (production)");
 				if(str2 != "")
 					throw ERREUR(str2);
 
@@ -324,7 +324,7 @@ namespace HYDROTEL
 				//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "bilanvertical-production_base.nc");
 				str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "production_base.nc");
 				//str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "bilanvertical-production_base", _netCdf_prodBase, "mm", "Lame d`eau produite par la 3e couche (production)");
-				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, true, "production_base", _netCdf_prodBase, "mm", "Lame d`eau produite par la 3e couche (production)");
+				str2 = _sim_hyd.PrendreOutput().SauvegardeOutputNetCDF(str1, "production_base", _netCdf_prodBase, "uhrh", output._uhrhOutputNb, output._uhrhOutputIDs, "mm", "Lame d`eau produite par la 3e couche (production)");
 				if(str2 != "")
 					throw ERREUR(str2);
 

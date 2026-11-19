@@ -983,7 +983,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "fonte_neige-degre_jour_mod-couvert_nival.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "couvert_nival.nc");
 					//str2 = _pOutput->SauvegardeOutputNetCDF(str1, true, "fonte_neige-degre_jour_mod-couvert_nival", _netCdf_couvertnival, "mm", "Equivalent en eau du couvert nival");
-					str2 = _pOutput->SauvegardeOutputNetCDF(str1, true, "couvert_nival", _netCdf_couvertnival, "mm", "Equivalent en eau du couvert nival");
+					str2 = _pOutput->SauvegardeOutputNetCDF(str1, "couvert_nival", _netCdf_couvertnival, "uhrh", _pOutput->_uhrhOutputNb, _pOutput->_uhrhOutputIDs, "mm", "Equivalent en eau du couvert nival");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1000,7 +1000,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "fonte_neige-degre_jour_mod-hauteur_neige.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "hauteur_neige.nc");
 					//str2 = _pOutput->SauvegardeOutputNetCDF(str1, true, "fonte_neige-degre_jour_mod-hauteur_neige", _netCdf_hauteurneige, "m", "Hauteur du couvert nival");
-					str2 = _pOutput->SauvegardeOutputNetCDF(str1, true, "hauteur_neige", _netCdf_hauteurneige, "m", "Hauteur du couvert nival");
+					str2 = _pOutput->SauvegardeOutputNetCDF(str1, "hauteur_neige", _netCdf_hauteurneige, "uhrh", _pOutput->_uhrhOutputNb, _pOutput->_uhrhOutputIDs, "m", "Hauteur du couvert nival");
 					if(str2 != "")
 						throw ERREUR(str2);
 
@@ -1017,7 +1017,7 @@ namespace HYDROTEL
 					//str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "fonte_neige-degre_jour_mod-albedo_neige.nc");
 					str1 = Combine(_sim_hyd.PrendreRepertoireResultat(), "albedo_neige.nc");
 					//str2 = _pOutput->SauvegardeOutputNetCDF(str1, true, "fonte_neige-degre_jour_mod-albedo_neige", _netCdf_albedoneige, "[0-1]", "Albedo de la neige");
-					str2 = _pOutput->SauvegardeOutputNetCDF(str1, true, "albedo_neige", _netCdf_albedoneige, "[0-1]", "Albedo de la neige");
+					str2 = _pOutput->SauvegardeOutputNetCDF(str1, "albedo_neige", _netCdf_albedoneige, "uhrh", _pOutput->_uhrhOutputNb, _pOutput->_uhrhOutputIDs, "[0-1]", "Albedo de la neige");
 					if(str2 != "")
 						throw ERREUR(str2);
 
