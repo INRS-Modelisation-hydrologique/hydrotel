@@ -120,7 +120,8 @@ namespace HYDROTEL
 
 		float Celerite(float lng, float lrg, float pte, float man, float qamont, float qaval);
 
-		void LectureEtat(DATE_HEURE date_courante);
+		//void LectureEtat(DATE_HEURE date_courante);
+		void LectureEtat();
 		void SauvegardeEtat(DATE_HEURE date_courante);
 
 		std::vector<float> _coefficient_optimisation_rugosite;		//parametre

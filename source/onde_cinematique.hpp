@@ -124,7 +124,8 @@ namespace HYDROTEL
 
 		void Ruisselement(double arete, double pte, double man, double ra, double rb, double rc, double p, int dt, double& rd);
 
-		void LectureEtat(DATE_HEURE date_courante);
+		//void LectureEtat(DATE_HEURE date_courante);
+		void LectureEtat();
 		void SauvegardeEtat(DATE_HEURE date_courante) const;
 
 		SIM_HYD*				_pSim_hyd;

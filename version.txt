@@ -2,6 +2,13 @@
 
 
 -------------------------------------------------------------------------------------------------------------------
+4.4.3 - 2026-11-23
+
+- Ajout des fichiers d'états pour le modèle de température de l'eau.
+
+
+
+-------------------------------------------------------------------------------------------------------------------
 4.4.2 - 2026-11-23
 
 - Prélèvements: correction des rejets dans le cas où les prélèvements sont corrigés en fonction des débits ou 

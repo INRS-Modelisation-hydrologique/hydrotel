@@ -67,7 +67,8 @@ namespace HYDROTEL
 		bool		PrendreSauvegardeTousEtat() const;											//retourne la sauvegarde de tous les etats
 		DATE_HEURE	PrendreDateHeureSauvegardeEtat() const;										//retourne la date de sauvegarde de l'etat
 
-		void		LectureEtat(DATE_HEURE date_courante);
+		//void		LectureEtat(DATE_HEURE date_courante);
+		void		LectureEtat();
 		void		SauvegardeEtat(DATE_HEURE date_courante) const;
 
 		std::string _nom_fichier_lecture_etat;

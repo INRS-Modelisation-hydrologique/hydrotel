@@ -1888,6 +1888,12 @@ namespace HYDROTEL
 						nom_fichier = Combine(repertoire, nom_fichier);
 					onde_cinematique_modifiee->ChangeNomFichierLectureEtat(nom_fichier);
 				}
+				else if (cle == "LECTURE ETAT TEMP EAU")
+				{
+					if (!Racine(nom_fichier))
+						nom_fichier = Combine(repertoire, nom_fichier);
+					temp_eau_cequeau->_nom_fichier_lecture_etat = nom_fichier;
+				}
 				else if (cle == "ECRITURE ETAT FONTE NEIGE")
 				{
 					boost::algorithm::to_lower(nom_fichier);
@@ -2068,9 +2074,40 @@ namespace HYDROTEL
 						onde_cinematique_modifiee->ChangeDateHeureSauvegardeEtat(false, DATE_HEURE());
 					}
 				}
+				else if (cle == "ECRITURE ETAT TEMP EAU")
+				{
+					boost::algorithm::to_lower(nom_fichier);
+					if (nom_fichier != "tous")
+					{
+						temp_eau_cequeau->_sauvegarde_etat = true;
 
-				//else if (cle == "ECRITURE ETAT TEMP EAU")		//TODO
+						if(nom_fichier == "fin")
+							temp_eau_cequeau->_date_sauvegarde_etat = dtFinSim;
+						else
+						{
+							boost::trim(nom_fichier);
+							if(nom_fichier.length() < 16 || !( (nom_fichier[4] == '-' || nom_fichier[4] == '/' || nom_fichier[4] == ' ') && 
+																(nom_fichier[7] == '-' || nom_fichier[7] == '/' || nom_fichier[7] == ' ') && 
+																(nom_fichier[10] == ' ') && 
+																(nom_fichier[13] == ':') ))
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date format is invalid. Valid format: YYYY-MM-DD HH:00");
+							}
 
+							try{ temp_eau_cequeau->_date_sauvegarde_etat = DATE_HEURE::Convertie(nom_fichier); }
+							catch(...)
+							{
+								throw ERREUR_LECTURE_FICHIER("FICHIER SIMULATION: " + _nom_fichier_simulation + ": " + cle + ": the date specified is invalid.");
+							}
+						}
+					}
+					else
+					{
+						temp_eau_cequeau->_sauvegarde_tous_etat = true;
+						temp_eau_cequeau->_sauvegarde_etat = false;
+						temp_eau_cequeau->_date_sauvegarde_etat = DATE_HEURE();
+					}
+				}
 				else if (cle == "REPERTOIRE ECRITURE ETAT FONTE NEIGE")
 				{
 					if (!Racine(nom_fichier))
@@ -2104,6 +2141,12 @@ namespace HYDROTEL
 					if (!Racine(nom_fichier))
 						nom_fichier = Combine(repertoire, nom_fichier);
 					onde_cinematique_modifiee->ChangeRepertoireEcritureEtat(nom_fichier);
+				}
+				else if (cle == "REPERTOIRE ECRITURE ETAT TEMP EAU")
+				{
+					if (!Racine(nom_fichier))
+						nom_fichier = Combine(repertoire, nom_fichier);
+					temp_eau_cequeau->_repertoire_ecriture_etat = nom_fichier;
 				}
 				else if (cle == "INTERPOLATION DONNEES")
 				{
@@ -2440,6 +2483,9 @@ namespace HYDROTEL
 
 		if(onde_cinematique_modifiee->PrendreRepertoireEcritureEtat() == "")
 			onde_cinematique_modifiee->ChangeRepertoireEcritureEtat(repertoire);
+
+		if(temp_eau_cequeau->_repertoire_ecriture_etat == "")
+			temp_eau_cequeau->_repertoire_ecriture_etat = repertoire;
 	}
 
 
@@ -3133,7 +3179,7 @@ namespace HYDROTEL
 			_bInterpolationMeteoTroncon = true;
 
 		//initialization for NetCDF output
-		if (_outputCDF)
+		if(_outputCDF)
 		{
 			//uhrh
 			if(_output._bOutputUhrhVar)
@@ -3165,7 +3211,7 @@ namespace HYDROTEL
 			}
 
 			//troncon
-			if (_output._bOutputTronconVar)
+			if(_output._bOutputTronconVar)
 			{
 				vect.clear();
 
@@ -3791,25 +3837,28 @@ namespace HYDROTEL
 
 		// VARIABLES ETAT
 
-		fichier << "LECTURE ETAT FONTE NEIGE;" << endl;				// [NOM FICHIER/vide pour ne pas lire]
-		fichier << "LECTURE ETAT TEMPERATURE DU SOL;" << endl;		// [NOM FICHIER/vide pour ne pas lire]
-		fichier << "LECTURE ETAT BILAN VERTICAL;" << endl;			// [NOM FICHIER/vide pour ne pas lire]
-		fichier << "LECTURE ETAT RUISSELEMENT SURFACE;" << endl;	// [NOM FICHIER/vide pour ne pas lire]
-		fichier << "LECTURE ETAT ACHEMINEMENT RIVIERE;" << endl;	// [NOM FICHIER/vide pour ne pas lire]
+		fichier << "LECTURE ETAT FONTE NEIGE;" << endl;				//[NOM FICHIER/vide pour ne pas lire]
+		fichier << "LECTURE ETAT TEMPERATURE DU SOL;" << endl;		//
+		fichier << "LECTURE ETAT BILAN VERTICAL;" << endl;			//
+		fichier << "LECTURE ETAT RUISSELEMENT SURFACE;" << endl;	//
+		fichier << "LECTURE ETAT ACHEMINEMENT RIVIERE;" << endl;	//
+		fichier << "LECTURE ETAT TEMP EAU;" << endl;				//
 		fichier << endl;
 
-		fichier << "ECRITURE ETAT FONTE NEIGE;" << endl;			// [DATE D'ECRITURE/TOUS/vide pour ne pas ecrire]
-		fichier << "ECRITURE ETAT TEMPERATURE DU SOL;" << endl;		// [DATE D'ECRITURE/TOUS/vide pour ne pas ecrire]
-		fichier << "ECRITURE ETAT BILAN VERTICAL;" << endl;			// [DATE D'ECRITURE / TOUS/vide pour ne pas ecrire]
-		fichier << "ECRITURE ETAT RUISSELEMENT SURFACE;" << endl;	// [DATE D'ECRITURE / TOUS/vide pour ne pas ecrire]
-		fichier << "ECRITURE ETAT ACHEMINEMENT RIVIERE;" << endl;	// [DATE D'ECRITURE / TOUS/vide pour ne pas ecrire]
+		fichier << "ECRITURE ETAT FONTE NEIGE;" << endl;			//[DATE D'ECRITURE/TOUS/vide pour ne pas ecrire]
+		fichier << "ECRITURE ETAT TEMPERATURE DU SOL;" << endl;		//
+		fichier << "ECRITURE ETAT BILAN VERTICAL;" << endl;			//
+		fichier << "ECRITURE ETAT RUISSELEMENT SURFACE;" << endl;	//
+		fichier << "ECRITURE ETAT ACHEMINEMENT RIVIERE;" << endl;	//
+		fichier << "ECRITURE ETAT TEMP EAU;" << endl;				//
 		fichier << endl;
 
-		fichier << "REPERTOIRE ECRITURE ETAT FONTE NEIGE;" << endl;				// [repertoire relatif]
-		fichier << "REPERTOIRE ECRITURE ETAT TEMPERATURE DU SOL;" << endl;		// [repertoire relatif]
-		fichier << "REPERTOIRE ECRITURE ETAT BILAN VERTICAL;" << endl;			// [repertoire relatif]
-		fichier << "REPERTOIRE ECRITURE ETAT RUISSELEMENT SURFACE;" << endl;	// [repertoire relatif]
-		fichier << "REPERTOIRE ECRITURE ETAT ACHEMINEMENT RIVIERE;" << endl;	// [repertoire relatif]
+		fichier << "REPERTOIRE ECRITURE ETAT FONTE NEIGE;" << endl;				//[repertoire relatif]
+		fichier << "REPERTOIRE ECRITURE ETAT TEMPERATURE DU SOL;" << endl;		//
+		fichier << "REPERTOIRE ECRITURE ETAT BILAN VERTICAL;" << endl;			//
+		fichier << "REPERTOIRE ECRITURE ETAT RUISSELEMENT SURFACE;" << endl;	//
+		fichier << "REPERTOIRE ECRITURE ETAT ACHEMINEMENT RIVIERE;" << endl;	//
+		fichier << "REPERTOIRE ECRITURE ETAT TEMP EAU;" << endl;				//
 		fichier << endl;
 
 		//SOUS MODELES SELECTIONNES

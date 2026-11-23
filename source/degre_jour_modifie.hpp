@@ -155,7 +155,8 @@ namespace HYDROTEL
 
 		float Erf(float x);
 
-		void LectureEtat(DATE_HEURE date_courante);
+		//void LectureEtat(DATE_HEURE date_courante);
+		void LectureEtat();
 		void SauvegardeEtat(DATE_HEURE date_courante) const;
 
 		// mise a jour de la neige

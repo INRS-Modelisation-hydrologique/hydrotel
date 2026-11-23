@@ -91,7 +91,10 @@ namespace HYDROTEL
 		}
 
 		if (!_nom_fichier_lecture_etat.empty())
-			LectureEtat( _sim_hyd.PrendreDateDebut() );
+		{
+			//LectureEtat( _sim_hyd.PrendreDateDebut() );
+			LectureEtat();
+		}
 
 		TEMPSOL::Initialise();
 	}
@@ -465,7 +468,8 @@ namespace HYDROTEL
 		_sauvegarde_etat = sauvegarde;
 	}
 
-	void THORSEN::LectureEtat(DATE_HEURE date_courante)
+	//void THORSEN::LectureEtat(DATE_HEURE date_courante)
+	void THORSEN::LectureEtat()
 	{
 		ifstream fichier(_nom_fichier_lecture_etat);
 		if (!fichier)

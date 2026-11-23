@@ -60,7 +60,8 @@ namespace HYDROTEL
 
 	private:
 
-		void		LectureEtat(DATE_HEURE date_courante);
+		//void		LectureEtat(DATE_HEURE date_courante);
+		void		LectureEtat();
 		void		SauvegardeEtat(DATE_HEURE date_courante) const;
 
 	private:

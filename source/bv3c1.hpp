@@ -138,7 +138,8 @@ namespace HYDROTEL
 		void CalculeRuisselement(ZONE& zone, size_t index_zone, float& pinf, float& ruis);		
 		void TriCoucheOct97(ZONE& zone, size_t index_zone, float pinf, float& ruis, float& q2, float& q3, float& dtc);
 
-		void LectureEtat(DATE_HEURE date_courante);
+		//void LectureEtat(DATE_HEURE date_courante);
+		void LectureEtat();
 		void SauvegardeEtat(DATE_HEURE date_courante) const;
 
 		std::vector<size_t> _index_eaux;

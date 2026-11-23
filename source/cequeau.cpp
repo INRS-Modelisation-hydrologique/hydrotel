@@ -146,7 +146,10 @@ namespace HYDROTEL
 		}
 
 		if (!_nom_fichier_lecture_etat.empty())
-			LectureEtat( _sim_hyd.PrendreDateDebut() );
+		{
+			//LectureEtat( _sim_hyd.PrendreDateDebut() );
+			LectureEtat();
+		}
 
 		BILAN_VERTICAL::Initialise();
 	}
@@ -1024,7 +1027,8 @@ namespace HYDROTEL
 		_sauvegarde_etat = sauvegarde;
 	}
 
-	void CEQUEAU::LectureEtat(DATE_HEURE date_courante)
+	//void CEQUEAU::LectureEtat(DATE_HEURE date_courante)
+	void CEQUEAU::LectureEtat()
 	{
 		ifstream fichier(_nom_fichier_lecture_etat);
 		if (!fichier)

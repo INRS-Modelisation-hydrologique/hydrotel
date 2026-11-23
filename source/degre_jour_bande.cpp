@@ -846,7 +846,10 @@ namespace HYDROTEL
 
 			//Fichier d'état
 			if (!_nom_fichier_lecture_etat.empty())
-				LectureEtat( _sim_hyd.PrendreDateDebut() );
+			{
+				//LectureEtat( _sim_hyd.PrendreDateDebut() );
+				LectureEtat();
+			}
 		}
 
 		FONTE_NEIGE::Initialise();
@@ -2590,7 +2593,8 @@ namespace HYDROTEL
 	}
 
 
-	void DEGRE_JOUR_BANDE::LectureEtat(DATE_HEURE date_courante)
+	//void DEGRE_JOUR_BANDE::LectureEtat(DATE_HEURE date_courante)
+	void DEGRE_JOUR_BANDE::LectureEtat()
 	{
 		ifstream fichier(_nom_fichier_lecture_etat);
 		if (!fichier)

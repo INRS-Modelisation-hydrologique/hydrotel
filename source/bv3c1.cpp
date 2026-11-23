@@ -151,7 +151,8 @@ namespace HYDROTEL
 	}
 
 
-	void BV3C1::LectureEtat(DATE_HEURE date_courante)
+	//void BV3C1::LectureEtat(DATE_HEURE date_courante)
+	void BV3C1::LectureEtat()
 	{
 		ifstream fichier(_nom_fichier_lecture_etat);
 		if (!fichier)
@@ -669,7 +670,10 @@ namespace HYDROTEL
 			}
 
 			if (!_nom_fichier_lecture_etat.empty())
-				LectureEtat( _sim_hyd.PrendreDateDebut() );
+			{
+				LectureEtat();
+				//LectureEtat( _sim_hyd.PrendreDateDebut() );
+			}
 
 			//determination du pas de temps interne minimum possible
 			float fPDT = static_cast<float>(_sim_hyd.PrendrePasDeTemps());

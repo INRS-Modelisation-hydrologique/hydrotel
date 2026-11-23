@@ -33,6 +33,8 @@ namespace HYDROTEL
         , _emissivite_eau(0.95f)
         , _chal_latente(2480.0f)
     {
+        _sauvegarde_etat = false;
+        _sauvegarde_tous_etat = false;
     }
 
 
@@ -92,6 +94,9 @@ namespace HYDROTEL
         _tempAirPasPrecedent.assign(_sim_hyd.PrendreTroncons().PrendreNbTroncon(), -999.0f);
 
         _pCoordTrans = new TRANSFORME_COORDONNEE(_sim_hyd.PrendreZones().PrendreGrille().PrendreProjection(), PROJECTIONS::LONGLAT_WGS84());
+
+        if(!_nom_fichier_lecture_etat.empty())
+            LectureEtat();
         
 		TEMP_EAU::Initialise();
     }
@@ -1039,6 +1044,9 @@ namespace HYDROTEL
             _hauteurPasPrecedent[idx] = static_cast<float>(tron->_hauteurAvalMoy);
         }
 
+        if(_sauvegarde_tous_etat || (_sauvegarde_etat && _date_sauvegarde_etat - _sim_hyd.PrendrePasDeTemps() == _sim_hyd.PrendreDateCourante()))
+            SauvegardeEtat(_sim_hyd.PrendreDateCourante());
+
 		TEMP_EAU::Calcule();
     }
 
@@ -1047,6 +1055,125 @@ namespace HYDROTEL
     {
         TEMP_EAU::Termine();
     }
+
+
+    void TEMP_EAU_CEQUEAU::SauvegardeEtat(DATE_HEURE date_courante)
+	{
+		BOOST_ASSERT(_repertoire_ecriture_etat.size() != 0);
+
+		date_courante.AdditionHeure( _sim_hyd.PrendrePasDeTemps() );
+
+		ostringstream nom_fichier, oss;
+		size_t x, nbSimuler, index_troncon;
+
+		string sSep = _sim_hyd.PrendreOutput()._sFichiersEtatsSeparator;
+
+		if(!RepertoireExiste(_repertoire_ecriture_etat))
+			CreeRepertoire(_repertoire_ecriture_etat);
+
+		nom_fichier << _repertoire_ecriture_etat;
+		if(_repertoire_ecriture_etat[_repertoire_ecriture_etat.size()-1] != '/')
+			nom_fichier << "/";
+
+		nom_fichier << setfill('0') 
+			        << "temp_eau_" 
+			        << setw(4) << date_courante.PrendreAnnee() 
+			        << setw(2) << date_courante.PrendreMois() 
+			        << setw(2) << date_courante.PrendreJour() 
+			        << setw(2) << date_courante.PrendreHeure() 
+					<< ".csv";
+
+		ofstream fichier(nom_fichier.str());
+		if (!fichier)
+			throw ERREUR_ECRITURE_FICHIER(nom_fichier.str());
+
+		fichier.exceptions(ios::failbit | ios::badbit);
+
+		fichier << "ETATS TEMP EAU" << sSep << PrendreNomSousModele() << "( " << HYDROTEL_VERSION << " )" << endl;
+		fichier << "DATE_HEURE" << sSep << date_courante << endl;
+		fichier << endl;
+
+		fichier << "TRONCON" << sSep << "TEMP EAU" << sSep << "TEMP AIR PAS PRECEDENT" << sSep << "HAUTEUR EAU PAS PRECEDENT" << endl;
+
+		TRONCONS& troncons = _sim_hyd.PrendreTroncons();
+
+		nbSimuler = _sim_hyd.PrendreTronconsSimules().size();
+		x = 0;
+
+		for (index_troncon=0; x<nbSimuler; index_troncon++)
+		{
+			if(find(begin(_sim_hyd.PrendreTronconsSimules()), end(_sim_hyd.PrendreTronconsSimules()), index_troncon) != end(_sim_hyd.PrendreTronconsSimules()))
+			{
+				TRONCON* troncon = troncons[index_troncon];
+
+				oss.str("");
+				oss << troncon->PrendreIdent() << sSep;
+
+				oss << setprecision(12) << setiosflags(ios::fixed);
+
+				oss << troncon->_tempEau << sSep;
+				oss << _tempAirPasPrecedent[index_troncon] << sSep;
+				oss << _hauteurPasPrecedent[index_troncon];
+
+				//oss << setprecision(21) << setiosflags(ios::fixed);
+				//oss << _hauteur[index_troncon];
+
+				fichier << oss.str() << endl;
+				++x;
+			}
+		}
+
+		fichier.close();
+	}
+
+
+    void TEMP_EAU_CEQUEAU::LectureEtat()
+	{
+		ifstream fichier(_nom_fichier_lecture_etat);
+		if (!fichier)
+			throw ERREUR_LECTURE_FICHIER("TEMP_EAU_CEQUEAU; fichier etat TEMP_EAU; " + _nom_fichier_lecture_etat);
+
+		vector<int> vValidation;
+		string ligne, str;
+		size_t index_troncon;
+		int iIdent;
+
+		getline_mod(fichier, ligne);
+		getline_mod(fichier, ligne);
+		getline_mod(fichier, ligne);
+		getline_mod(fichier, ligne);
+
+		TRONCONS& troncons = _sim_hyd.PrendreTroncons();
+
+		while(!fichier.eof())
+		{
+			getline_mod(fichier, ligne);
+			if(ligne != "")
+			{
+				vector<float> valeurs = extrait_fvaleur(ligne, _sim_hyd.PrendreOutput()._sFichiersEtatsSeparator);
+				vector<double> dValeurs = extrait_dvaleur(ligne, _sim_hyd.PrendreOutput()._sFichiersEtatsSeparator);
+
+				iIdent = static_cast<int>(valeurs[0]);
+				index_troncon = _sim_hyd.PrendreTroncons().IdentVersIndex(iIdent);
+
+				if(find(begin(_sim_hyd.PrendreTronconsSimules()), end(_sim_hyd.PrendreTronconsSimules()), index_troncon) != end(_sim_hyd.PrendreTronconsSimules()))
+				{
+					TRONCON* troncon = troncons[index_troncon];
+					troncon->_tempEau = valeurs[1];
+                    _tempAirPasPrecedent[index_troncon] = valeurs[2];
+                    _hauteurPasPrecedent[index_troncon] = valeurs[3];
+
+					vValidation.push_back(iIdent);
+				}
+			}
+		}
+
+		fichier.close();
+
+		std::sort(vValidation.begin(), vValidation.end());
+		if(!equal(vValidation.begin(), vValidation.end(), _sim_hyd.PrendreTronconsSimulesIdent().begin()))
+			throw ERREUR_LECTURE_FICHIER("TEMP_EAU; fichier etat TEMP_EAU_CEQUEAU; " + _nom_fichier_lecture_etat);
+	}
 
 
 }

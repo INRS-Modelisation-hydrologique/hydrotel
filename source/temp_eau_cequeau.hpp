@@ -46,11 +46,22 @@ namespace HYDROTEL
         //float         PrendreEvaporationPriestlay(size_t index_troncon);
 
 
-        std::string	_nom_fichier_parametres_troncons;
-        std::string	_nom_fichier_parametres_zones;
+        std::string	    _nom_fichier_parametres_troncons;
+        std::string	    _nom_fichier_parametres_zones;
+
+        std::string     _nom_fichier_lecture_etat;
+        std::string     _repertoire_ecriture_etat;
+        DATE_HEURE      _date_sauvegarde_etat;
+        bool            _sauvegarde_etat;
+        bool            _sauvegarde_tous_etat;
+
 
     private:
-          
+
+        void                LectureEtat();
+        void                SauvegardeEtat(DATE_HEURE date_courante);
+
+
         float               _fValSigma;                     //constante de Stefan-Boltzmann (MJ/m2K4) * 10e-6 (0.000000004903)
 
         std::vector<float>  _hauteurPasPrecedent;           //hauteur d'eau des troncons (m) (pas de temps précédent)

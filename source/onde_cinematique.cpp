@@ -152,7 +152,8 @@ namespace HYDROTEL
 	}
 
 
-	void ONDE_CINEMATIQUE::LectureEtat(DATE_HEURE date_courante)
+	//void ONDE_CINEMATIQUE::LectureEtat(DATE_HEURE date_courante)
+	void ONDE_CINEMATIQUE::LectureEtat()
 	{
 		//_oc_zone
 		ifstream fichier(_nom_fichier_lecture_etat);
@@ -773,7 +774,10 @@ namespace HYDROTEL
 				throw ERREUR("Error: hgm file is invalid (flows number equal 0): " + _nom_fichier_hgm);
 
 			if(!_nom_fichier_lecture_etat.empty())
-				LectureEtat( _sim_hyd.PrendreDateDebut() );
+			{
+				//LectureEtat( _sim_hyd.PrendreDateDebut() );
+				LectureEtat();
+			}
 		}
 
 		RUISSELEMENT_SURFACE::Initialise();

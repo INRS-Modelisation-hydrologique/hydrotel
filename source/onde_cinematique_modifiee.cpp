@@ -131,7 +131,8 @@ namespace HYDROTEL
 	}
 
 	
-	void ONDE_CINEMATIQUE_MODIFIEE::LectureEtat(DATE_HEURE date_courante)
+	//void ONDE_CINEMATIQUE_MODIFIEE::LectureEtat(DATE_HEURE date_courante)
+	void ONDE_CINEMATIQUE_MODIFIEE::LectureEtat()
 	{
 		//acheminement_riviere
 		ifstream fichier(_nom_fichier_lecture_etat);
@@ -499,7 +500,10 @@ namespace HYDROTEL
 		}
 
 		if (!_nom_fichier_lecture_etat.empty())
-			LectureEtat( _sim_hyd.PrendreDateDebut() );
+		{
+			//LectureEtat( _sim_hyd.PrendreDateDebut() );
+			LectureEtat();
+		}
 
 		if(!_sim_hyd._pr->LecturePrelevements())
 			throw ERREUR("Erreur lecture des prelevements");
