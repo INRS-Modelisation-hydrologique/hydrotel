@@ -986,7 +986,7 @@ namespace HYDROTEL
 
 					if(_sim_hyd._pr->_bSimulePrelevements)
 					{
-						float apportTot, qdMin, fPrelevement, fPrelevement2, fPrelevementCulture, fPrelevementCulture2, fRejet;
+						float apportTot, qdMin, fPrelevement, fPrelevement2, fPrelevementCulture, fPrelevementCulture2, fRejet, fRejet_RATIO;
 
 						apportTot = qamont + qapportlat;
 						if(apportTot > 0.0001f)
@@ -998,11 +998,14 @@ namespace HYDROTEL
 								fPrelevementCulture = static_cast<float>(troncons[indexTroncon]->_prPrelevementCulture);
 	
 								qdMin = max(apportTot * 0.001f, 0.0001f);
+								fRejet_RATIO = 1.0f;
 
 								if(apportTot - fPrelevement - fPrelevementCulture < qdMin)
 								{
 									fPrelevement2 = (apportTot - qdMin) * fPrelevement / (fPrelevement + fPrelevementCulture);					//atténuation proportionnelle
 									fPrelevementCulture2 = (apportTot - qdMin) * fPrelevementCulture / (fPrelevement + fPrelevementCulture);	//
+
+									fRejet_RATIO = fPrelevement2 / fPrelevement;
 
 									fPrelevement = fPrelevement2;
 									fPrelevementCulture = fPrelevementCulture2;
@@ -1017,6 +1020,9 @@ namespace HYDROTEL
 								if(fPrelevement != 0.0f && troncons[indexTroncon]->_prRejetTotal != 0.0)
 								{
 									fRejet = static_cast<float>(troncons[indexTroncon]->_prRejetTotal);
+
+									fRejet*= fRejet_RATIO;	//correction des rejets dans le cas où les prélèvements sont corrigés en fonction des débits ou de l'eau disponible
+
 									if(fRejet > fPrelevement)
 										fRejet = fPrelevement;
 
@@ -1154,7 +1160,7 @@ namespace HYDROTEL
 
 		if( _sim_hyd._pr->_bSimulePrelevements && !(type_troncon == TRONCON::RIVIERE && pMilieuHumide == nullptr) )
 		{
-			float qdMin, fPrelevement, fPrelevement2, fPrelevementCulture, fPrelevementCulture2, fRejet, qdIni, fDt;
+			float qdMin, fPrelevement, fPrelevement2, fPrelevementCulture, fPrelevementCulture2, fRejet, fRejet_RATIO, qdIni, fDt;
 			float hauteurMin, fHauteurPr, fHauteurCulture, fHauteurPr2, fHauteurCulture2, fHauteur, fHauteurRejet, fHauteurEff;
 			//float qdPr, qdCulture, fHauteurTemp, qdTemp;	//pour tests
 
@@ -1171,6 +1177,8 @@ namespace HYDROTEL
 					fPrelevementCulture = static_cast<float>(troncons[indexTroncon]->_prPrelevementCulture);
 					qdIni = qd;
 
+					fRejet_RATIO = 1.0f;
+
 					if(type_troncon == TRONCON::LAC)
 					{
 						fHauteur = pow(qd / coefC, 1.0f / coefK);
@@ -1184,6 +1192,8 @@ namespace HYDROTEL
 						{
 							fHauteurPr2 = (fHauteur - hauteurMin) * fHauteurPr / (fHauteurPr + fHauteurCulture);				//atténuation proportionnelle
 							fHauteurCulture2 = (fHauteur - hauteurMin) * fHauteurCulture / (fHauteurPr + fHauteurCulture);		//
+
+							fRejet_RATIO = fHauteurPr2 / fHauteurPr;
 
 							fHauteurPr = fHauteurPr2;
 							fHauteurCulture = fHauteurCulture2;
@@ -1212,6 +1222,8 @@ namespace HYDROTEL
 						{
 							fPrelevement2 = (qd - qdMin) * fPrelevement / (fPrelevement + fPrelevementCulture);					//atténuation proportionnelle
 							fPrelevementCulture2 = (qd - qdMin) * fPrelevementCulture / (fPrelevement + fPrelevementCulture);	//
+
+							fRejet_RATIO = fPrelevement2 / fPrelevement;
 
 							fPrelevement = fPrelevement2;
 							fPrelevementCulture = fPrelevementCulture2;
@@ -1245,6 +1257,9 @@ namespace HYDROTEL
 					if(fPrelevement != 0.0f && troncons[indexTroncon]->_prRejetTotal != 0.0)
 					{
 						fRejet = static_cast<float>(troncons[indexTroncon]->_prRejetTotal);
+
+						fRejet*= fRejet_RATIO;	//correction des rejets dans le cas où les prélèvements sont corrigés en fonction des débits ou de l'eau disponible
+
 						if(fRejet > fPrelevement)
 							fRejet = fPrelevement;
 
